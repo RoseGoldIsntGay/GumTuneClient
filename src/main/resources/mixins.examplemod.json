@@ -1,0 +1,18 @@
+{
+  "compatibilityLevel": "JAVA_8",
+  "minVersion": "0.7",
+  "package": "cc.polyfrost.oneconfig.mixin",
+  "refmap": "mixins.oneconfig.refmap.json",
+  "plugin": "cc.polyfrost.oneconfig.plugin.OneConfigMixinPlugin",
+  "injectors": {
+    "maxShiftBy": 5
+  },
+  "verbose": true,
+  "client": [
+    "cc.polyfrost.example.mixin.GuiIngameForgeMixin",
+    "cc.polyfrost.example.mixin.MinecraftMixin",
+    "cc.polyfrost.example.mixin.NetHandlerPlayClientMixin",
+    "cc.polyfrost.example.mixin.ShaderGroupAccessor",
+    "cc.polyfrost.example.mixin.WorldClientMixin"
+  ]
+}
