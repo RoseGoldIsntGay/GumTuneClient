@@ -2,10 +2,11 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         mavenCentral()
-        maven("https://repo.woverflow.cc")
+        maven("https://repo.polyfrost.cc/releases")
+        maven("https://maven.architectury.dev/")
     }
     plugins {
-        val egtVersion = "0.1.8"
+        val egtVersion = "0.1.10"
         id("gg.essential.multi-version.root") version egtVersion
     }
     resolutionStrategy {

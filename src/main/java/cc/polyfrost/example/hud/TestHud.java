@@ -1,7 +1,10 @@
 package cc.polyfrost.example.hud;
 
 import cc.polyfrost.oneconfig.hud.TextHud;
+import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
+
+import java.util.List;
 
 public class TestHud extends TextHud {
     public TestHud(boolean enabled, int x, int y) {
@@ -9,7 +12,7 @@ public class TestHud extends TextHud {
     }
 
     @Override
-    public String getText() {
-        return "Hello, world! " + Minecraft.getDebugFPS();
+    public List<String> getLines() {
+        return Lists.newArrayList("Hello, world! " + Minecraft.getDebugFPS());
     }
 }

@@ -36,7 +36,7 @@ loom {
     noServerRunConfigs()
     if (project.platform.isLegacyForge) {
         launchConfigs.named("client") {
-            property("fml.coreMods.load", "cc.polyfrost.oneconfig.plugin.LoadingPlugin")
+            arg("--tweakClass", "cc.polyfrost.oneconfigwrapper.OneConfigWrapper")
             property("mixin.debug.export", "true")
         }
     }
@@ -46,10 +46,6 @@ loom {
         }
     }
     mixin.defaultRefmapName.set("mixins.${mod_id}.refmap.json")
-}
-
-repositories {
-    maven("https://repo.woverflow.cc/")
 }
 
 val shade: Configuration by configurations.creating {
@@ -63,19 +59,12 @@ sourceSets {
 }
 
 repositories {
-    mavenCentral()
-    maven {
-        url = uri("https://repo.polyfrost.cc/private")
-        credentials(PasswordCredentials::class)
-        authentication {
-            create<BasicAuthentication>("basic")
-        }
-    }
-    maven("https://repo.woverflow.cc/")
+    maven("https://repo.polyfrost.cc/releases")
 }
 
 dependencies {
-    implementation("cc.polyfrost:oneconfig-1.8.9-forge:0.1.0")
+    compileOnly("cc.polyfrost:oneconfig-1.8.9-forge:0.1.0-alpha26")
+    shade("cc.polyfrost:oneconfig-wrapper-1.8.9-forge:1.0.0-alpha6")
 }
 
 tasks.processResources {
@@ -147,9 +136,7 @@ tasks {
                     "ForceLoadAsMod" to true,
                     "TweakOrder" to "0",
                     "MixinConfigs" to "mixins.${mod_id}.json",
-                    "FMLCorePlugin" to "cc.polyfrost.oneconfig.plugin.LoadingPlugin",
-                    "TweakClass" to "org.spongepowered.asm.launch.MixinTweaker",
-                    "FMLCorePluginContainsFMLMod" to "lol"
+                    "TweakClass" to "cc.polyfrost.oneconfigwrapper.OneConfigWrapper"
                 )
             )
         }
