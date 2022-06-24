@@ -4,9 +4,6 @@ import cc.polyfrost.example.command.ExampleCommand;
 import cc.polyfrost.example.config.TestConfig;
 import cc.polyfrost.oneconfig.utils.commands.CommandManager;
 
-/**
- * The main class of OneConfig.
- */
 @net.minecraftforge.fml.common.Mod(modid = ExampleMod.MODID, name = ExampleMod.NAME, version = ExampleMod.VERSION)
 public class ExampleMod {
     public static final String MODID = "@ID@";
