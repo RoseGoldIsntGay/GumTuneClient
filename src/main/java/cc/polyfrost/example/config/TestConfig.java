@@ -1,5 +1,6 @@
 package cc.polyfrost.example.config;
 
+import cc.polyfrost.example.ExampleMod;
 import cc.polyfrost.example.hud.TestHud;
 import cc.polyfrost.oneconfig.config.Config;
 import cc.polyfrost.oneconfig.config.annotations.HUD;
@@ -23,7 +24,7 @@ public class TestConfig extends Config {
     public static boolean test = true;
 
     public TestConfig() {
-        super(new Mod("Example Mod", ModType.UTIL_QOL), "config/example_mod.json");
+        super(new Mod(ExampleMod.NAME, ModType.UTIL_QOL), ExampleMod.MODID + ".json");
     }
 }
 
