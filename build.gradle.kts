@@ -63,8 +63,17 @@ repositories {
 }
 
 dependencies {
-    compileOnly("cc.polyfrost:oneconfig-1.8.9-forge:0.1.0-alpha26")
-    shade("cc.polyfrost:oneconfig-wrapper-1.8.9-forge:1.0.0-alpha6")
+    modCompileOnly("cc.polyfrost:oneconfig-$platform:0.1.0-alpha+") {
+        exclude(group = "null")
+    }
+
+    val loader = when {
+        platform.isLegacyForge -> "launchwrapper"
+        platform.isModLauncher -> "modlauncher"
+        platform.isFabric -> "prelaunch"
+        else -> throw IllegalStateException("Unknown platform: $platform")
+    }
+    shade("cc.polyfrost:oneconfig-wrapper-$loader:1.0.0-alpha+")
 }
 
 tasks.processResources {
@@ -103,6 +112,14 @@ tasks.processResources {
                 "mcVersionStr" to project.platform.mcVersionStr.substringBeforeLast(".") + ".x"
             )
         )
+    }
+}
+
+afterEvaluate {
+    if (rootProject.file("LICENSE-TEMPLATE").exists()) {
+        logger.error("-------------------------------------------------------")
+        logger.error("PLEASE REPLACE THE `LICENSE-TEMPLATE` FILE WITH YOUR OWN LICENSE")
+        logger.error("-------------------------------------------------------")
     }
 }
 

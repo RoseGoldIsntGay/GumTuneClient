@@ -14,7 +14,7 @@ public class TestConfig extends Config {
             name = "Very cool HUD",
             subcategory = "Test"
     )
-    public static TestHud testHud = new TestHud(true, 500, 500);
+    public static TestHud testHud = new TestHud();
 
     @Switch(
             name = "Test",

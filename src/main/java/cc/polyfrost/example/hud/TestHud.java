@@ -1,18 +1,16 @@
 package cc.polyfrost.example.hud;
 
-import cc.polyfrost.oneconfig.hud.TextHud;
-import com.google.common.collect.Lists;
+import cc.polyfrost.oneconfig.hud.SingleTextHud;
 import net.minecraft.client.Minecraft;
 
-import java.util.List;
+public class TestHud extends SingleTextHud {
 
-public class TestHud extends TextHud {
-    public TestHud(boolean enabled, int x, int y) {
-        super(enabled, x, y);
+    public TestHud() {
+        super("Title", true);
     }
 
     @Override
-    public List<String> getLines() {
-        return Lists.newArrayList("Hello, world! " + Minecraft.getDebugFPS());
+    protected String getText() {
+        return Minecraft.getMinecraft().getSession().getUsername();
     }
 }
