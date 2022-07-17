@@ -25,6 +25,7 @@ public class TestConfig extends Config {
 
     public TestConfig() {
         super(new Mod(ExampleMod.NAME, ModType.UTIL_QOL), ExampleMod.MODID + ".json");
+        initialize();
     }
 }
 
