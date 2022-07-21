@@ -63,12 +63,9 @@ repositories {
 }
 
 dependencies {
-    modCompileOnly("cc.polyfrost:oneconfig-$platform:0.1.0-alpha+") {
-        exclude(group = "null")
-        exclude(module = "mixin")
-    }
-
-    compileOnly("org.spongepowered:mixin:0.8.5-SNAPSHOT")
+    modCompileOnly("cc.polyfrost:oneconfig-$platform:0.1.0-alpha+")
+    
+    //compileOnly("org.spongepowered:mixin:0.7.11-SNAPSHOT")
 
     val loader = when {
         platform.isLegacyForge -> "launchwrapper"
