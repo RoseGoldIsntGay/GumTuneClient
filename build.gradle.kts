@@ -64,16 +64,11 @@ repositories {
 
 dependencies {
     modCompileOnly("cc.polyfrost:oneconfig-$platform:0.1.0-alpha+")
-    
-    //compileOnly("org.spongepowered:mixin:0.7.11-SNAPSHOT")
 
-    val loader = when {
-        platform.isLegacyForge -> "launchwrapper"
-        platform.isModLauncher -> "modlauncher"
-        platform.isFabric -> "prelaunch"
-        else -> throw IllegalStateException("Unknown platform: $platform")
+    if (platform.isLegacyForge) {
+        compileOnly("org.spongepowered:mixin:0.7.11-SNAPSHOT")
+        shade("cc.polyfrost:oneconfig-wrapper-launchwrapper:1.0.0-alpha+")
     }
-    shade("cc.polyfrost:oneconfig-wrapper-$loader:1.0.0-alpha+")
 }
 
 tasks.processResources {

@@ -10,7 +10,7 @@ public class TestHud extends SingleTextHud {
     }
 
     @Override
-    protected String getText() {
+    protected String getText(boolean example) {
         return Minecraft.getMinecraft().getSession().getUsername();
     }
 }
