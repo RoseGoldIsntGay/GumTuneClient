@@ -30,7 +30,7 @@ blossom {
 version = mod_version
 group = "cc.polyfrost"
 base {
-    archivesName.set("$mod_id-$platform")
+    archivesName.set("$mod_name ($platform)")
 }
 loom {
     noServerRunConfigs()
