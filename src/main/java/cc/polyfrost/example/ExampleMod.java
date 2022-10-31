@@ -16,6 +16,6 @@ public class ExampleMod {
     @net.minecraftforge.fml.common.Mod.EventHandler
     public void onFMLInitialization(net.minecraftforge.fml.common.event.FMLInitializationEvent event) {
         config = new TestConfig();
-        CommandManager.INSTANCE.registerCommand(ExampleCommand.class);
+        CommandManager.INSTANCE.registerCommand(new ExampleCommand());
     }
 }
