@@ -1,0 +1,19 @@
+{
+  "compatibilityLevel": "JAVA_8",
+  "minVersion": "0.7",
+  "package": "rosegold.gumtuneaddons.mixin",
+  "refmap": "mixins.oneconfig.refmap.json",
+  "verbose": true,
+  "client": [
+    "MinecraftMixin",
+    "MixinEntityPlayerSP",
+    "MixinModelBiped",
+    "accessors.EntityPlayerSPAccessor",
+    "accessors.MinecraftAccessor"
+  ],
+  "mixins": [
+    "ModListMixin",
+    "accessors.RenderManagerAccessor",
+    "blocks.MixinBlockReed"
+  ]
+}
