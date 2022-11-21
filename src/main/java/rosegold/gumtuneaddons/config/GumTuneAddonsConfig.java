@@ -16,12 +16,13 @@ public class GumTuneAddonsConfig extends Config {
     public static TestHud testHud = new TestHud();*/
 
     // Categories
-    private static final String MACRO = "Macros";
-    private static final String WORLD = "World"; //todo better name
+
+    private transient static final String MACRO = "Macros";
+    private transient static final String WORLD = "World"; //todo better name
 
     // Modules
-    private static final String SUGAR_CANE_PLACER = "Sugar Cane Placer";
-    private static final String HARP_MACRO = "Harp Macro";
+    private transient static final String SUGAR_CANE_PLACER = "Sugar Cane Placer";
+    private transient static final String HARP_MACRO = "Harp Macro";
 
     @Switch(
             name = "Enabled",
@@ -58,7 +59,7 @@ public class GumTuneAddonsConfig extends Config {
             min = 0f, max = 100f,
             step = 1
     )
-    public static int harpMacroDelay = 20;
+    public static int harpMacroDelay = 10;
 
     public GumTuneAddonsConfig() {
         super(new Mod(GumTuneAddons.NAME, ModType.SKYBLOCK, "https://i.imgur.com/cLtXE48.png"), GumTuneAddons.MODID + ".json");
