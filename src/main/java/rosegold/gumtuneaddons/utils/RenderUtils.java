@@ -13,24 +13,26 @@ import net.minecraft.util.Vec3;
 import rosegold.gumtuneaddons.GumTuneAddons;
 import rosegold.gumtuneaddons.mixin.accessors.RenderManagerAccessor;
 
+import static rosegold.gumtuneaddons.GumTuneAddons.mc;
+
 public class RenderUtils {
 
     public static void renderEspBox(BlockPos blockPos, float partialTicks, int color) {
         if (blockPos != null) {
-            IBlockState blockState = GumTuneAddons.mc.theWorld.getBlockState(blockPos);
+            IBlockState blockState = mc.theWorld.getBlockState(blockPos);
 
             if (blockState != null) {
                 Block block = blockState.getBlock();
-                block.setBlockBoundsBasedOnState(GumTuneAddons.mc.theWorld, blockPos);
-                double d0 = GumTuneAddons.mc.thePlayer.lastTickPosX + (GumTuneAddons.mc.thePlayer.posX - GumTuneAddons.mc.thePlayer.lastTickPosX) * (double) partialTicks;
-                double d1 = GumTuneAddons.mc.thePlayer.lastTickPosY + (GumTuneAddons.mc.thePlayer.posY - GumTuneAddons.mc.thePlayer.lastTickPosY) * (double) partialTicks;
-                double d2 = GumTuneAddons.mc.thePlayer.lastTickPosZ + (GumTuneAddons.mc.thePlayer.posZ - GumTuneAddons.mc.thePlayer.lastTickPosZ) * (double) partialTicks;
-                drawFilledBoundingBox(block.getSelectedBoundingBox(GumTuneAddons.mc.theWorld, blockPos).expand(0.002D, 0.002D, 0.002D).offset(-d0, -d1, -d2), color);
+                block.setBlockBoundsBasedOnState(mc.theWorld, blockPos);
+                double d0 = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * (double) partialTicks;
+                double d1 = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * (double) partialTicks;
+                double d2 = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * (double) partialTicks;
+                drawFilledBoundingBox(block.getSelectedBoundingBox(mc.theWorld, blockPos).expand(0.002D, 0.002D, 0.002D).offset(-d0, -d1, -d2), color);
             }
         }
     }
     public static void renderSmallBox(Vec3 vec, int color) {
-        RenderManagerAccessor renderManager = (RenderManagerAccessor) GumTuneAddons.mc.getRenderManager();
+        RenderManagerAccessor renderManager = (RenderManagerAccessor) mc.getRenderManager();
 
         double renderPosX = renderManager.getRenderPosX();
         double renderPosY = renderManager.getRenderPosY();

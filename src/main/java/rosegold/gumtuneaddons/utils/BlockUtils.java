@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.function.Predicate;
 
+import static rosegold.gumtuneaddons.GumTuneAddons.mc;
+
 public class BlockUtils {
 
     private static final HashMap<EnumFacing, float[]> BLOCK_SIDES = new HashMap<EnumFacing, float[]>() {{
@@ -20,7 +22,7 @@ public class BlockUtils {
     }};
 
     public static BlockPos getClosestBlock(int radius, int height, int depth, Predicate<? super BlockPos> predicate) {
-        EntityPlayerSP player = GumTuneAddons.mc.thePlayer;
+        EntityPlayerSP player = mc.thePlayer;
         BlockPos playerPos = player.getPosition().up();
         Vec3i vec3Top = new Vec3i(radius, height, radius);
         Vec3i vec3Bottom = new Vec3i(radius, depth, radius);
@@ -38,7 +40,7 @@ public class BlockUtils {
     }
 
     public static BlockPos getFurthestBlock(int radius, int height, int depth, Predicate<? super BlockPos> predicate) {
-        EntityPlayerSP player = GumTuneAddons.mc.thePlayer;
+        EntityPlayerSP player = mc.thePlayer;
         BlockPos playerPos = player.getPosition().up();
         Vec3i vec3Top = new Vec3i(radius, height, radius);
         Vec3i vec3Bottom = new Vec3i(radius, depth, radius);
@@ -93,10 +95,10 @@ public class BlockUtils {
         ArrayList<Vec3> pointsOnBlock = getPointsOnBlock(blockPos, enumFacing);
 
         for (Vec3 point : pointsOnBlock) {
-            MovingObjectPosition mop = GumTuneAddons.mc.theWorld.rayTraceBlocks(GumTuneAddons.mc.thePlayer.getPositionEyes(1.0f), point);
+            MovingObjectPosition mop = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionEyes(1.0f), point);
 
             if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                if (mop.getBlockPos().equals(blockPos) && point.distanceTo(GumTuneAddons.mc.thePlayer.getPositionEyes(1.0f)) < GumTuneAddons.mc.playerController.getBlockReachDistance()) {
+                if (mop.getBlockPos().equals(blockPos) && point.distanceTo(mc.thePlayer.getPositionEyes(1.0f)) < mc.playerController.getBlockReachDistance()) {
                     points.add(point);
                 }
             }

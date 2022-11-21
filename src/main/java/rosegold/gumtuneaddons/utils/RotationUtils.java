@@ -9,6 +9,8 @@ import rosegold.gumtuneaddons.GumTuneAddons;
 import rosegold.gumtuneaddons.annotations.Module;
 import rosegold.gumtuneaddons.events.PlayerMoveEvent;
 
+import static rosegold.gumtuneaddons.GumTuneAddons.mc;
+
 @Module
 public class RotationUtils {
 
@@ -40,9 +42,9 @@ public class RotationUtils {
     }
 
     public static Rotation getRotationToVec(Vec3 vec3) {
-        double diffX = vec3.xCoord - GumTuneAddons.mc.thePlayer.posX;
-        double diffY = vec3.yCoord - GumTuneAddons.mc.thePlayer.posY - GumTuneAddons.mc.thePlayer.getEyeHeight();
-        double diffZ = vec3.zCoord - GumTuneAddons.mc.thePlayer.posZ;
+        double diffX = vec3.xCoord - mc.thePlayer.posX;
+        double diffY = vec3.yCoord - mc.thePlayer.posY - mc.thePlayer.getEyeHeight();
+        double diffZ = vec3.zCoord - mc.thePlayer.posZ;
         double dist = Math.sqrt(diffX * diffX + diffZ * diffZ);
 
         float pitch = (float) -Math.atan2(dist, diffY);
@@ -70,29 +72,29 @@ public class RotationUtils {
 
         RotationUtils.callback = callback;
 
-        pitchDifference = wrapAngleTo180(rotation.pitch - GumTuneAddons.mc.thePlayer.rotationPitch);
-        yawDifference = wrapAngleTo180(rotation.yaw - GumTuneAddons.mc.thePlayer.rotationYaw);
+        pitchDifference = wrapAngleTo180(rotation.pitch - mc.thePlayer.rotationPitch);
+        yawDifference = wrapAngleTo180(rotation.yaw - mc.thePlayer.rotationYaw);
 
         RotationUtils.ticks = ticks * 20;
         RotationUtils.tickCounter = 0;
     }
 
     public static void look(Rotation rotation) {
-        GumTuneAddons.mc.thePlayer.rotationPitch = rotation.pitch;
+        mc.thePlayer.rotationPitch = rotation.pitch;
         if(rotation.pitch > -80 && rotation.pitch < 80) {
-            GumTuneAddons.mc.thePlayer.rotationYaw = rotation.yaw;
+            mc.thePlayer.rotationYaw = rotation.yaw;
         }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onUpdatePre(PlayerMoveEvent.Pre pre) {
-        serverPitch = GumTuneAddons.mc.thePlayer.rotationPitch;
-        serverYaw = GumTuneAddons.mc.thePlayer.rotationYaw;
+        serverPitch = mc.thePlayer.rotationPitch;
+        serverYaw = mc.thePlayer.rotationYaw;
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onUpdatePost(PlayerMoveEvent.Post post) {
-        GumTuneAddons.mc.thePlayer.rotationPitch = serverPitch;
-        GumTuneAddons.mc.thePlayer.rotationYaw = serverYaw;
+        mc.thePlayer.rotationPitch = serverPitch;
+        mc.thePlayer.rotationYaw = serverYaw;
     }
 }
