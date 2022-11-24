@@ -33,12 +33,10 @@ public class GumTuneAddonsConfig extends Config {
     public static boolean sugarCanePlacer = false;
 
     @Slider(
-            name = "You slide me right round baby right round",
+            name = "Blocks Per Second",
             category = WORLD,
             subcategory = SUGAR_CANE_PLACER,
-            min = 0f, max = 80f,        // min and max values for the slider
-            // if you like, you can use step to set a step value for the slider,
-            // giving it little steps that the slider snaps to.
+            min = 10f, max = 80f,
             step = 10
     )
     public static int sugarCanePlacerSpeed = 20;
@@ -62,7 +60,7 @@ public class GumTuneAddonsConfig extends Config {
     public static int harpMacroDelay = 10;
 
     public GumTuneAddonsConfig() {
-        super(new Mod(GumTuneAddons.NAME, ModType.SKYBLOCK, "https://i.imgur.com/cLtXE48.png"), GumTuneAddons.MODID + ".json");
+        super(new Mod(GumTuneAddons.NAME, ModType.SKYBLOCK, "https://i.imgur.com/chsDDyx.png"), GumTuneAddons.MODID + ".json");
         initialize();
     }
 }
