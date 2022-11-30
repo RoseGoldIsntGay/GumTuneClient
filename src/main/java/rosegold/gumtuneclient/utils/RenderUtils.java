@@ -67,7 +67,7 @@ public class RenderUtils {
         float g = (color >> 8 & 0xFF) / 255.0F;
         float b = (color & 0xFF) / 255.0F;
 
-        float opacity = 55;
+        float opacity = 0.5f;
 
         GlStateManager.color(r, g, b, a * opacity);
         worldrenderer.begin(7, DefaultVertexFormats.POSITION);

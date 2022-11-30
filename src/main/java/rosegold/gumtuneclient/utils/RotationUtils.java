@@ -22,8 +22,6 @@ public class RotationUtils {
     private static float serverPitch;
     private static float serverYaw;
 
-    public static boolean serverSideRotating = false;
-
     public static class Rotation {
         public float pitch;
         public float yaw;
@@ -65,7 +63,6 @@ public class RotationUtils {
     }
 
     public static void serverLook(Rotation rotation, Runnable callback) {
-        serverSideRotating = true;
         look(rotation);
         callback.run();
     }

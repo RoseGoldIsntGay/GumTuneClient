@@ -21,6 +21,9 @@ public class PlayerUtils {
     }
 
     public static void swingHand(MovingObjectPosition objectMouseOver) {
+        if (objectMouseOver == null) {
+            objectMouseOver = GumTuneClient.mc.objectMouseOver;
+        }
         if (objectMouseOver != null && objectMouseOver.entityHit == null) {
             GumTuneClient.mc.thePlayer.swingItem();
         }
