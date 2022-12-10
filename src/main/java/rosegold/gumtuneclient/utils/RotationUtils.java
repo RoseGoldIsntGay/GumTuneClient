@@ -5,12 +5,10 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import rosegold.gumtuneclient.annotations.Module;
 import rosegold.gumtuneclient.events.PlayerMoveEvent;
 
 import static rosegold.gumtuneclient.GumTuneClient.mc;
 
-@Module
 public class RotationUtils {
 
     private static float pitchDifference;
@@ -85,9 +83,7 @@ public class RotationUtils {
 
     public static void look(Rotation rotation) {
         mc.thePlayer.rotationPitch = rotation.pitch;
-        if(rotation.pitch > -80 && rotation.pitch < 80) {
-            mc.thePlayer.rotationYaw = rotation.yaw;
-        }
+        mc.thePlayer.rotationYaw = rotation.yaw;
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)

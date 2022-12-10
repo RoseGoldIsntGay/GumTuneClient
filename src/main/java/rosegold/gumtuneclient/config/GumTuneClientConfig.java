@@ -8,6 +8,7 @@ import cc.polyfrost.oneconfig.config.data.ModType;
 import cc.polyfrost.oneconfig.config.data.PageLocation;
 import cc.polyfrost.oneconfig.libs.universal.UKeyboard;
 import rosegold.gumtuneclient.GumTuneClient;
+import rosegold.gumtuneclient.config.pages.FrozenTreasureFilter;
 import rosegold.gumtuneclient.config.pages.NukerBlockFilter;
 
 public class GumTuneClientConfig extends Config {
@@ -16,8 +17,11 @@ public class GumTuneClientConfig extends Config {
 
     private transient static final String MACRO = "Macros";
     private transient static final String WORLD = "World"; //todo better name
+    private transient static final String RENDER = "Render";
     private transient static final String MINING = "Mining";
     private transient static final String QOL = "QoL";
+    private transient static final String ESPS = "ESPs";
+    private transient static final String ESP_SETTINGS = "ESP Settings";
 
     // Modules
     private transient static final String SUGAR_CANE_PLACER = "Sugar Cane Placer";
@@ -79,12 +83,21 @@ public class GumTuneClientConfig extends Config {
 
     @Page(
             name = "Block Filters",
-            description = "Pick out which blocks nuker will mine",
+            description = "Hover over an option for more details",
             category = MINING,
             subcategory = NUKER,
             location = PageLocation.TOP
     )
     public NukerBlockFilter nukerBlockFilter = new NukerBlockFilter();
+
+    @Switch(
+            name = "Server Side Rotation",
+            description = "Rotate to mined blocks",
+            category = MINING,
+            subcategory = NUKER,
+            size = 2
+    )
+    public static boolean serverSideNukerRotations = false;
 
     @Switch(
             name = "Mine Blocks In Front",
@@ -138,7 +151,7 @@ public class GumTuneClientConfig extends Config {
             description = "Mess with this slider and see if it makes nuker faster",
             category = MINING,
             subcategory = NUKER,
-            min = 0f, max = 4f,
+            min = 0f, max = 20f,
             step = 1
     )
     public static int nukerPinglessCutoff = 10;
@@ -151,8 +164,56 @@ public class GumTuneClientConfig extends Config {
     )
     public static boolean powderChestSolver = false;
 
+    @Switch(
+            name = "Waypoint Text",
+            category = RENDER,
+            subcategory = ESP_SETTINGS,
+            size = 2
+    )
+    public static boolean espWaypointText = true;
+
+    @Switch(
+            name = "Highlight",
+            category = RENDER,
+            subcategory = ESP_SETTINGS,
+            size = 2
+    )
+    public static boolean espHighlight = true;
+
+    @Switch(
+            name = "ESPs",
+            category = RENDER,
+            subcategory = ESPS,
+            description = "Required for all of the ESPs below",
+            size = 4
+    )
+    public static boolean customESP = false;
+
+    @Switch(
+            name = "Arachne's Keeper ESP",
+            category = RENDER,
+            subcategory = ESPS
+    )
+    public static boolean arachneKeeperESP = false;
+
+    @Switch(
+            name = "Frozen Treasure ESP",
+            category = RENDER,
+            subcategory = ESPS
+    )
+    public static boolean frozenTreasureESP = false;
+
+    @Page(
+            name = "Frozen Treasure Filters",
+            description = "Filter out treasures for the ESP",
+            category = RENDER,
+            subcategory = ESPS,
+            location = PageLocation.BOTTOM
+    )
+    public FrozenTreasureFilter frozenTreasureFilter = new FrozenTreasureFilter();
+
     public GumTuneClientConfig() {
-        super(new Mod(GumTuneClient.NAME, ModType.SKYBLOCK, "https://i.imgur.com/chsDDyx.png"), GumTuneClient.MODID + ".json");
+        super(new Mod(GumTuneClient.NAME, ModType.SKYBLOCK, "https://i.imgur.com/EJen0w7.png"), GumTuneClient.MODID + ".json");
         registerKeyBind(nukerKeyBind, () -> {});
         addDependency("commissionTracker", "trackers");
         initialize();

@@ -5,9 +5,10 @@ import rosegold.gumtuneclient.GumTuneClient;
 
 public class ModUtils {
     public static void sendMessage(Object object) {
-        if (object == null) {
-            object = "null";
+        String message = "null";
+        if (object != null) {
+            message = object.toString().replace("&", "§");
         }
-        GumTuneClient.mc.thePlayer.addChatMessage(new ChatComponentText("§7[§5" + GumTuneClient.NAME + "§7] §f" + object));
+        GumTuneClient.mc.thePlayer.addChatMessage(new ChatComponentText("§7[§5" + GumTuneClient.NAME + "§7] §f" + message));
     }
 }

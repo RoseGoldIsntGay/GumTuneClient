@@ -12,19 +12,16 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import rosegold.gumtuneclient.GumTuneClient;
-import rosegold.gumtuneclient.annotations.Module;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.events.PlayerMoveEvent;
 import rosegold.gumtuneclient.events.ReceivePacketEvent;
 import rosegold.gumtuneclient.utils.BlockUtils;
-import rosegold.gumtuneclient.utils.ModUtils;
 import rosegold.gumtuneclient.utils.RenderUtils;
 import rosegold.gumtuneclient.utils.RotationUtils;
 
 import java.awt.*;
 import java.util.ArrayList;
 
-@Module
 public class PowderChestSolver {
 
     private static Vec3 particle;

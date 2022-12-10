@@ -10,7 +10,6 @@ import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import rosegold.gumtuneclient.GumTuneClient;
-import rosegold.gumtuneclient.annotations.Module;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.events.MillisecondEvent;
 import rosegold.gumtuneclient.events.PlayerMoveEvent;
@@ -18,7 +17,6 @@ import rosegold.gumtuneclient.utils.BlockUtils;
 import rosegold.gumtuneclient.utils.PlayerUtils;
 import rosegold.gumtuneclient.utils.RotationUtils;
 
-@Module
 public class CanePlacer {
 
     private static Vec3 point;

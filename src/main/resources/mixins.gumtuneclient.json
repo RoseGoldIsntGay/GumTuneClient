@@ -8,11 +8,13 @@
     "MinecraftMixin",
     "MixinEntityPlayerSP",
     "MixinModelBiped",
+    "MixinRendererLivingEntity",
     "accessors.EntityPlayerSPAccessor",
     "accessors.MinecraftAccessor"
   ],
   "mixins": [
-    "ModListMixin",
+    "MixinModCard",
+    "MixinModList",
     "NetworkManagerMixin",
     "accessors.RenderManagerAccessor"
   ]

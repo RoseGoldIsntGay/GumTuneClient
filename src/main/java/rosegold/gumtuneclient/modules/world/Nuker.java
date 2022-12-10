@@ -7,22 +7,22 @@ import net.minecraft.init.Blocks;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.util.*;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
 import rosegold.gumtuneclient.GumTuneClient;
-import rosegold.gumtuneclient.annotations.Module;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.config.pages.NukerBlockFilter;
 import rosegold.gumtuneclient.events.MillisecondEvent;
+import rosegold.gumtuneclient.events.PlayerMoveEvent;
 import rosegold.gumtuneclient.events.SecondEvent;
 import rosegold.gumtuneclient.utils.*;
 
 import java.awt.*;
 import java.util.ArrayList;
 
-@Module
 public class Nuker {
     private boolean enabled;
     private final ArrayList<BlockPos> broken = new ArrayList<>();
@@ -95,8 +95,6 @@ public class Nuker {
                         current = null;
                     }
                     return;
-                } else {
-                    current = null;
                 }
             }
 
@@ -124,6 +122,16 @@ public class Nuker {
     public void onRender(RenderWorldLastEvent event) {
         if (!isEnabled()) return;
         RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.GRAY.hashCode());
+    }
+
+    @SubscribeEvent(priority = EventPriority.NORMAL)
+    public void onUpdatePre(PlayerMoveEvent.Pre pre) {
+        if (!isEnabled()) return;
+        if (!GumTuneClientConfig.serverSideNukerRotations) return;
+        if (blockPos != null) {
+            RotationUtils.smoothLook(RotationUtils.getRotationToBlock(blockPos), 0, () -> {
+            });
+        }
     }
 
     private void mineBlock(BlockPos blockPos) {
@@ -158,16 +166,21 @@ public class Nuker {
         BlockPos playerPos = new BlockPos((int) Math.floor(player.posX), (int) Math.floor(player.posY), (int) Math.floor(player.posZ));
         Vec3i axisVector = player.getHorizontalFacing().getDirectionVec();
 
-        if (getBlockState(playerPos).getBlock() != Blocks.air && !broken.contains(playerPos)) {
+        if (getBlockState(playerPos).getBlock() != Blocks.air && getBlockState(playerPos).getBlock() != Blocks.bedrock
+                && !broken.contains(playerPos)) {
             return playerPos;
         }
-        if (getBlockState(playerPos.add(new Vec3i(0, 1, 0))).getBlock() != Blocks.air && !broken.contains(playerPos.add(new Vec3i(0, 1, 0)))) {
+        if (getBlockState(playerPos.add(new Vec3i(0, 1, 0))).getBlock() != Blocks.air &&
+                getBlockState(playerPos).getBlock() != Blocks.bedrock && !broken.contains(playerPos.add(new Vec3i(0, 1, 0)))) {
             return playerPos.add(new Vec3i(0, 1, 0));
         }
-        if (getBlockState(playerPos.add(axisVector)).getBlock() != Blocks.air && !broken.contains(playerPos.add(axisVector))) {
+        if (getBlockState(playerPos.add(axisVector)).getBlock() != Blocks.air && getBlockState(playerPos).getBlock() != Blocks.bedrock
+                && !broken.contains(playerPos.add(axisVector))) {
             return playerPos.add(axisVector);
         }
-        if (getBlockState(playerPos.add(axisVector).add(new Vec3i(0, 1, 0))).getBlock() != Blocks.air && !broken.contains(playerPos.add(axisVector).add(new Vec3i(0, 1, 0)))) {
+        if (getBlockState(playerPos.add(axisVector).add(new Vec3i(0, 1, 0))).getBlock() != Blocks.air &&
+                getBlockState(playerPos).getBlock() != Blocks.bedrock &&
+                !broken.contains(playerPos.add(axisVector).add(new Vec3i(0, 1, 0)))) {
             return playerPos.add(axisVector).add(new Vec3i(0, 1, 0));
         }
         return null;
@@ -218,7 +231,8 @@ public class Nuker {
                 block == Blocks.reeds || block == Blocks.cocoa || block == Blocks.melon_block ||
                 block == Blocks.pumpkin || block == Blocks.cactus || block == Blocks.brown_mushroom ||
                 block == Blocks.red_mushroom || block == Blocks.nether_wart || block == Blocks.wheat)) return true;
-        if (NukerBlockFilter.nukerBlockFilterWood && block == Blocks.log) return true;
+        if (NukerBlockFilter.nukerBlockFilterWood && block == Blocks.log ||
+                NukerBlockFilter.nukerBlockFilterWood && block == Blocks.log2) return true;
         if (NukerBlockFilter.nukerBlockFilterSand && block == Blocks.sand) return true;
         if (NukerBlockFilter.nukerBlockFilterGlowstone && block == Blocks.glowstone) return true;
         return NukerBlockFilter.nukerBlockFilterNetherrack && block == Blocks.netherrack;

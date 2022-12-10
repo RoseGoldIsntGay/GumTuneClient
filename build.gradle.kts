@@ -63,12 +63,10 @@ repositories {
 }
 
 dependencies {
-    implementation("org.reflections:reflections:0.10.2")
     modCompileOnly("cc.polyfrost:oneconfig-$platform:0.1.0-alpha+")
 
     if (platform.isLegacyForge) {
         compileOnly("org.spongepowered:mixin:0.7.11-SNAPSHOT")
-        shade("org.reflections:reflections:0.10.2")
         shade("cc.polyfrost:oneconfig-wrapper-launchwrapper:1.0.0-alpha+")
     }
 }

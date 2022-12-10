@@ -3,6 +3,7 @@ package rosegold.gumtuneclient.config.pages;
 import cc.polyfrost.oneconfig.config.annotations.Switch;
 
 public class NukerBlockFilter {
+
     @Switch(
             name = "Hardstone",
             description = "Stone in Crystal Hollows"

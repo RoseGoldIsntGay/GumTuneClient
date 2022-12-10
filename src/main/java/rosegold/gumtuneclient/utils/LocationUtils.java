@@ -1,10 +1,9 @@
 package rosegold.gumtuneclient.utils;
 
+import cc.polyfrost.oneconfig.events.event.ChatReceiveEvent;
 import cc.polyfrost.oneconfig.events.event.LocrawEvent;
 import cc.polyfrost.oneconfig.libs.eventbus.Subscribe;
-import rosegold.gumtuneclient.annotations.Module;
 
-@Module
 public class LocationUtils {
 
     public enum Island {
@@ -19,7 +18,7 @@ public class LocationUtils {
         DEEP_CAVERNS("Deep Caverns"),
         DWARVEN_MINES("Dwarven Mines"),
         CRYSTAL_HOLLOWS("Crystal Hollows"),
-        JERRY_WORKSHOP("???"),
+        JERRY_WORKSHOP("Jerry's Workshop"),
         DUNGEON_HUB("Dungeon Hub"),
         LIMBO("UNKNOWN"),
         LOBBY("PROTOTYPE");

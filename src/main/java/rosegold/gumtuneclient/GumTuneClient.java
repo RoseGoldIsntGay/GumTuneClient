@@ -4,18 +4,26 @@ import cc.polyfrost.oneconfig.events.EventManager;
 import cc.polyfrost.oneconfig.utils.commands.CommandManager;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import org.reflections.Reflections;
-import rosegold.gumtuneclient.annotations.Module;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import rosegold.gumtuneclient.command.MainCommand;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.events.MillisecondEvent;
 import rosegold.gumtuneclient.events.SecondEvent;
+import rosegold.gumtuneclient.modules.macro.AutoHarp;
+import rosegold.gumtuneclient.modules.render.ESPs;
+import rosegold.gumtuneclient.modules.world.CanePlacer;
+import rosegold.gumtuneclient.modules.world.Nuker;
+import rosegold.gumtuneclient.modules.world.PowderChestSolver;
+import rosegold.gumtuneclient.utils.LocationUtils;
+import rosegold.gumtuneclient.utils.ModUtils;
+import rosegold.gumtuneclient.utils.RotationUtils;
 
-import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -29,18 +37,24 @@ public class GumTuneClient {
     public static final String MODID = "@ID@";
     public static final String NAME = "@NAME@";
     public static final String VERSION = "@VER@";
-    public static final String PACKAGE = "rosegold." + MODID;
+
     @Mod.Instance(MODID)
     public static GumTuneClient INSTANCE;
     public GumTuneClientConfig config;
     public static Minecraft mc = Minecraft.getMinecraft();
 
     private final List<Object> modules = new ArrayList<>();
+    private boolean login = false;
+    private boolean skyskipped = false;
 
-    public GumTuneClient() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        for (Class<?> clz : new Reflections(PACKAGE).getTypesAnnotatedWith(Module.class)) {
-            modules.add(clz.getDeclaredConstructor().newInstance());
-        }
+    public GumTuneClient() {
+        modules.add(new PowderChestSolver());
+        modules.add(new AutoHarp());
+        modules.add(new ESPs());
+        modules.add(new CanePlacer());
+        modules.add(new Nuker());
+        modules.add(new LocationUtils());
+        modules.add(new RotationUtils());
     }
 
     @Mod.EventHandler
@@ -52,6 +66,12 @@ public class GumTuneClient {
         registerCommand(new MainCommand());
         registerModule(this);
         modules.forEach(this::registerModule);
+
+        Loader.instance().getActiveModList().forEach(modContainer -> {
+            if (modContainer.getModId().equals("skyskipped")) {
+                skyskipped = true;
+            }
+        });
     }
 
     @Mod.EventHandler
@@ -63,6 +83,15 @@ public class GumTuneClient {
         ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(1);
         threadPool.scheduleAtFixedRate(() -> MinecraftForge.EVENT_BUS.post(new SecondEvent()), initialDelaySeconds, 1, TimeUnit.SECONDS);
         threadPool.scheduleAtFixedRate(() -> MinecraftForge.EVENT_BUS.post(new MillisecondEvent()), initialDelaySeconds, 1, TimeUnit.MILLISECONDS);
+    }
+
+    @SubscribeEvent
+    public void onTick(TickEvent.ClientTickEvent event) {
+        if (mc.thePlayer == null) return;
+        if (!login && skyskipped) {
+            login = true;
+            ModUtils.sendMessage("§c[WARNING]: §fSkySkipped currently prevents some features that require your current skyblock island type from working!");
+        }
     }
 
     private void registerModule(Object obj) {

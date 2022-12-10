@@ -9,7 +9,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import rosegold.gumtuneclient.annotations.Module;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.utils.GuiUtils;
 
@@ -19,7 +18,6 @@ import java.util.Objects;
 
 import static rosegold.gumtuneclient.GumTuneClient.mc;
 
-@Module
 public class AutoHarp {
     private int wait;
     private boolean inHarp;
