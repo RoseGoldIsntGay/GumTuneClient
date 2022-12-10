@@ -29,6 +29,7 @@ public class GumTuneClientConfig extends Config {
     private transient static final String POWDER_CHEST_SOLVER = "Powder Chest Solver";
     private transient static final String NUKER = "Nuker";
     private transient static final String TRACKERS = "Trackers";
+    private transient static final String SVEN_MACRO = "Sven Macro";
 
     @Switch(
             name = "Enabled",
@@ -212,9 +213,27 @@ public class GumTuneClientConfig extends Config {
     )
     public FrozenTreasureFilter frozenTreasureFilter = new FrozenTreasureFilter();
 
+    @KeyBind(
+            name = "Keybind",
+            category = MACRO,
+            subcategory = SVEN_MACRO,
+            size = 2
+    )
+    public static OneKeyBind svenMacroKeyBind = new OneKeyBind(UKeyboard.KEY_NONE);
+
+    @Slider(
+            name = "Delay in Ticks",
+            category = MACRO,
+            subcategory = SVEN_MACRO,
+            min = 2, max = 40,
+            step = 1
+    )
+    public static int svenMacroDelay = 5;
+
     public GumTuneClientConfig() {
         super(new Mod(GumTuneClient.NAME, ModType.SKYBLOCK, "https://i.imgur.com/EJen0w7.png"), GumTuneClient.MODID + ".json");
         registerKeyBind(nukerKeyBind, () -> {});
+        registerKeyBind(svenMacroKeyBind, () -> {});
         addDependency("commissionTracker", "trackers");
         initialize();
     }
