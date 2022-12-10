@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
@@ -45,7 +46,7 @@ public class GumTuneClient {
 
     private final List<Object> modules = new ArrayList<>();
     private boolean login = false;
-    private boolean skyskipped = false;
+    private boolean bladecore = false;
 
     public GumTuneClient() {
         modules.add(new PowderChestSolver());
@@ -67,11 +68,11 @@ public class GumTuneClient {
         registerModule(this);
         modules.forEach(this::registerModule);
 
-        Loader.instance().getActiveModList().forEach(modContainer -> {
-            if (modContainer.getModId().equals("skyskipped")) {
-                skyskipped = true;
+        for(ModContainer modContainer : Loader.instance().getActiveModList())
+            if (modContainer.getModId().equals("bladecore")) {
+                bladecore = true;
+                break;
             }
-        });
     }
 
     @Mod.EventHandler
@@ -87,11 +88,10 @@ public class GumTuneClient {
 
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
-        if (mc.thePlayer == null) return;
-        if (!login && skyskipped) {
-            login = true;
-            ModUtils.sendMessage("§c[WARNING]: §fSkySkipped currently prevents some features that require your current skyblock island type from working!");
-        }
+        if (mc.thePlayer == null || mc.theWorld == null || login) return;
+        login = true;
+        // Disabled notification since I fxed locraw
+        //if (bladecore) ModUtils.sendMessage("§c[WARNING]: §fBladecore currently prevents some features that require your current skyblock island type from working!");
     }
 
     private void registerModule(Object obj) {
