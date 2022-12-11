@@ -237,6 +237,13 @@ public class GumTuneClientConfig extends Config {
     )
     public static boolean svenMacroWalk = false;
 
+    @Switch(
+            name = "Jump",
+            category = MACRO,
+            subcategory = SVEN_MACRO
+    )
+    public static boolean svenMacroJump = false;
+
     public GumTuneClientConfig() {
         super(new Mod(GumTuneClient.NAME, ModType.SKYBLOCK, "https://i.imgur.com/EJen0w7.png"), GumTuneClient.MODID + ".json");
         registerKeyBind(nukerKeyBind, () -> {});

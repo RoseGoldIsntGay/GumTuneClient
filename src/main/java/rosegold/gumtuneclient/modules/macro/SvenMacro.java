@@ -62,7 +62,7 @@ public class SvenMacro {
         }
         if (++ticks < GumTuneClientConfig.svenMacroDelay) return;
         ticks = 0;
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), true);
+        KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), GumTuneClientConfig.svenMacroJump);
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), GumTuneClientConfig.svenMacroWalk);
         if (++counter % 5 == 0) ignoreEntities.clear();
 
