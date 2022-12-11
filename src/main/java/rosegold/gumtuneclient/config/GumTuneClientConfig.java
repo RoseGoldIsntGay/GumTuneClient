@@ -225,10 +225,17 @@ public class GumTuneClientConfig extends Config {
             name = "Delay in Ticks",
             category = MACRO,
             subcategory = SVEN_MACRO,
-            min = 2, max = 40,
+            min = 4, max = 40,
             step = 1
     )
     public static int svenMacroDelay = 5;
+
+    @Switch(
+            name = "Walk",
+            category = MACRO,
+            subcategory = SVEN_MACRO
+    )
+    public static boolean svenMacroWalk = false;
 
     public GumTuneClientConfig() {
         super(new Mod(GumTuneClient.NAME, ModType.SKYBLOCK, "https://i.imgur.com/EJen0w7.png"), GumTuneClient.MODID + ".json");

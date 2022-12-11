@@ -15,7 +15,7 @@ public class RaytracingUtils {
 
     public static MovingObjectPosition raytraceToBlock(float yaw, float pitch, double reach) {
         Vec3 vec3 = mc.thePlayer.getPositionEyes(1f);
-        Vec3 vec31 = getVectorForRotation(pitch, yaw);
+        Vec3 vec31 = getVectorForRotation(yaw, pitch);
         Vec3 vec32 = vec3.addVector(vec31.xCoord * reach, vec31.yCoord * reach, vec31.zCoord * reach);
         return mc.thePlayer.worldObj.rayTraceBlocks(vec3, vec32, false, true, false);
     }

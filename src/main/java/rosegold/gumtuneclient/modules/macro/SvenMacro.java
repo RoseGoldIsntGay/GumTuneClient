@@ -19,6 +19,7 @@ import rosegold.gumtuneclient.utils.RotationUtils;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 
 public class SvenMacro {
@@ -26,6 +27,9 @@ public class SvenMacro {
     private boolean enabled;
     private int ticks = 0;
     private boolean sneak = false;
+    private boolean activeEye = false;
+    private final List<Entity> ignoreEntities = new ArrayList<>();
+    private int counter = 0;
 
     @SubscribeEvent
     public void onKey(InputEvent.KeyInputEvent event) {
@@ -37,8 +41,11 @@ public class SvenMacro {
             ModUtils.sendMessage((enabled ? "Enabled" : "Disabled") + " Sven Macro");
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), false);
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
+            KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), false);
             sneak = false;
+            activeEye = false;
             ticks = 0;
+            ignoreEntities.clear();
         }
     }
 
@@ -48,13 +55,19 @@ public class SvenMacro {
         if (sneak) {
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
             sneak = false;
+        } else if (activeEye) {
+            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
+            sneak = true;
+            activeEye = false;
         }
         if (++ticks < GumTuneClientConfig.svenMacroDelay) return;
         ticks = 0;
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), true);
+        KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), GumTuneClientConfig.svenMacroWalk);
+        if (++counter % 5 == 0) ignoreEntities.clear();
 
         Optional<Entity> optional = mc.theWorld.loadedEntityList.stream()
-                .filter((entity) -> entity instanceof EntityWolf && !entity.isDead)
+                .filter((entity) -> entity instanceof EntityWolf && !entity.isDead && !ignoreEntities.contains(entity))
                 .filter((entity) -> {
                     RotationUtils.Rotation rotation = RotationUtils.getRotationToEntity(entity);
                     MovingObjectPosition ray = RaytracingUtils.raytrace(rotation.yaw, rotation.pitch, 120);
@@ -65,7 +78,9 @@ public class SvenMacro {
             Entity wolf = optional.get();
             RotationUtils.look(RotationUtils.getRotationToEntity(wolf));
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
+            ignoreEntities.add(wolf);
             sneak = true;
+            activeEye = true;
         }
     }
 
@@ -73,6 +88,8 @@ public class SvenMacro {
     public void onWorldLoad(WorldLoadEvent event) {
         enabled = false;
         sneak = false;
+        activeEye = false;
         ticks = 0;
+        ignoreEntities.clear();
     }
 }
