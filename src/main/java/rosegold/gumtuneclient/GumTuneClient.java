@@ -17,7 +17,7 @@ import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.events.MillisecondEvent;
 import rosegold.gumtuneclient.events.SecondEvent;
 import rosegold.gumtuneclient.modules.macro.AutoHarp;
-import rosegold.gumtuneclient.modules.macro.SvenMacro;
+import rosegold.gumtuneclient.modules.macro.MobMacro;
 import rosegold.gumtuneclient.modules.render.ESPs;
 import rosegold.gumtuneclient.modules.world.CanePlacer;
 import rosegold.gumtuneclient.modules.world.Nuker;
@@ -56,7 +56,7 @@ public class GumTuneClient {
         modules.add(new Nuker());
         modules.add(new LocationUtils());
         modules.add(new RotationUtils());
-        modules.add(new SvenMacro());
+        modules.add(new MobMacro());
     }
 
     @Mod.EventHandler
