@@ -10,6 +10,7 @@ import cc.polyfrost.oneconfig.libs.universal.UKeyboard;
 import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.config.pages.FrozenTreasureFilter;
 import rosegold.gumtuneclient.config.pages.NukerBlockFilter;
+import rosegold.gumtuneclient.config.pages.MobMacroFilter;
 
 public class GumTuneClientConfig extends Config {
 
@@ -29,6 +30,7 @@ public class GumTuneClientConfig extends Config {
     private transient static final String POWDER_CHEST_SOLVER = "Powder Chest Solver";
     private transient static final String NUKER = "Nuker";
     private transient static final String TRACKERS = "Trackers";
+    private transient static final String MOB_MACRO = "Mob Macro";
 
     @Switch(
             name = "Enabled",
@@ -212,9 +214,58 @@ public class GumTuneClientConfig extends Config {
     )
     public FrozenTreasureFilter frozenTreasureFilter = new FrozenTreasureFilter();
 
+    @KeyBind(
+            name = "Keybind",
+            category = MACRO,
+            subcategory = MOB_MACRO,
+            size = 2
+    )
+    public static OneKeyBind mobMacroKeyBind = new OneKeyBind(UKeyboard.KEY_NONE);
+
+    @Slider(
+            name = "Delay in Ticks",
+            category = MACRO,
+            subcategory = MOB_MACRO,
+            min = 4, max = 40,
+            step = 1
+    )
+    public static int mobMacroDelay = 5;
+
+    @Switch(
+            name = "Walk",
+            category = MACRO,
+            subcategory = MOB_MACRO
+    )
+    public static boolean mobMacroWalk = false;
+
+    @Switch(
+            name = "Jump",
+            category = MACRO,
+            subcategory = MOB_MACRO
+    )
+    public static boolean mobMacroJump = false;
+
+    @Page(
+            name = "Mobs Filters",
+            description = "Select mobs to kill with macro",
+            category = MACRO,
+            subcategory = MOB_MACRO,
+            location = PageLocation.TOP
+    )
+    public MobMacroFilter mobMacroFilter = new MobMacroFilter();
+
+    @Dropdown(
+            name = "Rotation Type",
+            category = MACRO,
+            subcategory = MOB_MACRO,
+            options = {"Snap", "Fake", "Smooth"}
+    )
+    public static int mobMacroRotation = 0;
+
     public GumTuneClientConfig() {
         super(new Mod(GumTuneClient.NAME, ModType.SKYBLOCK, "https://i.imgur.com/EJen0w7.png"), GumTuneClient.MODID + ".json");
         registerKeyBind(nukerKeyBind, () -> {});
+        registerKeyBind(mobMacroKeyBind, () -> {});
         addDependency("commissionTracker", "trackers");
         initialize();
     }

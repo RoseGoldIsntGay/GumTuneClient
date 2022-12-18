@@ -17,12 +17,12 @@ import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.events.MillisecondEvent;
 import rosegold.gumtuneclient.events.SecondEvent;
 import rosegold.gumtuneclient.modules.macro.AutoHarp;
+import rosegold.gumtuneclient.modules.macro.MobMacro;
 import rosegold.gumtuneclient.modules.render.ESPs;
 import rosegold.gumtuneclient.modules.world.CanePlacer;
 import rosegold.gumtuneclient.modules.world.Nuker;
 import rosegold.gumtuneclient.modules.world.PowderChestSolver;
 import rosegold.gumtuneclient.utils.LocationUtils;
-import rosegold.gumtuneclient.utils.ModUtils;
 import rosegold.gumtuneclient.utils.RotationUtils;
 
 import java.time.Duration;
@@ -56,10 +56,12 @@ public class GumTuneClient {
         modules.add(new Nuker());
         modules.add(new LocationUtils());
         modules.add(new RotationUtils());
+        modules.add(new MobMacro());
     }
 
     @Mod.EventHandler
-    public void preFMLInitialization(FMLPreInitializationEvent event) {}
+    public void preFMLInitialization(FMLPreInitializationEvent event) {
+    }
 
     @Mod.EventHandler
     public void onFMLInitialization(FMLInitializationEvent event) {
@@ -68,7 +70,7 @@ public class GumTuneClient {
         registerModule(this);
         modules.forEach(this::registerModule);
 
-        for(ModContainer modContainer : Loader.instance().getActiveModList())
+        for (ModContainer modContainer : Loader.instance().getActiveModList())
             if (modContainer.getModId().equals("bladecore")) {
                 bladecore = true;
                 break;
