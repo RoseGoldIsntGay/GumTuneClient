@@ -3,6 +3,7 @@ package rosegold.gumtuneclient.utils;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import rosegold.gumtuneclient.events.PlayerMoveEvent;
@@ -13,9 +14,10 @@ public class RotationUtils {
 
     private static Rotation startSmoothRotation;
     private static Rotation targetSmoothRotation;
-    private static int ticks = -1;
-    private static int tickCounter = -1;
+    private static long startTime = -1;
+    private static long endTime = -1;
     private static Runnable callback = null;
+    public static boolean smoothDone = true;
 
     private static float serverPitch;
     private static float serverYaw;
@@ -76,8 +78,8 @@ public class RotationUtils {
         targetServerRotation = null;
     }
 
-    public static void smoothLook(Rotation rotation, int ticks, Runnable callback) {
-        if (ticks == 0) {
+    public static void smoothLook(Rotation rotation, long time, Runnable callback) {
+        if (time == 0) {
             look(rotation);
             if (callback != null) callback.run();
             return;
@@ -88,8 +90,18 @@ public class RotationUtils {
         float pitchDiff = wrapAngleTo180(rotation.pitch - startSmoothRotation.pitch);
         float yawDiff = wrapAngleTo180(rotation.yaw - startSmoothRotation.yaw);
         targetSmoothRotation = new Rotation(startSmoothRotation.pitch + pitchDiff, startSmoothRotation.yaw + yawDiff);
-        RotationUtils.ticks = ticks;
-        tickCounter = 0;
+        startTime = System.currentTimeMillis();
+        endTime = startTime + time;
+        smoothDone = false;
+    }
+
+    public static void cancelSmoothLook() {
+        smoothDone = true;
+        endTime = -1;
+        startTime = -1;
+        startSmoothRotation = null;
+        targetSmoothRotation = null;
+        callback = null;
     }
 
     public static void look(Rotation rotation) {
@@ -97,34 +109,39 @@ public class RotationUtils {
         mc.thePlayer.rotationYaw = rotation.yaw;
     }
 
-    private float interpolate(float start, float end) {
-        float relativeProgress = tickCounter / (float) ticks;
-        return (end - start) * easeOutQuint(relativeProgress) + start;
-    }
-
-    private float easeOutQuint(float number) {
-        return (float) (1 - Math.pow(1 - number, 5));
-    }
-
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onUpdatePre(PlayerMoveEvent.Pre pre) {
-        if (tickCounter++ < ticks) {
-            ModUtils.sendMessage("Interpolating");
+    @SubscribeEvent
+    public void onRender(RenderWorldLastEvent event) {
+        long currentTime = System.currentTimeMillis();
+        if (!smoothDone && currentTime < endTime) {
             mc.thePlayer.rotationPitch = interpolate(startSmoothRotation.pitch, targetSmoothRotation.pitch);
             mc.thePlayer.rotationYaw = interpolate(startSmoothRotation.yaw, targetSmoothRotation.yaw);
-
-            if (tickCounter == ticks && callback != null) {
+        } else if (!smoothDone) {
+            mc.thePlayer.rotationPitch = targetSmoothRotation.pitch;
+            mc.thePlayer.rotationYaw = targetSmoothRotation.yaw;
+            smoothDone = true;
+            if (callback != null) {
                 callback.run();
                 callback = null;
             }
         }
+    }
 
-        if (targetServerRotation != null) {
-            serverPitch = mc.thePlayer.rotationPitch;
-            serverYaw = mc.thePlayer.rotationYaw;
-            mc.thePlayer.rotationPitch = targetServerRotation.pitch;
-            mc.thePlayer.rotationYaw = targetServerRotation.yaw;
-        }
+    private float interpolate(float start, float target) {
+        float progress = (float) (System.currentTimeMillis() - startTime) / (float) (endTime - startTime);
+        return start + (target - start) * easeOutQuint(progress);
+    }
+
+    private float easeOutQuint(float number) {
+        return  1 - (float) Math.pow(1 - number, 5);
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onUpdatePre(PlayerMoveEvent.Pre pre) {
+        if (targetServerRotation == null) return;
+        serverPitch = mc.thePlayer.rotationPitch;
+        serverYaw = mc.thePlayer.rotationYaw;
+        mc.thePlayer.rotationPitch = targetServerRotation.pitch;
+        mc.thePlayer.rotationYaw = targetServerRotation.yaw;
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

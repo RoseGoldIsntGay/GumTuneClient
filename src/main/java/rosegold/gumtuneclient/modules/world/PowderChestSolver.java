@@ -89,11 +89,8 @@ public class PowderChestSolver {
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public void onUpdatePre(PlayerMoveEvent.Pre pre) {
         if (!isEnabled()) return;
-        if (particle != null) {
-            RotationUtils.serverLook(RotationUtils.getRotationToVec(particle));
-        } else {
-            RotationUtils.resetServerLook();
-        }
+        RotationUtils.resetServerLook();
+        if (particle != null) RotationUtils.serverLook(RotationUtils.getRotationToVec(particle));
     }
 
     @SubscribeEvent
