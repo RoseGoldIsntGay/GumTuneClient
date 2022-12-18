@@ -19,8 +19,8 @@ public class RotationUtils {
     private static Runnable callback = null;
     public static boolean smoothDone = true;
 
-    private static float serverPitch;
-    private static float serverYaw;
+    private static float currentPitch;
+    private static float currentYaw;
     private static Rotation targetServerRotation;
 
     public static class Rotation {
@@ -137,9 +137,9 @@ public class RotationUtils {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onUpdatePre(PlayerMoveEvent.Pre pre) {
+        currentPitch = mc.thePlayer.rotationPitch;
+        currentYaw = mc.thePlayer.rotationYaw;
         if (targetServerRotation == null) return;
-        serverPitch = mc.thePlayer.rotationPitch;
-        serverYaw = mc.thePlayer.rotationYaw;
         mc.thePlayer.rotationPitch = targetServerRotation.pitch;
         mc.thePlayer.rotationYaw = targetServerRotation.yaw;
     }
@@ -147,7 +147,7 @@ public class RotationUtils {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onUpdatePost(PlayerMoveEvent.Post post) {
         if (targetServerRotation == null) return;
-        mc.thePlayer.rotationPitch = serverPitch;
-        mc.thePlayer.rotationYaw = serverYaw;
+        mc.thePlayer.rotationPitch = currentPitch;
+        mc.thePlayer.rotationYaw = currentYaw;
     }
 }
