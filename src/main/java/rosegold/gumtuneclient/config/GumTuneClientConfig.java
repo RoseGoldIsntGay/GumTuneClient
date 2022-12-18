@@ -135,7 +135,7 @@ public class GumTuneClientConfig extends Config {
             description = "Blocks below your head",
             category = MINING,
             subcategory = NUKER,
-            min = 0f, max = 4f,
+            min = 0f, max = 4,
             step = 1
     )
     public static int nukerDepth = 1;
@@ -149,11 +149,30 @@ public class GumTuneClientConfig extends Config {
     public static int nukerShape = 0;
 
     @Slider(
+            name = "Field of View",
+            description = "Change fov of sphere shape nuker",
+            category = MINING,
+            subcategory = NUKER,
+            min = 0, max = 360,
+            step = 20
+    )
+    public static int nukerFieldOfView = 180;
+
+    @Switch(
+            name = "Preview",
+            description = "Show which blocks are going to be mined",
+            category = MINING,
+            subcategory = NUKER,
+            size = 2
+    )
+    public static boolean nukerPreview = false;
+
+    @Slider(
             name = "Pingless reset cutoff",
             description = "Mess with this slider and see if it makes nuker faster",
             category = MINING,
             subcategory = NUKER,
-            min = 0f, max = 20f,
+            min = 0f, max = 20,
             step = 1
     )
     public static int nukerPinglessCutoff = 10;

@@ -29,6 +29,7 @@ public class Nuker {
     private BlockPos blockPos;
     private long lastBroken = 0;
     private BlockPos current;
+    private final ArrayList<BlockPos> blocksInRange = new ArrayList<>();
 
     @SubscribeEvent
     public void onKey(InputEvent.KeyInputEvent event) {
@@ -60,6 +61,16 @@ public class Nuker {
             }
             current = null;
             return;
+        }
+        blocksInRange.clear();
+        EntityPlayerSP player =  GumTuneClient.mc.thePlayer;
+        BlockPos playerPos = new BlockPos((int) Math.floor(player.posX), (int) Math.floor(player.posY) + 1, (int) Math.floor(player.posZ));
+        Vec3i vec3Top = new Vec3i(4, GumTuneClientConfig.nukerHeight, 4);
+        Vec3i vec3Bottom = new Vec3i(4, GumTuneClientConfig.nukerDepth, 4);
+
+        for (BlockPos blockPos : BlockPos.getAllInBox(playerPos.subtract(vec3Bottom), playerPos.add(vec3Top))) {
+            Vec3 target = new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5);
+            if (Math.abs(RotationUtils.wrapAngleTo180(RotationUtils.fovToVec3(target) - RotationUtils.wrapAngleTo180(GumTuneClient.mc.thePlayer.rotationYaw))) < (float) GumTuneClientConfig.nukerFieldOfView / 2) blocksInRange.add(blockPos);
         }
         if (current != null) PlayerUtils.swingHand(null);
     }
@@ -121,7 +132,8 @@ public class Nuker {
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent event) {
         if (!isEnabled()) return;
-        RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.GRAY.hashCode());
+        RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.GRAY.getRGB());
+        if (GumTuneClientConfig.nukerPreview) blocksInRange.forEach(bp -> RenderUtils.renderEspBox(bp, event.partialTicks, Color.CYAN.getRGB()));
     }
 
     @SubscribeEvent(priority = EventPriority.NORMAL)
@@ -187,7 +199,7 @@ public class Nuker {
     }
 
     private boolean canMine(BlockPos blockPos) {
-        if (canMineBlockType(getBlockState(blockPos)) && !broken.contains(blockPos)) {
+        if (canMineBlockType(getBlockState(blockPos)) && !broken.contains(blockPos) && blocksInRange.contains(blockPos)) {
             if (GumTuneClientConfig.nukerShape == 1) {
                 EntityPlayerSP player = GumTuneClient.mc.thePlayer;
                 EnumFacing axis = player.getHorizontalFacing();

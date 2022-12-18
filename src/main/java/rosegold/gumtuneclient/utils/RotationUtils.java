@@ -31,12 +31,19 @@ public class RotationUtils {
         }
     }
 
-    private static double wrapAngleTo180(double angle) {
+    public static double wrapAngleTo180(double angle) {
         return angle - Math.floor(angle / 360 + 0.5) * 360;
     }
 
-    private static float wrapAngleTo180(float angle) {
+    public static float wrapAngleTo180(float angle) {
         return (float) (angle - Math.floor(angle / 360 + 0.5) * 360);
+    }
+
+    public static float fovToVec3(Vec3 vec) {
+        double x = vec.xCoord - mc.thePlayer.posX;
+        double z = vec.zCoord - mc.thePlayer.posZ;
+        double yaw = Math.atan2(x, z) * 57.2957795;
+        return (float) (yaw * -1.0);
     }
 
     public static Rotation getRotationToVec(Vec3 vec3) {

@@ -4,9 +4,7 @@ import cc.polyfrost.oneconfig.events.EventManager;
 import cc.polyfrost.oneconfig.utils.commands.CommandManager;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
@@ -46,7 +44,6 @@ public class GumTuneClient {
 
     private final List<Object> modules = new ArrayList<>();
     private boolean login = false;
-    private boolean bladecore = false;
 
     public GumTuneClient() {
         modules.add(new PowderChestSolver());
@@ -69,12 +66,6 @@ public class GumTuneClient {
         registerCommand(new MainCommand());
         registerModule(this);
         modules.forEach(this::registerModule);
-
-        for (ModContainer modContainer : Loader.instance().getActiveModList())
-            if (modContainer.getModId().equals("bladecore")) {
-                bladecore = true;
-                break;
-            }
     }
 
     @Mod.EventHandler

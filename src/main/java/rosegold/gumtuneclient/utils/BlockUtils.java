@@ -22,7 +22,7 @@ public class BlockUtils {
 
     public static BlockPos getClosestBlock(int radius, int height, int depth, Predicate<? super BlockPos> predicate) {
         EntityPlayerSP player = mc.thePlayer;
-        BlockPos playerPos = player.getPosition().up();
+        BlockPos playerPos = new BlockPos((int) Math.floor(player.posX), (int) Math.floor(player.posY) + 1, (int) Math.floor(player.posZ));
         Vec3i vec3Top = new Vec3i(radius, height, radius);
         Vec3i vec3Bottom = new Vec3i(radius, depth, radius);
         BlockPos closest = null;
