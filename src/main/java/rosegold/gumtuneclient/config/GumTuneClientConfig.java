@@ -153,7 +153,7 @@ public class GumTuneClientConfig extends Config {
             description = "Change fov of sphere shape nuker",
             category = MINING,
             subcategory = NUKER,
-            min = 0, max = 360,
+            min = 0, max = 361, // bruh moment
             step = 20
     )
     public static int nukerFieldOfView = 180;

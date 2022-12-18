@@ -90,8 +90,9 @@ public class PowderChestSolver {
     public void onUpdatePre(PlayerMoveEvent.Pre pre) {
         if (!isEnabled()) return;
         if (particle != null) {
-            RotationUtils.smoothLook(RotationUtils.getRotationToVec(particle), 0, () -> {
-            });
+            RotationUtils.serverLook(RotationUtils.getRotationToVec(particle));
+        } else {
+            RotationUtils.resetServerLook();
         }
     }
 

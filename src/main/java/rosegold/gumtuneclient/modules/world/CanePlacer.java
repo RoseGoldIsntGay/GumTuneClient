@@ -54,8 +54,9 @@ public class CanePlacer {
     public void onUpdatePre(PlayerMoveEvent.Pre pre) {
         if (!GumTuneClientConfig.sugarCanePlacer) return;
         if (point != null) {
-            RotationUtils.smoothLook(RotationUtils.getRotationToVec(point), 0, () -> {
-            });
+            RotationUtils.serverLook(RotationUtils.getRotationToVec(point));
+        } else {
+            RotationUtils.resetServerLook();
         }
     }
 

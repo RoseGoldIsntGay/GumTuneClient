@@ -141,8 +141,9 @@ public class Nuker {
         if (!isEnabled()) return;
         if (!GumTuneClientConfig.serverSideNukerRotations) return;
         if (blockPos != null) {
-            RotationUtils.smoothLook(RotationUtils.getRotationToBlock(blockPos), 0, () -> {
-            });
+            RotationUtils.serverLook(RotationUtils.getRotationToBlock(blockPos));
+        } else {
+            RotationUtils.resetServerLook();
         }
     }
 
