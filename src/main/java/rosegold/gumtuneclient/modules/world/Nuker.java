@@ -37,6 +37,7 @@ public class Nuker {
         int eventKey = Keyboard.getEventKey();
         ArrayList<Integer> keyBinds = GumTuneClientConfig.nukerKeyBind.getKeyBinds();
         if (keyBinds.size() > 0 && keyBinds.get(0) == eventKey) {
+            RotationUtils.resetServerLook();
             enabled = !enabled;
             ModUtils.sendMessage((enabled ? "Enabled" : "Disabled") + " Nuker");
         }
@@ -139,12 +140,9 @@ public class Nuker {
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public void onUpdatePre(PlayerMoveEvent.Pre pre) {
         if (!isEnabled()) return;
+        RotationUtils.resetServerLook();
         if (!GumTuneClientConfig.serverSideNukerRotations) return;
-        if (blockPos != null) {
-            RotationUtils.serverLook(RotationUtils.getRotationToBlock(blockPos));
-        } else {
-            RotationUtils.resetServerLook();
-        }
+        if (blockPos != null) RotationUtils.serverLook(RotationUtils.getRotationToBlock(blockPos));
     }
 
     private void mineBlock(BlockPos blockPos) {

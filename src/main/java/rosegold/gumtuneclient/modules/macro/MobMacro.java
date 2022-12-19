@@ -46,7 +46,7 @@ public class MobMacro {
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), false);
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), false);
-            RotationUtils.resetServerLook();
+            resetRotation();
             sneak = false;
             activeEye = false;
             ticks = 0;
@@ -57,48 +57,56 @@ public class MobMacro {
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
         if (!enabled || event.phase != TickEvent.Phase.START || !LocationUtils.onSkyblock || mc.thePlayer == null || mc.theWorld == null) return;
+        ticks++;
+
         if (sneak) {
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
             sneak = false;
-        } else if (activeEye) {
+        } else if (activeEye && (RotationUtils.smoothDone || GumTuneClientConfig.mobMacroRotation != 3)) {
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
             sneak = true;
             activeEye = false;
         }
-        if (++ticks < GumTuneClientConfig.mobMacroDelay) return;
+
+        if (ticks < GumTuneClientConfig.mobMacroDelay) return;
         ticks = 0;
+
         if (GumTuneClientConfig.mobMacroJump)
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), true);
         if (GumTuneClientConfig.mobMacroWalk)
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), true);
         if (++counter % 5 == 0) ignoreEntities.clear();
 
-        Optional<Entity> optional = mc.theWorld.loadedEntityList.stream()
-                .filter((entity) -> !entity.isDead && !ignoreEntities.contains(entity) && canKill(entity))
-                .filter((entity) -> {
-                    RotationUtils.Rotation rotation = RotationUtils.getRotationToEntity(entity);
-                    MovingObjectPosition ray = RaytracingUtils.raytrace(rotation.yaw, rotation.pitch, 120);
-                    return ray != null && ray.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY && ray.entityHit == entity;
-                }).min(Comparator.comparingDouble((entity) -> entity.getDistanceToEntity(mc.thePlayer)));
-
-        if (optional.isPresent()) {
-            Entity mob = optional.get();
+        Entity entity = getEntity();
+        if (entity != null) {
             switch (GumTuneClientConfig.mobMacroRotation) {
                 case 0:
-                    RotationUtils.look(RotationUtils.getRotationToEntity(mob));
+                    RotationUtils.look(RotationUtils.getRotationToEntity(entity));
                     break;
                 case 1:
-                    RotationUtils.serverLook(RotationUtils.getRotationToEntity(mob));
+                    RotationUtils.serverLook(RotationUtils.getRotationToEntity(entity));
                     break;
-                case 3:
-                    RotationUtils.smoothLook(RotationUtils.getRotationToEntity(mob), 2, null);
+                case 2:
+                    RotationUtils.smoothLook(RotationUtils.getRotationToEntity(entity), 200L, null);
                     break;
             }
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
-            ignoreEntities.add(mob);
+            ignoreEntities.add(entity);
             sneak = true;
             activeEye = true;
-        } else RotationUtils.resetServerLook();
+        } else resetRotation();
+    }
+
+    private Entity getEntity() {
+        Optional<Entity> optional = mc.theWorld.loadedEntityList.stream()
+                .filter(entity -> !entity.isDead && !ignoreEntities.contains(entity) && canKill(entity))
+                .filter(entity -> {
+                    RotationUtils.Rotation rotation = RotationUtils.getRotationToEntity(entity);
+                    MovingObjectPosition ray = RaytracingUtils.raytrace(rotation.yaw, rotation.pitch, 120);
+                    return ray != null && ray.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY && ray.entityHit == entity;
+                }).min(Comparator.comparingDouble(entity -> entity.getDistanceToEntity(mc.thePlayer)));
+
+        return optional.orElse(null);
     }
 
     private boolean canKill(Entity entity) {
@@ -108,6 +116,17 @@ public class MobMacro {
                 (entity instanceof EntityEnderman && MobMacroFilter.endermen);
     }
 
+    private void resetRotation() {
+        switch (GumTuneClientConfig.mobMacroRotation) {
+            case 1:
+                RotationUtils.resetServerLook();
+                break;
+            case 3:
+                RotationUtils.cancelSmoothLook();
+                break;
+        }
+    }
+
     @Subscribe
     public void onWorldLoad(WorldLoadEvent event) {
         enabled = false;
@@ -115,6 +134,6 @@ public class MobMacro {
         activeEye = false;
         ticks = 0;
         ignoreEntities.clear();
-        RotationUtils.resetServerLook();
+        resetRotation();
     }
 }

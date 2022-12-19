@@ -53,11 +53,8 @@ public class CanePlacer {
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public void onUpdatePre(PlayerMoveEvent.Pre pre) {
         if (!GumTuneClientConfig.sugarCanePlacer) return;
-        if (point != null) {
-            RotationUtils.serverLook(RotationUtils.getRotationToVec(point));
-        } else {
-            RotationUtils.resetServerLook();
-        }
+        RotationUtils.resetServerLook();
+        if (point != null) RotationUtils.serverLook(RotationUtils.getRotationToVec(point));
     }
 
     private boolean canPlantOnBlock(BlockPos blockPos) {
