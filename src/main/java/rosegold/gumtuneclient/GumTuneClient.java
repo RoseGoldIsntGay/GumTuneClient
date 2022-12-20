@@ -20,6 +20,7 @@ import rosegold.gumtuneclient.modules.render.ESPs;
 import rosegold.gumtuneclient.modules.world.CanePlacer;
 import rosegold.gumtuneclient.modules.world.Nuker;
 import rosegold.gumtuneclient.modules.world.PowderChestSolver;
+import rosegold.gumtuneclient.modules.world.WorldScanner;
 import rosegold.gumtuneclient.utils.LocationUtils;
 import rosegold.gumtuneclient.utils.RotationUtils;
 
@@ -54,6 +55,7 @@ public class GumTuneClient {
         modules.add(new LocationUtils());
         modules.add(new RotationUtils());
         modules.add(new MobMacro());
+        modules.add(new WorldScanner());
     }
 
     @Mod.EventHandler

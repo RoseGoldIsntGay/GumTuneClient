@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import rosegold.gumtuneclient.events.ReceivePacketEvent;
 
 @Mixin(NetworkManager.class)
-public class NetworkManagerMixin {
+public class MixinNetworkManager {
     @Inject(method = "channelRead0(Lio/netty/channel/ChannelHandlerContext;Lnet/minecraft/network/Packet;)V", at = @At("HEAD"), cancellable = true)
     private void read(ChannelHandlerContext context, Packet<?> packet, CallbackInfo ci) {
         if (MinecraftForge.EVENT_BUS.post(new ReceivePacketEvent(packet))) ci.cancel();

@@ -11,6 +11,7 @@ import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.config.pages.FrozenTreasureFilter;
 import rosegold.gumtuneclient.config.pages.NukerBlockFilter;
 import rosegold.gumtuneclient.config.pages.MobMacroFilter;
+import rosegold.gumtuneclient.config.pages.WorldScannerFilter;
 
 public class GumTuneClientConfig extends Config {
 
@@ -35,6 +36,9 @@ public class GumTuneClientConfig extends Config {
     private transient static final String SERVER_SIDE_ROTATIONS = "Server Side Rotations";
     private transient static final String ROTATION_CONFIG = "Rotations Config";
 
+    private transient static final String CAMERA = "Camera";
+    private transient static final String WORLD_SCANNER = "World Scanner";
+
     @Switch(
             name = "Enabled",
             category = WORLD,
@@ -51,6 +55,23 @@ public class GumTuneClientConfig extends Config {
             step = 10
     )
     public static int sugarCanePlacerSpeed = 20;
+
+    @Switch(
+            name = "World Scanner",
+            category = WORLD,
+            subcategory = WORLD_SCANNER,
+            size = 2
+    )
+    public static boolean worldScanner = false;
+
+    @Page(
+            name = "Scanner Filter",
+            description = "",
+            category = WORLD,
+            subcategory = WORLD_SCANNER,
+            location = PageLocation.BOTTOM
+    )
+    public WorldScannerFilter worldScannerFilter = new WorldScannerFilter();
 
     @Switch(
             name = "Enabled",
@@ -147,7 +168,7 @@ public class GumTuneClientConfig extends Config {
             name = "Shape",
             category = MINING,
             subcategory = NUKER,
-            options = {"Sphere", "Facing Axis"}
+            options = {"Sphere", "Facing Axis", "Axis Tunnels"}
     )
     public static int nukerShape = 0;
 
@@ -235,6 +256,13 @@ public class GumTuneClientConfig extends Config {
             location = PageLocation.BOTTOM
     )
     public FrozenTreasureFilter frozenTreasureFilter = new FrozenTreasureFilter();
+
+    @Switch(
+            name = "Phase Camera Through Blocks",
+            category = RENDER,
+            subcategory = CAMERA
+    )
+    public static boolean phaseCameraThroughBlocks = false;
 
     @Switch(
             name = "Mob Macro",

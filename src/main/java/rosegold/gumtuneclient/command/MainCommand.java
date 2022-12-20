@@ -7,6 +7,10 @@ import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
+import net.minecraft.world.WorldServer;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import rosegold.gumtuneclient.GumTuneClient;
 import cc.polyfrost.oneconfig.utils.commands.annotations.Command;
 import cc.polyfrost.oneconfig.utils.commands.annotations.Main;
@@ -22,7 +26,6 @@ import java.awt.datatransfer.StringSelection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Scanner;
 import java.util.stream.Collectors;
 
 @Command(value = GumTuneClient.MODID, description = "Access the " + GumTuneClient.NAME + " GUI.", aliases = {"gtc"})
@@ -120,6 +123,16 @@ public class MainCommand {
                     blockPos,
                     objectMouseOver.sideHit)
             );
+        }
+    }
+
+    @SubCommand(description = "Break specified block", aliases = {"storage"})
+    private void printStorageArrays() {
+        List<Chunk> loadedChunks = FMLCommonHandler.instance().getMinecraftServerInstance().worldServerForDimension(GumTuneClient.mc.thePlayer.dimension).theChunkProviderServer.func_152380_a();
+        for (Chunk chunk : loadedChunks) {
+            for (ExtendedBlockStorage blockStorage : chunk.getBlockStorageArray()) {
+
+            }
         }
     }
 

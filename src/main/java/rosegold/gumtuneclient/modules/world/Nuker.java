@@ -44,6 +44,18 @@ public class Nuker {
         if (keyBinds.size() > 0 && keyBinds.get(0) == eventKey) {
             enabled = !enabled;
             ModUtils.sendMessage((enabled ? "Enabled" : "Disabled") + " Nuker");
+            if (enabled) {
+                if (NukerBlockFilter.nukerBlockFilterFrozenTreasure) {
+                    if (GumTuneClientConfig.frozenTreasureESP) {
+                        ModUtils.sendMessage("&cIf nuker doesn't work for frozen treasures, try disabling entity culling in patcher!");
+                    } else {
+                        ModUtils.sendMessage("&cEnable frozen treasure ESP for frozen treasure nuker to work!");
+                    }
+                }
+                if (GumTuneClientConfig.nukerShape == 2 && (NukerBlockFilter.nukerBlockFilterHardstone || NukerBlockFilter.nukerBlockFilterStone) && !GumTuneClientConfig.phaseCameraThroughBlocks) {
+                    ModUtils.sendMessage("&cRecommended to turn on Phase Camera Through Blocks when using tunnel shape and hardstone filter!");
+                }
+            }
         }
     }
 
@@ -225,20 +237,49 @@ public class Nuker {
 
     private boolean canMine(BlockPos blockPos) {
         if (canMineBlockType(blockPos) && !broken.contains(blockPos) && blocksInRange.contains(blockPos)) {
-            if (GumTuneClientConfig.nukerShape == 1) {
-                EntityPlayerSP player = GumTuneClient.mc.thePlayer;
-                EnumFacing axis = player.getHorizontalFacing();
-                Vec3i ray = new Vec3i((int) Math.floor(player.posX), 0, (int) Math.floor(player.posZ));
-                for (int i = 0; i < 5; i++) {
-                    ray = addVector(ray, axis.getDirectionVec());
-                    if (ray.getX() == blockPos.getX() && ray.getZ() == blockPos.getZ()) {
-                        return true;
+            EntityPlayerSP player = GumTuneClient.mc.thePlayer;
+            EnumFacing axis = player.getHorizontalFacing();
+            Vec3i ray = new Vec3i((int) Math.floor(player.posX), 0, (int) Math.floor(player.posZ));
+
+            switch (GumTuneClientConfig.nukerShape) {
+                case 1:
+                    for (int i = 0; i < 5; i++) {
+                        ray = VectorUtils.addVector(ray, axis.getDirectionVec());
+                        if (ray.getX() == blockPos.getX() && ray.getZ() == blockPos.getZ()) {
+                            return true;
+                        }
                     }
-                }
-                return false;
+
+                    return false;
+                case 2:
+                    for (int i = 0; i < 5; i++) {
+                        ray = VectorUtils.addVector(ray, axis.getDirectionVec());
+                        if (ray.getX() == blockPos.getX() && ray.getZ() == blockPos.getZ()) {
+                            return true;
+                        }
+                        if (axis.getAxis() == EnumFacing.Axis.Z) {
+                            if (ray.getX() + 2 == blockPos.getX() && ray.getZ() == blockPos.getZ()) {
+                                return true;
+                            }
+                            if (ray.getX() - 2 == blockPos.getX() && ray.getZ() == blockPos.getZ()) {
+                                return true;
+                            }
+                        } else if (axis.getAxis() == EnumFacing.Axis.X) {
+                            if (ray.getX() == blockPos.getX() && ray.getZ() + 2 == blockPos.getZ()) {
+                                return true;
+                            }
+                            if (ray.getX() == blockPos.getX() && ray.getZ() - 2 == blockPos.getZ()) {
+                                return true;
+                            }
+                        }
+                    }
+
+                    return false;
             }
+
             return true;
         }
+
         return false;
     }
 
@@ -322,8 +363,10 @@ public class Nuker {
                 block == Blocks.ice) return true;
 
         if (NukerBlockFilter.nukerBlockFilterFrozenTreasure &&
+                LocationUtils.currentIsland == LocationUtils.Island.JERRY_WORKSHOP &&
                 ESPs.frozenTreasures.contains(bp)) {
             ESPs.frozenTreasures.remove(bp);
+            ESPs.checked.clear(); // make nuker faster
             return true;
         }
 
@@ -336,10 +379,6 @@ public class Nuker {
         return block == Blocks.prismarine || block == Blocks.wool || block == Blocks.stained_hardened_clay ||
                 block == Blocks.gold_block || block == Blocks.stained_glass_pane || block == Blocks.stained_glass ||
                 block == Blocks.glowstone || block == Blocks.chest;
-    }
-
-    private Vec3i addVector(Vec3i vec1, Vec3i vec2) {
-        return new Vec3i(vec1.getX() + vec2.getX(), vec1.getY() + vec2.getY(), vec1.getZ() + vec2.getZ());
     }
 
     private IBlockState getBlockState(BlockPos blockPos) {

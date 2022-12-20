@@ -1,6 +1,5 @@
 package rosegold.gumtuneclient.modules.render;
 
-import jdk.nashorn.internal.ir.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.init.Blocks;
@@ -25,28 +24,10 @@ import java.util.List;
 
 public class ESPs {
 
-    private static class HighlightBlock {
-        private final BlockPos blockPos;
-        private final String name;
-
-        public HighlightBlock(BlockPos blockPos, String name) {
-            this.blockPos = blockPos;
-            this.name = name;
-        }
-
-        public BlockPos getBlockPos() {
-            return blockPos;
-        }
-
-        public String getName() {
-            return name;
-        }
-    }
-
     private static final HashMap<Entity, String> highlightedEntities = new HashMap<>();
     private static final HashMap<Entity, HighlightBlock> highlightedBlocks = new HashMap<>();
     public static final ArrayList<BlockPos> frozenTreasures = new ArrayList<>();
-    private static final HashSet<Entity> checked = new HashSet<>();
+    public static final HashSet<Entity> checked = new HashSet<>();
 
     @SubscribeEvent
     public void onRenderEntityLiving(RenderLivingEntityEvent event) {
