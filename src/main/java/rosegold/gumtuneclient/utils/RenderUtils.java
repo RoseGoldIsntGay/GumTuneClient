@@ -105,6 +105,10 @@ public class RenderUtils {
     }
 
     public static void renderBoundingBox(Entity entity, float partialTicks, int color) {
+        renderBoundingBox(entity, partialTicks, color, 0.5f);
+    }
+
+    public static void renderBoundingBox(Entity entity, float partialTicks, int color, float opacity) {
         RenderManagerAccessor rm = (RenderManagerAccessor) mc.getRenderManager();
 
         double renderPosX = rm.getRenderPosX();
@@ -129,10 +133,14 @@ public class RenderUtils {
             aabb = aabb.expand(0.3, 2.0, 0.3);
         }*/
 
-        drawFilledBoundingBox(aabb, color);
+        drawFilledBoundingBox(aabb, color, opacity);
     }
 
     public static void renderEspBox(BlockPos blockPos, float partialTicks, int color) {
+        renderEspBox(blockPos, partialTicks, color, 0.5f);
+    }
+
+    public static void renderEspBox(BlockPos blockPos, float partialTicks, int color, float opacity) {
         if (blockPos != null) {
             IBlockState blockState = mc.theWorld.getBlockState(blockPos);
 
@@ -142,11 +150,15 @@ public class RenderUtils {
                 double d0 = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * (double) partialTicks;
                 double d1 = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * (double) partialTicks;
                 double d2 = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * (double) partialTicks;
-                drawFilledBoundingBox(block.getSelectedBoundingBox(mc.theWorld, blockPos).expand(0.002D, 0.002D, 0.002D).offset(-d0, -d1, -d2), color);
+                drawFilledBoundingBox(block.getSelectedBoundingBox(mc.theWorld, blockPos).expand(0.002D, 0.002D, 0.002D).offset(-d0, -d1, -d2), color, opacity);
             }
         }
     }
+
     public static void renderSmallBox(Vec3 vec, int color) {
+        renderSmallBox(vec, color, 0.5f);
+    }
+    public static void renderSmallBox(Vec3 vec, int color, float opacity) {
         RenderManagerAccessor renderManager = (RenderManagerAccessor) mc.getRenderManager();
 
         double renderPosX = renderManager.getRenderPosX();
@@ -166,10 +178,10 @@ public class RenderUtils {
                 z + 0.05
         );
 
-        drawFilledBoundingBox(aabb, color);
+        drawFilledBoundingBox(aabb, color, opacity);
     }
 
-    public static void drawFilledBoundingBox(AxisAlignedBB aabb, int color) {
+    public static void drawFilledBoundingBox(AxisAlignedBB aabb, int color, float opacity) {
         GlStateManager.enableBlend();
         GlStateManager.disableDepth();
         GlStateManager.disableLighting();
@@ -182,8 +194,6 @@ public class RenderUtils {
         float r = (color >> 16 & 0xFF) / 255.0F;
         float g = (color >> 8 & 0xFF) / 255.0F;
         float b = (color & 0xFF) / 255.0F;
-
-        float opacity = 0.5f;
 
         GlStateManager.color(r, g, b, a * opacity);
         worldrenderer.begin(7, DefaultVertexFormats.POSITION);

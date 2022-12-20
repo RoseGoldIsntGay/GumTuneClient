@@ -24,7 +24,7 @@ import java.util.ArrayList;
 
 public class PowderChestSolver {
 
-    private static Vec3 particle;
+    public static Vec3 particle;
     private static BlockPos closestChest;
     private final ArrayList<BlockPos> solved = new ArrayList<>();
 
@@ -89,11 +89,8 @@ public class PowderChestSolver {
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public void onUpdatePre(PlayerMoveEvent.Pre pre) {
         if (!isEnabled()) return;
-        if (particle != null) {
-            RotationUtils.serverLook(RotationUtils.getRotationToVec(particle));
-        } else {
-            RotationUtils.resetServerLook();
-        }
+        if (particle == null) return;
+        RotationUtils.look(RotationUtils.getRotation(particle));
     }
 
     @SubscribeEvent

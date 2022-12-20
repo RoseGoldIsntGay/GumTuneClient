@@ -9,6 +9,6 @@ public class ModUtils {
         if (object != null) {
             message = object.toString().replace("&", "§");
         }
-        GumTuneClient.mc.thePlayer.addChatMessage(new ChatComponentText("§7[§5" + GumTuneClient.NAME + "§7] §f" + message));
+        GumTuneClient.mc.thePlayer.addChatMessage(new ChatComponentText("§7[§d" + GumTuneClient.NAME + "§7] §f" + message));
     }
 }

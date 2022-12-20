@@ -19,7 +19,7 @@ import rosegold.gumtuneclient.utils.RotationUtils;
 
 public class CanePlacer {
 
-    private static Vec3 point;
+    public static Vec3 point;
     private static long lastPlanted = 0;
 
     @SubscribeEvent
@@ -53,11 +53,8 @@ public class CanePlacer {
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public void onUpdatePre(PlayerMoveEvent.Pre pre) {
         if (!GumTuneClientConfig.sugarCanePlacer) return;
-        if (point != null) {
-            RotationUtils.serverLook(RotationUtils.getRotationToVec(point));
-        } else {
-            RotationUtils.resetServerLook();
-        }
+        if (point == null) return;
+        RotationUtils.look(RotationUtils.getRotation(point));
     }
 
     private boolean canPlantOnBlock(BlockPos blockPos) {
@@ -67,17 +64,7 @@ public class CanePlacer {
                         getBlock(blockPos.north()) == Blocks.water || getBlock(blockPos.north()) == Blocks.flowing_water ||
                         getBlock(blockPos.east()) == Blocks.water || getBlock(blockPos.east()) == Blocks.flowing_water ||
                         getBlock(blockPos.west()) == Blocks.water || getBlock(blockPos.west()) == Blocks.flowing_water) &&
-                canBlockBeSeen(blockPos);
-    }
-
-    private boolean canBlockBeSeen(BlockPos blockPos) {
-        Vec3 vec = new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.99, blockPos.getZ() + 0.5);
-        MovingObjectPosition mop = GumTuneClient.mc.theWorld.rayTraceBlocks(GumTuneClient.mc.thePlayer.getPositionEyes(1.0f), vec, false, true, false);
-        if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            return mop.getBlockPos().equals(blockPos) && vec.distanceTo(GumTuneClient.mc.thePlayer.getPositionEyes(1.0f)) < GumTuneClient.mc.playerController.getBlockReachDistance();
-        }
-
-        return false;
+                BlockUtils.canBlockBeSeen(blockPos, GumTuneClient.mc.playerController.getBlockReachDistance());
     }
 
     private Block getBlock(BlockPos blockPos) {

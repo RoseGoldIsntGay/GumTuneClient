@@ -1,9 +1,12 @@
 package rosegold.gumtuneclient.modules.world;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockColored;
+import net.minecraft.block.BlockStone;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.EnumDyeColor;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.util.*;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -18,21 +21,23 @@ import rosegold.gumtuneclient.config.pages.NukerBlockFilter;
 import rosegold.gumtuneclient.events.MillisecondEvent;
 import rosegold.gumtuneclient.events.PlayerMoveEvent;
 import rosegold.gumtuneclient.events.SecondEvent;
+import rosegold.gumtuneclient.modules.render.ESPs;
 import rosegold.gumtuneclient.utils.*;
 
 import java.awt.*;
 import java.util.ArrayList;
 
 public class Nuker {
-    private boolean enabled;
+    public static boolean enabled;
     private final ArrayList<BlockPos> broken = new ArrayList<>();
-    private BlockPos blockPos;
+    public static BlockPos blockPos;
     private long lastBroken = 0;
     private BlockPos current;
     private final ArrayList<BlockPos> blocksInRange = new ArrayList<>();
 
     @SubscribeEvent
     public void onKey(InputEvent.KeyInputEvent event) {
+        if (!GumTuneClientConfig.nuker) return;
         if (Keyboard.getEventKeyState()) return;
         int eventKey = Keyboard.getEventKey();
         ArrayList<Integer> keyBinds = GumTuneClientConfig.nukerKeyBind.getKeyBinds();
@@ -99,9 +104,15 @@ public class Nuker {
                     }
                     if (isSlow(getBlockState(blockPos))) {
                         if (current == null) {
+                            if (GumTuneClientConfig.smoothServerSideRotations && (GumTuneClientConfig.powderChestPauseNukerMode != 2 || PowderChestSolver.particle == null)) {
+                                RotationUtils.serverSmoothLook(RotationUtils.getRotation(blockPos), 1000L / GumTuneClientConfig.nukerSpeed);
+                            }
                             mineBlock(blockPos);
                         }
                     } else {
+                        if (GumTuneClientConfig.smoothServerSideRotations && (GumTuneClientConfig.powderChestPauseNukerMode != 2 || PowderChestSolver.particle == null)) {
+                            RotationUtils.serverSmoothLook(RotationUtils.getRotation(blockPos), 1000L / GumTuneClientConfig.nukerSpeed);
+                        }
                         pinglessMineBlock(blockPos);
                         current = null;
                     }
@@ -109,7 +120,15 @@ public class Nuker {
                 }
             }
 
-            blockPos = BlockUtils.getClosestBlock(4, GumTuneClientConfig.nukerHeight, GumTuneClientConfig.nukerDepth, this::canMine);
+            switch (GumTuneClientConfig.nukerAlgorithm) {
+                case 0:
+                    blockPos = BlockUtils.getClosestBlock(4, GumTuneClientConfig.nukerHeight, GumTuneClientConfig.nukerDepth, this::canMine);
+                    break;
+                case 1:
+                    blockPos = BlockUtils.getEasiestBlock(4, GumTuneClientConfig.nukerHeight, GumTuneClientConfig.nukerDepth, this::canMine);
+                    break;
+            }
+
 
             if (blockPos != null) {
                 if (current != null && current.compareTo(blockPos) != 0) {
@@ -117,9 +136,15 @@ public class Nuker {
                 }
                 if (isSlow(getBlockState(blockPos))) {
                     if (current == null) {
+                        if (GumTuneClientConfig.smoothServerSideRotations && (GumTuneClientConfig.powderChestPauseNukerMode != 2 || PowderChestSolver.particle == null)) {
+                            RotationUtils.serverSmoothLook(RotationUtils.getRotation(blockPos), 1000L / GumTuneClientConfig.nukerSpeed);
+                        }
                         mineBlock(blockPos);
                     }
                 } else {
+                    if (GumTuneClientConfig.smoothServerSideRotations && (GumTuneClientConfig.powderChestPauseNukerMode != 2 || PowderChestSolver.particle == null)) {
+                        RotationUtils.serverSmoothLook(RotationUtils.getRotation(blockPos), 1000L / GumTuneClientConfig.nukerSpeed);
+                    }
                     pinglessMineBlock(blockPos);
                     current = null;
                 }
@@ -133,18 +158,17 @@ public class Nuker {
     public void onRender(RenderWorldLastEvent event) {
         if (!isEnabled()) return;
         RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.GRAY.getRGB());
-        if (GumTuneClientConfig.nukerPreview) blocksInRange.forEach(bp -> RenderUtils.renderEspBox(bp, event.partialTicks, Color.CYAN.getRGB()));
+        if (GumTuneClientConfig.nukerPreview) blocksInRange.forEach(bp -> RenderUtils.renderEspBox(bp, event.partialTicks, Color.CYAN.getRGB(), 0.1f));
     }
 
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public void onUpdatePre(PlayerMoveEvent.Pre pre) {
         if (!isEnabled()) return;
         if (!GumTuneClientConfig.serverSideNukerRotations) return;
-        if (blockPos != null) {
-            RotationUtils.serverLook(RotationUtils.getRotationToBlock(blockPos));
-        } else {
-            RotationUtils.resetServerLook();
-        }
+        if (blockPos == null) return;
+        if (GumTuneClientConfig.smoothServerSideRotations) return;
+        if (GumTuneClientConfig.powderChestPauseNukerMode == 2 && PowderChestSolver.particle != null) return;
+        RotationUtils.look(RotationUtils.getRotation(blockPos));
     }
 
     private void mineBlock(BlockPos blockPos) {
@@ -170,8 +194,8 @@ public class Nuker {
         }
     }
 
-    private boolean isEnabled() {
-        return enabled && GumTuneClientConfig.nuker && GumTuneClient.mc.thePlayer != null && GumTuneClient.mc.theWorld != null;
+    public static boolean isEnabled() {
+        return (GumTuneClientConfig.powderChestPauseNukerMode != 1 || PowderChestSolver.particle == null) && enabled && GumTuneClientConfig.nuker && GumTuneClient.mc.thePlayer != null && GumTuneClient.mc.theWorld != null;
     }
 
     private BlockPos blockInFront() {
@@ -200,7 +224,7 @@ public class Nuker {
     }
 
     private boolean canMine(BlockPos blockPos) {
-        if (canMineBlockType(getBlockState(blockPos)) && !broken.contains(blockPos) && blocksInRange.contains(blockPos)) {
+        if (canMineBlockType(blockPos) && !broken.contains(blockPos) && blocksInRange.contains(blockPos)) {
             if (GumTuneClientConfig.nukerShape == 1) {
                 EntityPlayerSP player = GumTuneClient.mc.thePlayer;
                 EnumFacing axis = player.getHorizontalFacing();
@@ -218,37 +242,93 @@ public class Nuker {
         return false;
     }
 
-    private boolean canMineBlockType(IBlockState blockState) {
+    private boolean canMineBlockType(BlockPos bp) {
+        IBlockState blockState = getBlockState(bp);
         Block block = blockState.getBlock();
         if (LocationUtils.currentIsland == LocationUtils.Island.CRYSTAL_HOLLOWS &&
-                NukerBlockFilter.nukerBlockFilterHardstone && block == Blocks.stone) return true;
+                NukerBlockFilter.nukerBlockFilterHardstone &&
+                (block == Blocks.stone || block == Blocks.stained_hardened_clay)) return true;
+
         if (LocationUtils.currentIsland == LocationUtils.Island.CRYSTAL_HOLLOWS &&
-                NukerBlockFilter.nukerBlockFilterGemstones && (block == Blocks.stained_glass_pane ||
+                NukerBlockFilter.nukerBlockFilterGemstones &&
+                (block == Blocks.stained_glass_pane ||
                 block == Blocks.stained_glass)) return true;
-        if ((LocationUtils.currentIsland == LocationUtils.Island.CRYSTAL_HOLLOWS ||
-                LocationUtils.currentIsland == LocationUtils.Island.DWARVEN_MINES) &&
-                NukerBlockFilter.nukerBlockFilterMithril && (block == Blocks.prismarine || block == Blocks.wool ||
-                block == Blocks.stained_hardened_clay || block == Blocks.gold_block ||
-                block == Blocks.stained_glass_pane || block == Blocks.stained_glass)) return true;
+
+        if (NukerBlockFilter.nukerBlockFilterMithril &&
+                (
+                        (LocationUtils.currentIsland == LocationUtils.Island.CRYSTAL_HOLLOWS &&
+                                (block == Blocks.prismarine ||
+                                (block == Blocks.wool && blockState.getValue(BlockColored.COLOR) == EnumDyeColor.CYAN))
+                        ) || (LocationUtils.currentIsland == LocationUtils.Island.DWARVEN_MINES &&
+                                (block == Blocks.prismarine ||
+                                block == Blocks.wool ||
+                                block == Blocks.stained_hardened_clay ||
+                                (block == Blocks.stone && blockState.getValue(BlockStone.VARIANT) == BlockStone.EnumType.DIORITE_SMOOTH))
+                        )
+                )
+        ) return true;
 
         if (LocationUtils.currentIsland == LocationUtils.Island.CRIMSON_ISLE &&
-                NukerBlockFilter.nukerBlockFilterExcavatables && (block == Blocks.sand || block == Blocks.mycelium)) return true;
-        if (NukerBlockFilter.nukerBlockFilterGold && block == Blocks.gold_block) return true;
-        if (NukerBlockFilter.nukerBlockFilterStone && block == Blocks.stone) return true;
-        if (NukerBlockFilter.nukerBlockFilterOres && (block == Blocks.coal_ore || block == Blocks.lapis_ore ||
-                block == Blocks.iron_ore || block == Blocks.gold_ore || block == Blocks.redstone_ore ||
-                block == Blocks.lit_redstone_ore || block == Blocks.diamond_ore || block == Blocks.emerald_ore ||
+                NukerBlockFilter.nukerBlockFilterExcavatables &&
+                (block == Blocks.sand ||
+                block == Blocks.mycelium)) return true;
+
+        if (NukerBlockFilter.nukerBlockFilterGold &&
+                block == Blocks.gold_block) return true;
+
+        if (NukerBlockFilter.nukerBlockFilterStone &&
+                (block == Blocks.stone ||
+                block == Blocks.cobblestone)) return true;
+
+        if (NukerBlockFilter.nukerBlockFilterOres &&
+                (block == Blocks.coal_ore ||
+                block == Blocks.lapis_ore ||
+                block == Blocks.iron_ore ||
+                block == Blocks.gold_ore ||
+                block == Blocks.redstone_ore ||
+                block == Blocks.lit_redstone_ore ||
+                block == Blocks.diamond_ore ||
+                block == Blocks.emerald_ore ||
                 block == Blocks.quartz_ore)) return true;
-        if (NukerBlockFilter.nukerBlockFilterSand && NukerBlockFilter.nukerBlockFilterWood && block == Blocks.chest) return true;
-        if (NukerBlockFilter.nukerBlockFilterCrops && (block == Blocks.carrots || block == Blocks.potatoes ||
-                block == Blocks.reeds || block == Blocks.cocoa || block == Blocks.melon_block ||
-                block == Blocks.pumpkin || block == Blocks.cactus || block == Blocks.brown_mushroom ||
-                block == Blocks.red_mushroom || block == Blocks.nether_wart || block == Blocks.wheat)) return true;
-        if (NukerBlockFilter.nukerBlockFilterWood && block == Blocks.log ||
-                NukerBlockFilter.nukerBlockFilterWood && block == Blocks.log2) return true;
-        if (NukerBlockFilter.nukerBlockFilterSand && block == Blocks.sand) return true;
-        if (NukerBlockFilter.nukerBlockFilterGlowstone && block == Blocks.glowstone) return true;
-        return NukerBlockFilter.nukerBlockFilterNetherrack && block == Blocks.netherrack;
+
+        if (NukerBlockFilter.nukerBlockFilterSand &&
+                NukerBlockFilter.nukerBlockFilterWood &&
+                block == Blocks.chest) return true;
+
+        if (NukerBlockFilter.nukerBlockFilterCrops &&
+                (block == Blocks.carrots ||
+                block == Blocks.potatoes ||
+                block == Blocks.reeds ||
+                block == Blocks.cocoa ||
+                block == Blocks.melon_block ||
+                block == Blocks.pumpkin ||
+                block == Blocks.cactus ||
+                block == Blocks.brown_mushroom ||
+                block == Blocks.red_mushroom ||
+                block == Blocks.nether_wart ||
+                block == Blocks.wheat)) return true;
+
+        if (NukerBlockFilter.nukerBlockFilterWood &&
+                (block == Blocks.log ||
+                block == Blocks.log2)) return true;
+
+        if (NukerBlockFilter.nukerBlockFilterSand &&
+                block == Blocks.sand) return true;
+
+        if (NukerBlockFilter.nukerBlockFilterGlowstone &&
+                block == Blocks.glowstone) return true;
+
+        if (NukerBlockFilter.nukerBlockFilterIce &&
+                block == Blocks.ice) return true;
+
+        if (NukerBlockFilter.nukerBlockFilterFrozenTreasure &&
+                ESPs.frozenTreasures.contains(bp)) {
+            ESPs.frozenTreasures.remove(bp);
+            return true;
+        }
+
+        return NukerBlockFilter.nukerBlockFilterNetherrack &&
+                block == Blocks.netherrack;
     }
 
     private boolean isSlow(IBlockState blockState) {

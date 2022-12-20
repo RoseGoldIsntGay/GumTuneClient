@@ -1,7 +1,9 @@
 package rosegold.gumtuneclient.modules.render;
 
+import jdk.nashorn.internal.ir.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -16,6 +18,7 @@ import rosegold.gumtuneclient.utils.LocationUtils;
 import rosegold.gumtuneclient.utils.RenderUtils;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -42,6 +45,7 @@ public class ESPs {
 
     private static final HashMap<Entity, String> highlightedEntities = new HashMap<>();
     private static final HashMap<Entity, HighlightBlock> highlightedBlocks = new HashMap<>();
+    public static final ArrayList<BlockPos> frozenTreasures = new ArrayList<>();
     private static final HashSet<Entity> checked = new HashSet<>();
 
     @SubscribeEvent
@@ -58,7 +62,12 @@ public class ESPs {
                 }
             }
             if (GumTuneClientConfig.frozenTreasureESP && isFrozenTreasure((EntityArmorStand) event.entity)) {
-                highlightBlock(new BlockPos(event.entity.posX, event.entity.posY + 2, event.entity.posZ), event.entity, event.entity.getCurrentArmor(3).serializeNBT().getCompoundTag("tag").getCompoundTag("display").getTag("Name").toString().replace("\"", ""));
+                BlockPos blockPos = new BlockPos(event.entity.posX, event.entity.posY + 2, event.entity.posZ);
+                if (GumTuneClient.mc.theWorld.getBlockState(blockPos).getBlock() == Blocks.ice ||
+                        GumTuneClient.mc.theWorld.getBlockState(blockPos).getBlock() == Blocks.packed_ice) {
+                    frozenTreasures.add(blockPos);
+                    highlightBlock(blockPos, event.entity, event.entity.getCurrentArmor(3).serializeNBT().getCompoundTag("tag").getCompoundTag("display").getTag("Name").toString().replace("\"", ""));
+                }
             }
             checked.add(event.entity);
         }
@@ -101,6 +110,7 @@ public class ESPs {
     public void onWorldLoad(WorldEvent.Load event) {
         highlightedEntities.clear();
         highlightedBlocks.clear();
+        frozenTreasures.clear();
         checked.clear();
     }
 

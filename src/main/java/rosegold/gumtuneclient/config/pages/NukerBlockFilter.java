@@ -75,4 +75,16 @@ public class NukerBlockFilter {
             description = "Netherrack"
     )
     public static boolean nukerBlockFilterNetherrack = false;
+
+    @Switch(
+            name = "Ice",
+            description = "Ice"
+    )
+    public static boolean nukerBlockFilterIce = false;
+
+    @Switch(
+            name = "Frozen Treasure",
+            description = "Frozen Treasure"
+    )
+    public static boolean nukerBlockFilterFrozenTreasure = false;
 }

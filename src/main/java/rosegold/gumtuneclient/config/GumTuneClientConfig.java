@@ -19,6 +19,7 @@ public class GumTuneClientConfig extends Config {
     private transient static final String MACRO = "Macros";
     private transient static final String WORLD = "World"; //todo better name
     private transient static final String RENDER = "Render";
+    private transient static final String CONFIG = "Config";
     private transient static final String MINING = "Mining";
     private transient static final String QOL = "QoL";
     private transient static final String ESPS = "ESPs";
@@ -31,6 +32,8 @@ public class GumTuneClientConfig extends Config {
     private transient static final String NUKER = "Nuker";
     private transient static final String TRACKERS = "Trackers";
     private transient static final String MOB_MACRO = "Mob Macro";
+    private transient static final String SERVER_SIDE_ROTATIONS = "Server Side Rotations";
+    private transient static final String ROTATION_CONFIG = "Rotations Config";
 
     @Switch(
             name = "Enabled",
@@ -148,6 +151,14 @@ public class GumTuneClientConfig extends Config {
     )
     public static int nukerShape = 0;
 
+    @Dropdown(
+            name = "Algorithm",
+            category = MINING,
+            subcategory = NUKER,
+            options = {"Closest Block (Classic)", "Smallest Rotation (NEW!)"}
+    )
+    public static int nukerAlgorithm = 0;
+
     @Slider(
             name = "Field of View",
             description = "Change fov of sphere shape nuker",
@@ -185,21 +196,13 @@ public class GumTuneClientConfig extends Config {
     )
     public static boolean powderChestSolver = false;
 
-    @Switch(
-            name = "Waypoint Text",
-            category = RENDER,
-            subcategory = ESP_SETTINGS,
-            size = 2
+    @Dropdown(
+            name = "Pause nuker when solving",
+            category = MINING,
+            subcategory = POWDER_CHEST_SOLVER,
+            options = {"Don't", "Pause Nuker", "Pause Nuker Rotations"}
     )
-    public static boolean espWaypointText = true;
-
-    @Switch(
-            name = "Highlight",
-            category = RENDER,
-            subcategory = ESP_SETTINGS,
-            size = 2
-    )
-    public static boolean espHighlight = true;
+    public static int powderChestPauseNukerMode = 0;
 
     @Switch(
             name = "ESPs",
@@ -232,6 +235,14 @@ public class GumTuneClientConfig extends Config {
             location = PageLocation.BOTTOM
     )
     public FrozenTreasureFilter frozenTreasureFilter = new FrozenTreasureFilter();
+
+    @Switch(
+            name = "Mob Macro",
+            category = MACRO,
+            subcategory = MOB_MACRO,
+            size = 2
+    )
+    public static boolean mobMacro = false;
 
     @KeyBind(
             name = "Keybind",
@@ -277,9 +288,41 @@ public class GumTuneClientConfig extends Config {
             name = "Rotation Type",
             category = MACRO,
             subcategory = MOB_MACRO,
-            options = {"Snap", "Fake", "Smooth"}
+            options = {"Instant", "Server Side", "Smooth"}
     )
     public static int mobMacroRotation = 0;
+
+    @Switch(
+            name = "Smooth Server Side Rotation",
+            category = CONFIG,
+            subcategory = ROTATION_CONFIG,
+            size = 2,
+            description = "Smooth rotate when possible"
+    )
+    public static boolean smoothServerSideRotations = false;
+
+    @Switch(
+            name = "Always show server rotations",
+            category = CONFIG,
+            subcategory = SERVER_SIDE_ROTATIONS
+    )
+    public static boolean alwaysShowServerRotations = false;
+
+    @Switch(
+            name = "Show Waypoint Text",
+            category = CONFIG,
+            subcategory = ESP_SETTINGS,
+            size = 2
+    )
+    public static boolean espWaypointText = true;
+
+    @Switch(
+            name = "Show Highlight",
+            category = CONFIG,
+            subcategory = ESP_SETTINGS,
+            size = 2
+    )
+    public static boolean espHighlight = true;
 
     public GumTuneClientConfig() {
         super(new Mod(GumTuneClient.NAME, ModType.SKYBLOCK, "https://i.imgur.com/EJen0w7.png"), GumTuneClient.MODID + ".json");

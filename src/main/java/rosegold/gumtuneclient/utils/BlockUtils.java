@@ -2,6 +2,7 @@ package rosegold.gumtuneclient.utils;
 
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.util.*;
+import rosegold.gumtuneclient.GumTuneClient;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,6 +39,34 @@ public class BlockUtils {
         return closest;
     }
 
+    public static BlockPos getEasiestBlock(int radius, int height, int depth, Predicate<? super BlockPos> predicate) {
+        EntityPlayerSP player = mc.thePlayer;
+        BlockPos playerPos = new BlockPos((int) Math.floor(player.posX), (int) Math.floor(player.posY) + 1, (int) Math.floor(player.posZ));
+        Vec3i vec3Top = new Vec3i(radius, height, radius);
+        Vec3i vec3Bottom = new Vec3i(radius, depth, radius);
+        BlockPos easiest = null;
+
+        for (BlockPos blockPos : BlockPos.getAllInBox(playerPos.subtract(vec3Bottom), playerPos.add(vec3Top))) {
+            if (predicate.test(blockPos) && canBlockBeSeen(blockPos, 8)) {
+                if (easiest == null || RotationUtils.getNeededChange(RotationUtils.getRotation(blockPos)).getValue() < RotationUtils.getNeededChange(RotationUtils.getRotation(easiest)).getValue()) {
+                    easiest = blockPos;
+                }
+            }
+        }
+
+        if (easiest != null) return easiest;
+
+        for (BlockPos blockPos : BlockPos.getAllInBox(playerPos.subtract(vec3Bottom), playerPos.add(vec3Top))) {
+            if (predicate.test(blockPos)) {
+                if (easiest == null || RotationUtils.getNeededChange(RotationUtils.getRotation(blockPos)).getValue() < RotationUtils.getNeededChange(RotationUtils.getRotation(easiest)).getValue()) {
+                    easiest = blockPos;
+                }
+            }
+        }
+
+        return easiest;
+    }
+
     public static BlockPos getFurthestBlock(int radius, int height, int depth, Predicate<? super BlockPos> predicate) {
         EntityPlayerSP player = mc.thePlayer;
         BlockPos playerPos = player.getPosition().up();
@@ -54,6 +83,16 @@ public class BlockUtils {
         }
 
         return closest;
+    }
+
+    public static boolean canBlockBeSeen(BlockPos blockPos, double dist) {
+        Vec3 vec = new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.99, blockPos.getZ() + 0.5);
+        MovingObjectPosition mop = GumTuneClient.mc.theWorld.rayTraceBlocks(GumTuneClient.mc.thePlayer.getPositionEyes(1.0f), vec, false, true, false);
+        if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            return mop.getBlockPos().equals(blockPos) && vec.distanceTo(GumTuneClient.mc.thePlayer.getPositionEyes(1.0f)) < dist;
+        }
+
+        return false;
     }
 
     private static ArrayList<Vec3> getPointsOnBlock(BlockPos bp, EnumFacing enumFacing) {

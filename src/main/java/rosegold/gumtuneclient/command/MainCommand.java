@@ -3,17 +3,25 @@ package rosegold.gumtuneclient.command;
 import cc.polyfrost.oneconfig.utils.commands.annotations.SubCommand;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
+import net.minecraft.network.play.client.C07PacketPlayerDigging;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.Vec3;
 import rosegold.gumtuneclient.GumTuneClient;
 import cc.polyfrost.oneconfig.utils.commands.annotations.Command;
 import cc.polyfrost.oneconfig.utils.commands.annotations.Main;
+import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.utils.EntityUtils;
 import rosegold.gumtuneclient.utils.ModUtils;
+import rosegold.gumtuneclient.utils.PlayerUtils;
+import rosegold.gumtuneclient.utils.RotationUtils;
 
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
@@ -55,14 +63,81 @@ public class MainCommand {
         clipboard.setContents(selection, selection);
     }
 
-    private boolean isInteger(String s) {
-        return isInteger(s,10);
+    @SubCommand(description = "Rotate to <yaw, pitch>", aliases = {"rotate"})
+    private void rotate(String pitch, String yaw, String mode) {
+        if (pitch == null || !isNumeric(yaw)) {
+            ModUtils.sendMessage("&cInvalid pitch: " + pitch);
+            return;
+        }
+        if (yaw == null || !isNumeric(yaw)) {
+            ModUtils.sendMessage("&cInvalid yaw:" + yaw);
+            return;
+        }
+        if (mode == null || !mode.toLowerCase(Locale.ROOT).equals("instant") &&
+                !mode.toLowerCase(Locale.ROOT).equals("smooth") && !mode.toLowerCase(Locale.ROOT).equals("serversmooth")) {
+            ModUtils.sendMessage("&cInvalid mode " + mode + " please select either <instant, smooth, serversmooth>");
+            return;
+        }
+
+        switch (mode.toLowerCase(Locale.ROOT)) {
+            case "instant":
+                RotationUtils.look(new RotationUtils.Rotation(Float.parseFloat(pitch), Float.parseFloat(yaw)));
+                break;
+            case "smooth":
+                RotationUtils.smoothLook(new RotationUtils.Rotation(Float.parseFloat(pitch), Float.parseFloat(yaw)), 250);
+                break;
+            case "serversmooth":
+                if (!GumTuneClientConfig.alwaysShowServerRotations) {
+                    ModUtils.sendMessage("Turn on \"Always show server rotations\" under config");
+                }
+                RotationUtils.serverSmoothLook(new RotationUtils.Rotation(Float.parseFloat(pitch), Float.parseFloat(yaw)), 250);
+                break;
+        }
     }
 
-    private boolean isInteger(String s, int radix) {
-        Scanner sc = new Scanner(s.trim());
-        if(!sc.hasNextInt(radix)) return false;
-        sc.nextInt(radix);
-        return !sc.hasNext();
+    @SubCommand(description = "Break specified block", aliases = {"break"})
+    private void breakBlock(String x, String y, String z) {
+        if (x == null || !isInteger(x)) {
+            ModUtils.sendMessage("Invalid x coordinate: " + x);
+            return;
+        }
+        if (y == null || !isInteger(y)) {
+            ModUtils.sendMessage("Invalid y coordinate: " + y);
+            return;
+        }
+        if (z == null || !isInteger(z)) {
+            ModUtils.sendMessage("Invalid z coordinate: " + z);
+            return;
+        }
+
+        BlockPos blockPos = new BlockPos(Integer.parseInt(x), Integer.parseInt(y), Integer.parseInt(z));
+        MovingObjectPosition objectMouseOver = GumTuneClient.mc.objectMouseOver;
+        objectMouseOver.hitVec = new Vec3(blockPos);
+        if (objectMouseOver.sideHit != null) {
+            PlayerUtils.swingHand(null);
+            GumTuneClient.mc.thePlayer.sendQueue.addToSendQueue(new C07PacketPlayerDigging(
+                    C07PacketPlayerDigging.Action.START_DESTROY_BLOCK,
+                    blockPos,
+                    objectMouseOver.sideHit)
+            );
+        }
+    }
+
+    private boolean isNumeric(String str) {
+        try {
+            Double.parseDouble(str);
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isInteger(String str) {
+        try {
+            Integer.parseInt(str);
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+        return true;
     }
 }
