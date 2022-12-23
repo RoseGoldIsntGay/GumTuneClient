@@ -1,28 +1,25 @@
 package rosegold.gumtuneclient.command;
 
+import cc.polyfrost.oneconfig.utils.commands.annotations.Command;
+import cc.polyfrost.oneconfig.utils.commands.annotations.Main;
 import cc.polyfrost.oneconfig.utils.commands.annotations.SubCommand;
+import net.minecraft.client.multiplayer.ChunkProviderClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
-import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
-import net.minecraftforge.fml.common.FMLCommonHandler;
 import rosegold.gumtuneclient.GumTuneClient;
-import cc.polyfrost.oneconfig.utils.commands.annotations.Command;
-import cc.polyfrost.oneconfig.utils.commands.annotations.Main;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
-import rosegold.gumtuneclient.utils.EntityUtils;
-import rosegold.gumtuneclient.utils.ModUtils;
-import rosegold.gumtuneclient.utils.PlayerUtils;
-import rosegold.gumtuneclient.utils.RotationUtils;
+import rosegold.gumtuneclient.modules.world.WorldScanner;
+import rosegold.gumtuneclient.utils.*;
 
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.lang.reflect.Field;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -126,13 +123,18 @@ public class MainCommand {
         }
     }
 
-    @SubCommand(description = "Break specified block", aliases = {"storage"})
+    @SubCommand(description = "Rescan all loaded chunks with WorldScanner", aliases = {"reloadchunks"})
     private void printStorageArrays() {
-        List<Chunk> loadedChunks = FMLCommonHandler.instance().getMinecraftServerInstance().worldServerForDimension(GumTuneClient.mc.thePlayer.dimension).theChunkProviderServer.func_152380_a();
-        for (Chunk chunk : loadedChunks) {
-            for (ExtendedBlockStorage blockStorage : chunk.getBlockStorageArray()) {
-
+        try {
+            ChunkProviderClient chunkProvider = (ChunkProviderClient) GumTuneClient.mc.theWorld.getChunkProvider();
+            Field chunkListingField = chunkProvider.getClass().getDeclaredField("chunkListing");
+            chunkListingField.setAccessible(true);
+            List<Chunk> chunkList = (List<Chunk>) chunkListingField.get(chunkProvider);
+            for (Chunk chunk : chunkList) {
+                WorldScanner.handleChunkLoad(chunk, WorldScanner.worlds.get(LocationUtils.serverName));
             }
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
         }
     }
 

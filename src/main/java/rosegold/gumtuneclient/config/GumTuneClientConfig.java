@@ -64,6 +64,24 @@ public class GumTuneClientConfig extends Config {
     )
     public static boolean worldScanner = false;
 
+    @Dropdown(
+            name = "Scanner Mode",
+            category = WORLD,
+            subcategory = WORLD_SCANNER,
+            options = {"When chunk is loaded", "Timer", "Both"}
+    )
+    public static int worldScannerScanMode = 0;
+
+    @Slider(
+            name = "World Scan Timer",
+            description = "Seconds per scan",
+            category = WORLD,
+            subcategory = WORLD_SCANNER,
+            min = 1, max = 20,
+            step = 1
+    )
+    public static int worldScannerScanFrequency = 10;
+
     @Page(
             name = "Scanner Filter",
             description = "",

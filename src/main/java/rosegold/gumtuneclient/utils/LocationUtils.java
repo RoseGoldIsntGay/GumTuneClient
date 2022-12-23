@@ -1,7 +1,5 @@
 package rosegold.gumtuneclient.utils;
 
-import cc.polyfrost.oneconfig.events.event.LocrawEvent;
-import cc.polyfrost.oneconfig.libs.eventbus.Subscribe;
 import cc.polyfrost.oneconfig.utils.hypixel.HypixelUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -42,6 +40,8 @@ public class LocationUtils {
     }
 
     public static Island currentIsland;
+
+    public static String serverName;
     public static boolean onSkyblock = false;
 
     // TEMPORARY FIX FOR LOCRAW
@@ -56,38 +56,26 @@ public class LocationUtils {
             if (!obj.has("gametype") || !obj.has("map")) return;
 
             if (obj.getAsJsonPrimitive("gametype").getAsString().equals("limbo")) {
-                if (obj.getAsJsonPrimitive("server").getAsString().equals("limbo")) currentIsland = Island.LIMBO;
-                else currentIsland = Island.LOBBY;
+                if (obj.getAsJsonPrimitive("server").getAsString().equals("limbo")) {
+                    currentIsland = Island.LIMBO;
+                } else {
+                    currentIsland = Island.LOBBY;
+                }
             } else {
                 onSkyblock = obj.getAsJsonPrimitive("gametype").getAsString().equals("SKYBLOCK");
-                if (onSkyblock)
-                    for (Island island : Island.values())
+                if (onSkyblock) {
+                    serverName = obj.getAsJsonPrimitive("server").getAsString();
+                    for (Island island : Island.values()) {
                         if (obj.getAsJsonPrimitive("map").getAsString().equals(island.getName())) {
                             currentIsland = island;
                             break;
                         }
-            }
-            // testing ModUtils.sendMessage("Current island: " + currentIsland.name + "  locraw: " + unformatted);
-        } catch (SerializationException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Subscribe
-    public void onLocraw(LocrawEvent event) {
-        if (event.info.getGameMode().equals("lobby")) {
-            if (event.info.getServerId().equals("limbo")) {
-                currentIsland = Island.LIMBO;
-            } else {
-                currentIsland = Island.LOBBY;
-            }
-        } else {
-            for (Island island : Island.values()) {
-                if (event.info.getMapName().equals(island.getName())) {
-                    currentIsland = island;
-                    break;
+                    }
                 }
             }
+            ModUtils.sendMessage("Current island: " + currentIsland.name + "  locraw: " + unformatted);
+        } catch (SerializationException e) {
+            e.printStackTrace();
         }
     }
 }

@@ -177,10 +177,25 @@ public class Nuker {
     public void onUpdatePre(PlayerMoveEvent.Pre pre) {
         if (!isEnabled()) return;
         if (!GumTuneClientConfig.serverSideNukerRotations) return;
-        if (blockPos == null) return;
-        if (GumTuneClientConfig.smoothServerSideRotations) return;
         if (GumTuneClientConfig.powderChestPauseNukerMode == 2 && PowderChestSolver.particle != null) return;
-        RotationUtils.look(RotationUtils.getRotation(blockPos));
+        if (blockPos != null) {
+            if (GumTuneClientConfig.smoothServerSideRotations) {
+                if (RotationUtils.done) {
+                    RotationUtils.look(RotationUtils.getRotation(blockPos));
+                }
+            } else {
+                RotationUtils.look(RotationUtils.getRotation(blockPos));
+            }
+        }
+        if (current != null) {
+            if (GumTuneClientConfig.smoothServerSideRotations) {
+                if (RotationUtils.done) {
+                    RotationUtils.look(RotationUtils.getRotation(current));
+                }
+            } else {
+                RotationUtils.look(RotationUtils.getRotation(current));
+            }
+        }
     }
 
     private void mineBlock(BlockPos blockPos) {
@@ -299,7 +314,7 @@ public class Nuker {
                 (
                         (LocationUtils.currentIsland == LocationUtils.Island.CRYSTAL_HOLLOWS &&
                                 (block == Blocks.prismarine ||
-                                (block == Blocks.wool && blockState.getValue(BlockColored.COLOR) == EnumDyeColor.CYAN))
+                                (block == Blocks.wool && blockState.getValue(BlockColored.COLOR) == EnumDyeColor.LIGHT_BLUE))
                         ) || (LocationUtils.currentIsland == LocationUtils.Island.DWARVEN_MINES &&
                                 (block == Blocks.prismarine ||
                                 block == Blocks.wool ||
