@@ -2,6 +2,7 @@ package rosegold.gumtuneclient.config;
 
 import cc.polyfrost.oneconfig.config.Config;
 import cc.polyfrost.oneconfig.config.annotations.*;
+import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.config.core.OneKeyBind;
 import cc.polyfrost.oneconfig.config.data.Mod;
 import cc.polyfrost.oneconfig.config.data.ModType;
@@ -251,6 +252,12 @@ public class GumTuneClientConfig extends Config {
             size = 4
     )
     public static boolean customESP = false;
+
+    @Color(
+            name = "ESP Color",
+            category = RENDER
+    )
+    public static OneColor espColor = new OneColor(26, 35, 143);
 
     @Switch(
             name = "Arachne's Keeper ESP",

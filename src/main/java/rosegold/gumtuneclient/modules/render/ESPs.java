@@ -16,7 +16,6 @@ import rosegold.gumtuneclient.events.RenderLivingEntityEvent;
 import rosegold.gumtuneclient.utils.LocationUtils;
 import rosegold.gumtuneclient.utils.RenderUtils;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -60,7 +59,7 @@ public class ESPs {
         GumTuneClient.mc.theWorld.loadedEntityList.forEach(entity -> {
             if (highlightedEntities.containsKey(entity)) {
                 if (GumTuneClientConfig.espHighlight) {
-                    RenderUtils.renderBoundingBox(entity, event.partialTicks, Color.MAGENTA.getRGB());
+                    RenderUtils.renderBoundingBox(entity, event.partialTicks, GumTuneClientConfig.espColor.getRGB());
                 }
                 if (GumTuneClientConfig.espWaypointText) {
                     RenderUtils.renderWaypointText(highlightedEntities.get(entity), entity.posX, entity.posY + entity.height, entity.posZ, event.partialTicks);
@@ -69,7 +68,7 @@ public class ESPs {
             if (highlightedBlocks.containsKey(entity)) {
                 BlockPos blockPos = highlightedBlocks.get(entity).getBlockPos();
                 if (GumTuneClientConfig.espHighlight) {
-                    RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.RED.getRGB());
+                    RenderUtils.renderEspBox(blockPos, event.partialTicks, GumTuneClientConfig.espColor.getRGB());
                 }
                 if (GumTuneClientConfig.espWaypointText) {
                     RenderUtils.renderWaypointText(highlightedBlocks.get(entity).getName(), blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);

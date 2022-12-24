@@ -75,7 +75,6 @@ public class LocationUtils {
                     serverName = null;
                 }
             }
-            ModUtils.sendMessage("Current island: " + currentIsland.name + "  locraw: " + unformatted);
         } catch (SerializationException e) {
             e.printStackTrace();
         }
