@@ -111,7 +111,7 @@ public class Nuker {
                 blockPos = blockInFront();
 
                 if (blockPos != null) {
-                    if (current != null && current.compareTo(blockPos) != 0) {
+                    if (current != null && (current.compareTo(blockPos) != 0 || (getBlockState(current).getBlock() != getBlockState(blockPos).getBlock()))) {
                         current = null;
                     }
                     if (isSlow(getBlockState(blockPos))) {

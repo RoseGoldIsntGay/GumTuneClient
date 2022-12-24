@@ -2,12 +2,18 @@ package rosegold.gumtuneclient.modules.world;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.google.common.collect.Lists;
+import net.minecraft.block.BlockColored;
+import net.minecraft.block.BlockPlanks;
+import net.minecraft.block.BlockStone;
+import net.minecraft.block.BlockStoneSlab;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.multiplayer.ChunkProviderClient;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.EnumDyeColor;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.ReportedException;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -19,11 +25,11 @@ import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.config.pages.WorldScannerFilter;
 import rosegold.gumtuneclient.utils.LocationUtils;
-import rosegold.gumtuneclient.utils.ModUtils;
 import rosegold.gumtuneclient.utils.ReflectionUtils;
 import rosegold.gumtuneclient.utils.RenderUtils;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,11 +38,15 @@ public class WorldScanner {
 
     public static class World {
         private final HashMap<String, BlockPos> waypoints;
+        private final ArrayList<BlockPos> fairyGrottosWaypoints;
+        private final ArrayList<BlockPos> wormFishingWaypoints;
         private final String worldId;
 
         public World(String worldId) {
             this.worldId = worldId;
             this.waypoints = new HashMap<>();
+            this.fairyGrottosWaypoints = new ArrayList<>();
+            this.wormFishingWaypoints = new ArrayList<>();
         }
 
         public HashMap<String, BlockPos> getWaypoints() {
@@ -45,6 +55,22 @@ public class WorldScanner {
 
         public void updateWaypoints(String name, BlockPos blockPos) {
             this.waypoints.put(name, blockPos);
+        }
+
+        public void updateFairyGrottos(BlockPos blockPos) {
+            this.fairyGrottosWaypoints.add(blockPos);
+        }
+
+        public ArrayList<BlockPos> getFairyGrottos() {
+            return this.fairyGrottosWaypoints;
+        }
+
+        public void updateWormFishing(BlockPos blockPos) {
+            this.wormFishingWaypoints.add(blockPos);
+        }
+
+        public ArrayList<BlockPos> getWormFishing() {
+            return this.wormFishingWaypoints;
         }
 
         public String getWorldId() {
@@ -58,7 +84,7 @@ public class WorldScanner {
 
     @SubscribeEvent
     public void onChunkLoad(ChunkEvent.Load event) {
-        if (!GumTuneClientConfig.worldScanner) return;
+        if (!GumTuneClientConfig.worldScanner || GumTuneClient.mc.theWorld == null || GumTuneClient.mc.thePlayer == null) return;
         if (GumTuneClientConfig.worldScannerScanMode == 1) return;
         if (cooldown != 0) return;
         World currentWorld = worlds.get(LocationUtils.serverName);
@@ -68,8 +94,7 @@ public class WorldScanner {
 
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
-        if (!GumTuneClientConfig.worldScanner || GumTuneClient.mc.theWorld == null || GumTuneClient.mc.thePlayer == null)
-            return;
+        if (!GumTuneClientConfig.worldScanner || GumTuneClient.mc.theWorld == null || GumTuneClient.mc.thePlayer == null) return;
         if (event.phase == TickEvent.Phase.START) return;
         if (cooldown > 0) {
             cooldown--;
@@ -79,12 +104,14 @@ public class WorldScanner {
         }
         if (cooldown == 0) {
             if (GumTuneClientConfig.worldScannerScanMode == 0) return;
+            World currentWorld = worlds.get(LocationUtils.serverName);
+            if (currentWorld == null) return;
             if (System.currentTimeMillis() - lastScan > GumTuneClientConfig.worldScannerScanFrequency * 1000L) {
                 lastScan = System.currentTimeMillis();
                 Object object = ReflectionUtils.field((ChunkProviderClient) GumTuneClient.mc.theWorld.getChunkProvider(), "chunkListing");
                 if (object != null && object.getClass() == Lists.newArrayList().getClass()) {
                     for (Chunk chunk : (List<Chunk>) object) {
-                        Multithreading.runAsync(() -> handleChunkLoad(chunk, WorldScanner.worlds.get(LocationUtils.serverName)));
+                        Multithreading.runAsync(() -> handleChunkLoad(chunk, currentWorld));
                     }
                 }
             }
@@ -98,14 +125,26 @@ public class WorldScanner {
 
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent event) {
-        if (!GumTuneClientConfig.worldScanner) return;
+        if (!GumTuneClientConfig.worldScanner || GumTuneClient.mc.theWorld == null || GumTuneClient.mc.thePlayer == null) return;
         if (cooldown != 0) return;
+        if (!LocationUtils.onSkyblock) return;
         World currentWorld = worlds.get(LocationUtils.serverName);
         if (currentWorld == null) return;
         for (Map.Entry<String, BlockPos> entry : currentWorld.getWaypoints().entrySet()) {
             BlockPos blockPos = entry.getValue();
-            RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.WHITE.getRGB());
-            RenderUtils.renderWaypointText(entry.getKey(), blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
+            if (GumTuneClientConfig.espHighlight) RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.WHITE.getRGB());
+            if (GumTuneClientConfig.espWaypointText) RenderUtils.renderWaypointText(entry.getKey(), blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
+            if (GumTuneClientConfig.espBeacon) RenderUtils.renderBeacon(new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5), Color.PINK, event.partialTicks);
+        }
+        for (BlockPos blockPos : currentWorld.getFairyGrottos()) {
+            if (GumTuneClientConfig.espHighlight) RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.PINK.getRGB());
+            if (GumTuneClientConfig.espWaypointText) RenderUtils.renderWaypointText("§dFairy Grotto", blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
+            if (GumTuneClientConfig.espBeacon) RenderUtils.renderBeacon(new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5), Color.PINK, event.partialTicks);
+        }
+        for (BlockPos blockPos : currentWorld.getWormFishing()) {
+            if (GumTuneClientConfig.espHighlight) RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.ORANGE.getRGB());
+            if (GumTuneClientConfig.espWaypointText) RenderUtils.renderWaypointText("§6Worm Fishing", blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
+            if (GumTuneClientConfig.espBeacon) RenderUtils.renderBeacon(new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5), Color.PINK, event.partialTicks);
         }
     }
 
@@ -150,8 +189,8 @@ public class WorldScanner {
                                 chunk.getBlock(x, y + 2, z) == Blocks.cobblestone &&
                                 chunk.getBlock(x, y + 3, z) == Blocks.cobblestone &&
                                 chunk.getBlock(x, y + 4, z) == Blocks.stone_stairs &&
-                                chunk.getBlock(x, y + 5, z) == Blocks.stone && // smooth andesite
-                                chunk.getBlock(x, y + 6, z) == Blocks.stone && // smooth andesite
+                                chunk.getBlock(x, y + 5, z) == Blocks.stone && getBlockState(chunk, x, y + 5, z).getValue(BlockStone.VARIANT) == BlockStone.EnumType.ANDESITE_SMOOTH  &&  // smooth andesite
+                                chunk.getBlock(x, y + 6, z) == Blocks.stone && getBlockState(chunk, x, y + 5, z).getValue(BlockStone.VARIANT) == BlockStone.EnumType.ANDESITE_SMOOTH  &&  // smooth andesite
                                 chunk.getBlock(x, y + 7, z) == Blocks.dark_oak_stairs) {
                             currentWorld.updateWaypoints("§bCity", new BlockPos(chunk.xPosition * 16 + x + 24, y, chunk.zPosition * 16 + z - 17));
                             return;
@@ -168,39 +207,42 @@ public class WorldScanner {
 
                     if (WorldScannerFilter.worldScannerCHMobSpots && LocationUtils.currentIsland == LocationUtils.Island.CRYSTAL_HOLLOWS) {
                         // goblin hall
-                        if (chunk.getBlock(x, y, z) == Blocks.planks && // spruce
+                        if (chunk.getBlock(x, y, z) == Blocks.planks && getBlockState(chunk, x, y, z).getValue(BlockPlanks.VARIANT) == BlockPlanks.EnumType.SPRUCE && // spruce
                                 chunk.getBlock(x, y + 2, z) == Blocks.spruce_stairs &&
                                 chunk.getBlock(x, y + 3, z) == Blocks.spruce_stairs &&
                                 chunk.getBlock(x, y + 6, z) == Blocks.spruce_stairs &&
                                 chunk.getBlock(x, y + 7, z) == Blocks.spruce_stairs &&
                                 chunk.getBlock(x, y + 10, z) == Blocks.spruce_stairs &&
                                 chunk.getBlock(x, y + 11, z) == Blocks.spruce_stairs &&
-                                chunk.getBlock(x, y + 13, z) == Blocks.planks) { // spruce
-                            ModUtils.sendMessage(getBlockState(chunk, x, y, z));
-                            currentWorld.updateWaypoints("§6Goblin Hall", new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z));
+                                chunk.getBlock(x, y + 13, z) == Blocks.planks && getBlockState(chunk, x, y + 13, z).getValue(BlockPlanks.VARIANT) == BlockPlanks.EnumType.SPRUCE) { // spruce
+                            currentWorld.updateWaypoints("§6Goblin Hall", new BlockPos(chunk.xPosition * 16 + x, y + 7, chunk.zPosition * 16 + z));
+                            return;
+                        }
+                        // grunt bridge
+                        if (chunk.getBlock(x, y, z) == Blocks.stone_brick_stairs &&
+                                chunk.getBlock(x, y + 5, z) == Blocks.stonebrick &&
+                                chunk.getBlock(x, y + 6, z) == Blocks.stonebrick &&
+                                chunk.getBlock(x, y + 8, z) == Blocks.stone_slab && // stone brick slab
+                                chunk.getBlock(x, y + 9, z) == Blocks.stonebrick &&
+                                chunk.getBlock(x, y + 13, z) == Blocks.stonebrick &&
+                                chunk.getBlock(x, y + 14, z) == Blocks.stone_slab) { // stone brick slab
+                            currentWorld.updateWaypoints("§bGrunt Bridge", new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z));
                             return;
                         }
                     }
 
                     if (WorldScannerFilter.worldScannerCHFairyGrottos && LocationUtils.currentIsland == LocationUtils.Island.CRYSTAL_HOLLOWS) {
-                        // waterfall fairy grotto
-                        if (chunk.getBlock(x, y, z) == Blocks.stone_brick_stairs &&
-                                chunk.getBlock(x, y + 1, z) == Blocks.stonebrick &&
-                                chunk.getBlock(x, y + 2, z) == Blocks.stonebrick &&
-                                chunk.getBlock(x, y + 3, z) == Blocks.stonebrick && // mossy
-                                chunk.getBlock(x, y + 4, z) == Blocks.stonebrick &&
-                                chunk.getBlock(x, y + 5, z) == Blocks.stone_brick_stairs &&
-                                chunk.getBlock(x, y + 6, z) == Blocks.stonebrick && // mossy
-                                chunk.getBlock(x, y + 7, z) == Blocks.stonebrick &&
-                                chunk.getBlock(x, y + 8, z) == Blocks.stonebrick &&
-                                chunk.getBlock(x, y + 9, z) == Blocks.stone_brick_stairs &&
-                                chunk.getBlock(x, y + 10, z) == Blocks.stonebrick &&
-                                chunk.getBlock(x, y + 11, z) == Blocks.stonebrick && // mossy
-                                chunk.getBlock(x, y + 12, z) == Blocks.stonebrick &&
-                                chunk.getBlock(x, y + 13, z) == Blocks.stonebrick && // mossy
-                                chunk.getBlock(x, y + 14, z) == Blocks.stonebrick) {
-                            currentWorld.updateWaypoints("§dFairy Grotto - Waterfall", new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z));
+                        if (chunk.getBlock(x, y, z) == Blocks.stained_glass && getBlockState(chunk, x, y, z).getValue(BlockColored.COLOR) == EnumDyeColor.MAGENTA) {
+                            currentWorld.updateFairyGrottos(new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z));
                             return;
+                        }
+                    }
+
+                    if (WorldScannerFilter.worldScannerCHWormFishing && LocationUtils.currentIsland == LocationUtils.Island.CRYSTAL_HOLLOWS) {
+                        if (chunk.xPosition * 16 + x >= 564 && chunk.zPosition + z >= 513 || chunk.xPosition * 16 + x >= 513 && chunk.zPosition + z >= 564) {
+                            if (y > 63 && (chunk.getBlock(x, y, z) == Blocks.lava || chunk.getBlock(x, y, z) == Blocks.flowing_lava)) {
+                                currentWorld.updateWormFishing(new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z));
+                            }
                         }
                     }
                 }

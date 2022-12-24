@@ -8,7 +8,8 @@ public class WorldScannerFilter {
 
     @Info(
             text = "Crystal Hollows Scanners",
-            type = InfoType.INFO
+            type = InfoType.INFO,
+            size = 2
     )
     public static boolean ignored;
     @Switch(
@@ -29,21 +30,16 @@ public class WorldScannerFilter {
     )
     public static boolean worldScannerCHFairyGrottos = false;
 
+    @Switch(
+            name = "Worm Fishing Spots",
+            description = ""
+    )
+    public static boolean worldScannerCHWormFishing = false;
+
     @Info(
             text = "Other Scanners",
-            type = InfoType.INFO
+            type = InfoType.INFO,
+            size = 2
     )
     public static boolean ignored2;
-
-    @Switch(
-            name = "Foo",
-            description = ""
-    )
-    public static boolean worldScannerFoo = false;
-
-    @Switch(
-            name = "Bar",
-            description = ""
-    )
-    public static boolean worldScannerBar = false;
 }

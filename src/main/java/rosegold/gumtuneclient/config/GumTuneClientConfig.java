@@ -370,6 +370,14 @@ public class GumTuneClientConfig extends Config {
     )
     public static boolean espHighlight = true;
 
+    @Switch(
+            name = "Show Beacon",
+            category = CONFIG,
+            subcategory = ESP_SETTINGS,
+            size = 2
+    )
+    public static boolean espBeacon = false;
+
     public GumTuneClientConfig() {
         super(new Mod(GumTuneClient.NAME, ModType.SKYBLOCK, "https://i.imgur.com/EJen0w7.png"), GumTuneClient.MODID + ".json");
         registerKeyBind(nukerKeyBind, () -> {});

@@ -32,15 +32,15 @@ public class MainCommand {
         GumTuneClient.INSTANCE.config.openGui();
     }
 
-    @SubCommand(description = "Copies all entities to clipboard", aliases = {"allentities"})
-    private void allEntities() {
+    @SubCommand(description = "Copies all entities to clipboard")
+    private void allentities() {
         StringSelection selection = new StringSelection(GumTuneClient.mc.theWorld.loadedEntityList.toString());
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         clipboard.setContents(selection, selection);
     }
 
-    @SubCommand(description = "Copies all entities to clipboard", aliases = {"armorstands"})
-    private void armorStands(String arg) {
+    @SubCommand(description = "Copies all entities to clipboard")
+    private void armorstands(String arg) {
         if(!isInteger(arg)) {
             ModUtils.sendMessage("Invalid range.");
         }
@@ -63,7 +63,7 @@ public class MainCommand {
         clipboard.setContents(selection, selection);
     }
 
-    @SubCommand(description = "Rotate to <yaw, pitch>", aliases = {"rotate"})
+    @SubCommand(description = "Rotate to <yaw, pitch>")
     private void rotate(String pitch, String yaw, String mode) {
         if (pitch == null || !isNumeric(yaw)) {
             ModUtils.sendMessage("&cInvalid pitch: " + pitch);
@@ -96,7 +96,7 @@ public class MainCommand {
     }
 
     @SubCommand(description = "Break specified block", aliases = {"break"})
-    private void breakBlock(String x, String y, String z) {
+    private void breakblock(String x, String y, String z) {
         if (x == null || !isInteger(x)) {
             ModUtils.sendMessage("Invalid x coordinate: " + x);
             return;
@@ -124,7 +124,7 @@ public class MainCommand {
     }
 
     @SubCommand(description = "Rescan all loaded chunks with WorldScanner", aliases = {"reloadchunks"})
-    private void printStorageArrays() {
+    private void reloadchunks() {
         try {
             ChunkProviderClient chunkProvider = (ChunkProviderClient) GumTuneClient.mc.theWorld.getChunkProvider();
             Field chunkListingField = chunkProvider.getClass().getDeclaredField("chunkListing");

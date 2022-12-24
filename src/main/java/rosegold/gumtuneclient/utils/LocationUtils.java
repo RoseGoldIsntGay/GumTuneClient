@@ -71,6 +71,8 @@ public class LocationUtils {
                             break;
                         }
                     }
+                } else {
+                    serverName = null;
                 }
             }
             ModUtils.sendMessage("Current island: " + currentIsland.name + "  locraw: " + unformatted);
