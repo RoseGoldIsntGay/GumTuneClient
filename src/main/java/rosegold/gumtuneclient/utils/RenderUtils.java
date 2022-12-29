@@ -15,6 +15,7 @@ import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.mixin.accessors.RenderManagerAccessor;
 
 import java.awt.*;
+import java.util.ArrayList;
 
 import static rosegold.gumtuneclient.GumTuneClient.mc;
 
@@ -223,6 +224,42 @@ public class RenderUtils {
         );
 
         drawFilledBoundingBox(aabb, color, opacity);
+    }
+
+    public static void drawLines(ArrayList<Vec3> poses, final float thickness, final float partialTicks) {
+        final Entity render = mc.getRenderViewEntity();
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer bufferBuilder = tessellator.getWorldRenderer();
+        final double realX = render.lastTickPosX + (render.posX - render.lastTickPosX) * partialTicks;
+        final double realY = render.lastTickPosY + (render.posY - render.lastTickPosY) * partialTicks;
+        final double realZ = render.lastTickPosZ + (render.posZ - render.lastTickPosZ) * partialTicks;
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(-realX, -realY, -realZ);
+        GlStateManager.disableTexture2D();
+        GlStateManager.disableLighting();
+        GL11.glDisable(3553);
+        GlStateManager.enableBlend();
+        GlStateManager.disableAlpha();
+        GL11.glLineWidth(thickness);
+        GlStateManager.disableDepth();
+        GlStateManager.depthMask(false);
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
+        bufferBuilder.begin(3, DefaultVertexFormats.POSITION_COLOR);
+        int num = 0;
+        for (final Vec3 pos : poses) {
+            final int i = ColorUtils.getChroma(2500.0f, num++ * 5);
+            bufferBuilder.pos(pos.xCoord + 0.5, pos.yCoord + 0.5, pos.zCoord + 0.5).color((i >> 16 & 0xFF) / 255.0f, (i >> 8 & 0xFF) / 255.0f, (i & 0xFF) / 255.0f, (i >> 24 & 0xFF) / 255.0f).endVertex();
+        }
+        Tessellator.getInstance().draw();
+        GlStateManager.translate(realX, realY, realZ);
+        GlStateManager.disableBlend();
+        GlStateManager.enableAlpha();
+        GlStateManager.enableTexture2D();
+        GlStateManager.enableDepth();
+        GlStateManager.depthMask(true);
+        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
+        GlStateManager.popMatrix();
     }
 
     public static void renderEspBox(BlockPos blockPos, float partialTicks, int color) {

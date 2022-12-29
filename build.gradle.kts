@@ -155,5 +155,23 @@ tasks {
         dependsOn(shadowJar)
         archiveClassifier.set("")
         enabled = false
+
+        project.gradle.addBuildListener(object : BuildListener {
+            override fun settingsEvaluated(settings: Settings) {
+                println("settings evaluated!")
+            }
+
+            override fun projectsLoaded(gradle: Gradle) {
+                println("loaded!")
+            }
+
+            override fun projectsEvaluated(gradle: Gradle) {
+                println("projects evaluated!")
+            }
+
+            override fun buildFinished(result: BuildResult) {
+                println(jar)
+            }
+        })
     }
 }

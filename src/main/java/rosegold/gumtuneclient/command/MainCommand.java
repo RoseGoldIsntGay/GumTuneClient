@@ -1,5 +1,6 @@
 package rosegold.gumtuneclient.command;
 
+import cc.polyfrost.oneconfig.utils.Multithreading;
 import cc.polyfrost.oneconfig.utils.commands.annotations.Command;
 import cc.polyfrost.oneconfig.utils.commands.annotations.Main;
 import cc.polyfrost.oneconfig.utils.commands.annotations.SubCommand;
@@ -13,17 +14,20 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.chunk.Chunk;
 import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
+import rosegold.gumtuneclient.modules.player.PathFinding;
 import rosegold.gumtuneclient.modules.world.WorldScanner;
 import rosegold.gumtuneclient.utils.*;
+import rosegold.gumtuneclient.utils.pathfinding.PathFinder;
 
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.lang.reflect.Field;
-import java.util.Comparator;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 
 @Command(value = GumTuneClient.MODID, description = "Access the " + GumTuneClient.NAME + " GUI.", aliases = {"gtc"})
 public class MainCommand {
@@ -136,6 +140,32 @@ public class MainCommand {
         } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }
+    }
+
+    @SubCommand(description = "walk to blockpos")
+    private void pathfind(String x, String y, String z) {
+        if (x == null || !isInteger(x)) {
+            ModUtils.sendMessage("Invalid x coordinate: " + x);
+            return;
+        }
+        if (y == null || !isInteger(y)) {
+            ModUtils.sendMessage("Invalid y coordinate: " + y);
+            return;
+        }
+        if (z == null || !isInteger(z)) {
+            ModUtils.sendMessage("Invalid z coordinate: " + z);
+            return;
+        }
+
+        Multithreading.runAsync(() -> {
+            PathFinding.initTeleport();
+            PathFinder.setup(new BlockPos(VectorUtils.floorVec(GumTuneClient.mc.thePlayer.getPositionVector())), new BlockPos(Integer.parseInt(x), Integer.parseInt(y), Integer.parseInt(z)), 0.0);
+        });
+    }
+
+    @SubCommand(description = "test")
+    private void test(String range) {
+        PathFinding.temp = RaytracingUtils.getAllTeleportableBlocks(GumTuneClient.mc.thePlayer.getPositionEyes(1f), Float.parseFloat(range));
     }
 
     private boolean isNumeric(String str) {
