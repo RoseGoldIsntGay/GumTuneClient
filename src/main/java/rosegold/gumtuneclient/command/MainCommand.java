@@ -165,7 +165,27 @@ public class MainCommand {
 
     @SubCommand(description = "test")
     private void test(String range) {
+        PathFinding.points.clear();
         PathFinding.temp = RaytracingUtils.getAllTeleportableBlocks(GumTuneClient.mc.thePlayer.getPositionEyes(1f), Float.parseFloat(range));
+    }
+
+    @SubCommand(description = "test2")
+    private void test2(String x, String y, String z) {
+        if (x == null || !isNumeric(x)) {
+            ModUtils.sendMessage("Invalid x coordinate: " + x);
+            return;
+        }
+        if (y == null || !isNumeric(y)) {
+            ModUtils.sendMessage("Invalid y coordinate: " + y);
+            return;
+        }
+        if (z == null || !isNumeric(z)) {
+            ModUtils.sendMessage("Invalid z coordinate: " + z);
+            return;
+        }
+
+        PathFinding.points.clear();
+        PathFinding.temp = RaytracingUtils.getAllTeleportableBlocksNew(GumTuneClient.mc.thePlayer.getPositionEyes(1f), 16f);
     }
 
     private boolean isNumeric(String str) {

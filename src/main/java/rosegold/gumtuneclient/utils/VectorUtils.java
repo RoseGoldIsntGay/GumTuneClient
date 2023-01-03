@@ -44,6 +44,20 @@ public class VectorUtils {
         return new Vec3(Math.ceil(vec3.xCoord), Math.ceil(vec3.yCoord), Math.ceil(vec3.zCoord));
     }
 
+    public static ArrayList<Vec3> vecDirections(Vec3 from, Vec3 to) {
+        return vectorSigns(to.subtract(from));
+    }
+
+    public static ArrayList<Vec3> vectorSigns(Vec3 vec) {
+        return new ArrayList<Vec3>() {
+            {
+                add(new Vec3(Math.signum(vec.xCoord), 0, 0));
+                add(new Vec3(0, Math.signum(vec.yCoord), 0));
+                add(new Vec3(0, 0, Math.signum(vec.zCoord)));
+            }
+        };
+    }
+
     public static double getHorizontalDistance(final Vec3 vec1, final Vec3 vec2) {
         final double d0 = vec1.xCoord - vec2.xCoord;
         final double d2 = vec1.zCoord - vec2.zCoord;

@@ -1,6 +1,8 @@
 package rosegold.gumtuneclient.utils;
 
 import com.google.common.base.Predicates;
+import net.minecraft.block.BlockFence;
+import net.minecraft.block.BlockFenceGate;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -9,15 +11,18 @@ import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.*;
 import org.lwjgl.util.vector.Vector3f;
+import rosegold.gumtuneclient.modules.player.PathFinding;
+import rosegold.gumtuneclient.utils.pathfinding.AStarCustomPathfinder;
 
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 public class RaytracingUtils {
+
     public static class RaytraceResult {
         public BlockPos blockPos;
         public IBlockState iBlockState;
@@ -37,49 +42,121 @@ public class RaytracingUtils {
     }
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    public static ArrayList<BlockPos> getAllTeleportableBlocks(Vec3 vec, float range) {
+    public static ArrayList<BlockPos> getAllTeleportableBlocksNew(Vec3 vec, float range) {
+        long timestamp = System.currentTimeMillis();
         BlockPos origin = new BlockPos(vec);
-        Iterable<BlockPos> blocks = BlockPos.getAllInBox(origin.subtract(new Vec3i(range, 61, range)), origin.add(new Vec3i(range, 61, range)));
-        return (ArrayList<BlockPos>) StreamSupport.stream(
+        Iterable<BlockPos> blocks = BlockPos.getAllInBox(origin.subtract(new Vec3i(range, 16, range)), origin.add(new Vec3i(range, 16, range)));
+        ArrayList<BlockPos> validBlocks = (ArrayList<BlockPos>) StreamSupport.stream(
                 blocks.spliterator(), false
-        ).filter(
-                blockPos -> canVecBeSeenFromVec(vec, new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5), 0.1f) &&
+        ).filter(blockPos ->
+                mc.theWorld.getBlockState(blockPos).getBlock().isCollidable() && mc.theWorld.getBlockState(blockPos).getBlock() != Blocks.carpet &&
+                        mc.theWorld.getBlockState(blockPos).getBlock() != Blocks.skull && mc.theWorld.getBlockState(blockPos).getBlock() != Blocks.wall_sign &&
+                        mc.theWorld.getBlockState(blockPos).getBlock() != Blocks.standing_sign &&
+                        !(mc.theWorld.getBlockState(blockPos).getBlock() instanceof BlockFence) &&
+                        !(mc.theWorld.getBlockState(blockPos).getBlock() instanceof BlockFenceGate) &&
+                        mc.theWorld.getBlockState(blockPos).getBlock().getCollisionBoundingBox(mc.theWorld, blockPos, mc.theWorld.getBlockState(blockPos)) != null &&
+                        mc.theWorld.getBlockState(blockPos.add(0, 1, 0)).getBlock() == Blocks.air &&
+                        mc.theWorld.getBlockState(blockPos.add(0, 2, 0)).getBlock() == Blocks.air &&
+                        vec.distanceTo(new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.95, blockPos.getZ() + 0.5)) <= 61 &&
+                        canBlockBeeSeenFromVecNew(vec, blockPos)
+        ).collect(Collectors.toList());
+        AStarCustomPathfinder.counter += System.currentTimeMillis() - timestamp;
+        return validBlocks;
+    }
+
+    public static boolean canBlockBeeSeenFromVecNew(Vec3 from, BlockPos blockPos) {
+        Vec3 to = new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.95, blockPos.getZ() + 0.5);
+        MovingObjectPosition movingObjectPosition = mc.theWorld.rayTraceBlocks(from, to);
+        return movingObjectPosition != null && movingObjectPosition.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && movingObjectPosition.getBlockPos().equals(blockPos);
+    }
+
+    public static boolean isPointOnLine(Vec3 from, Vec3 to, Vec3 point, float sideLength) {
+        if (max(
+                (point.xCoord - from.xCoord - sideLength) / (to.xCoord - from.xCoord),
+                (point.yCoord - from.yCoord - sideLength) / (to.yCoord - from.yCoord),
+                (point.zCoord - from.zCoord - sideLength) / (to.zCoord - from.zCoord)
+        ) <= min(
+                (point.xCoord - from.xCoord + sideLength) / (to.xCoord - from.xCoord),
+                (point.yCoord - from.yCoord + sideLength) / (to.yCoord - from.yCoord),
+                (point.zCoord - from.zCoord + sideLength) / (to.zCoord - from.zCoord)
+        )) {
+            System.out.println(point);
+            return true;
+        }
+        return false;
+    }
+
+    public static double max(double... values) {
+        return Arrays.stream(values).max().orElseThrow(NoSuchElementException::new);
+    }
+
+    public static double min(double... values) {
+        return Arrays.stream(values).min().orElseThrow(NoSuchElementException::new);
+    }
+
+    public static ArrayList<BlockPos> getAllTeleportableBlocks(Vec3 vec, float range) {
+        long timestamp = System.currentTimeMillis();
+        BlockPos origin = new BlockPos(vec);
+        Iterable<BlockPos> blocks = BlockPos.getAllInBox(origin.subtract(new Vec3i(range, 16, range)), origin.add(new Vec3i(range, 16, range)));
+        ArrayList<BlockPos> validBlocks = (ArrayList<BlockPos>) StreamSupport.stream(
+                blocks.spliterator(), false
+        ).filter(blockPos ->
                         mc.theWorld.getBlockState(blockPos).getBlock().isCollidable() && mc.theWorld.getBlockState(blockPos).getBlock() != Blocks.carpet &&
                         mc.theWorld.getBlockState(blockPos).getBlock() != Blocks.skull && mc.theWorld.getBlockState(blockPos).getBlock() != Blocks.wall_sign &&
                         mc.theWorld.getBlockState(blockPos).getBlock() != Blocks.standing_sign &&
+                        !(mc.theWorld.getBlockState(blockPos).getBlock() instanceof BlockFence) &&
+                        !(mc.theWorld.getBlockState(blockPos).getBlock() instanceof BlockFenceGate) &&
                         mc.theWorld.getBlockState(blockPos).getBlock().getCollisionBoundingBox(mc.theWorld, blockPos, mc.theWorld.getBlockState(blockPos)) != null &&
                         mc.theWorld.getBlockState(blockPos.add(0, 1, 0)).getBlock() == Blocks.air &&
-                        mc.theWorld.getBlockState(blockPos.add(0, 2, 0)).getBlock() == Blocks.air
+                        mc.theWorld.getBlockState(blockPos.add(0, 2, 0)).getBlock() == Blocks.air &&
+                        vec.distanceTo(new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.95, blockPos.getZ() + 0.5)) <= 61 &&
+                        canBlockBeeSeenFromVec(vec, blockPos)
         ).collect(Collectors.toList());
+        AStarCustomPathfinder.counter += System.currentTimeMillis() - timestamp;
+        return validBlocks;
+    }
+
+    public static boolean canBlockBeeSeenFromVec(Vec3 from, BlockPos to) {
+        return canVecBeSeenFromVec(from, new Vec3(
+                to.getX() + 0.5,
+                to.getY() + 0.95,
+                to.getZ() + 0.5
+        ), 0.1f) /*&& canVecBeSeenFromVec(from, new Vec3(
+                to.getX() + 0.6,
+                to.getY() + 0.95,
+                to.getZ() + 0.6
+        ), 0.2f)*/;
     }
 
     public static boolean canVecBeSeenFromVec(Vec3 from, Vec3 to, float step) {
         double dist = from.distanceTo(to);
 
-        for (double d = 0; d < dist + step; d += step) {
-            if (d / dist > 1) d = dist;
-            Vec3 pos = new Vec3(
+        ModUtils.sendMessage(from);
+        ModUtils.sendMessage(to);
+
+        for (double d = step; d < dist; d += step) {
+
+            Vec3 pos1 = new Vec3(
                     from.xCoord + (to.xCoord - from.xCoord) *  d / dist,
                     from.yCoord + (to.yCoord - from.yCoord) * d / dist,
                     from.zCoord + (to.zCoord - from.zCoord) * d / dist
             );
 
-            if ((int) pos.xCoord == (int) from.xCoord &&
-                    (int) pos.yCoord == (int) from.yCoord &&
-                    (int) pos.zCoord == (int) from.zCoord) {
+            if ((int) pos1.xCoord == (int) from.xCoord &&
+                    (int) pos1.yCoord == (int) from.yCoord &&
+                    (int) pos1.zCoord == (int) from.zCoord) {
                 continue;
             }
 
-            if ((int) pos.xCoord == (int) to.xCoord &&
-                    (int) pos.yCoord == (int) to.yCoord &&
-                    (int) pos.zCoord == (int) to.zCoord) {
+            if ((int) pos1.xCoord == (int) to.xCoord &&
+                    (int) pos1.yCoord == (int) to.yCoord &&
+                    (int) pos1.zCoord == (int) to.zCoord) {
                 continue;
             }
 
-            BlockPos position = new BlockPos(pos.xCoord, pos.yCoord, pos.zCoord);
-            IBlockState state = mc.theWorld.getBlockState(position);
+            PathFinding.points.add(pos1);
 
-            if (state.getBlock() != Blocks.air) {
+            if (mc.theWorld.getBlockState(new BlockPos(pos1)).getBlock() != Blocks.air) {
                 return false;
             }
         }

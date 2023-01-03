@@ -17,6 +17,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class PathFinding {
@@ -25,6 +26,8 @@ public class PathFinding {
     private static BlockPos curPos;
     public static boolean walk = false;
     public static ArrayList<BlockPos> temp = new ArrayList<>();
+    public static ArrayList<Vec3> points = new ArrayList<>();
+    public static ConcurrentHashMap<BlockPos, Integer> renderHubs = new ConcurrentHashMap<>();
 
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
@@ -101,6 +104,13 @@ public class PathFinding {
         for(BlockPos blockPos : temp) {
             RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.WHITE.getRGB());
         }
+        for(Vec3 blockPos : points) {
+            RenderUtils.renderSmallBox(blockPos, Color.RED.getRGB());
+        }
+        renderHubs.forEach((blockPos, integer) -> {
+            RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.CYAN.getRGB());
+//            RenderUtils.renderWaypointText(integer.toString(), blockPos.getX(), blockPos.getY(), blockPos.getZ(), event.partialTicks, false);
+        });
     }
 
     private static Vec3 goodPoints(ArrayList<Vec3> path) {

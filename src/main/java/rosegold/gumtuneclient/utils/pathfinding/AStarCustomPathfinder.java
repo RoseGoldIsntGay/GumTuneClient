@@ -6,14 +6,13 @@ import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
 import rosegold.gumtuneclient.GumTuneClient;
+import rosegold.gumtuneclient.modules.player.PathFinding;
 import rosegold.gumtuneclient.utils.ModUtils;
 import rosegold.gumtuneclient.utils.RaytracingUtils;
 import rosegold.gumtuneclient.utils.VectorUtils;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class AStarCustomPathfinder {
     private final Vec3 startVec3;
@@ -22,6 +21,7 @@ public class AStarCustomPathfinder {
     private final ArrayList<Hub> hubs = new ArrayList<>();
     private final ArrayList<Hub> hubsToWork = new ArrayList<>();
     private final double minDistanceSquared;
+    public static long counter = 0;
 
     private static final Vec3[] flatCardinalDirections = {
             new Vec3(1, 0, 0),
@@ -41,10 +41,12 @@ public class AStarCustomPathfinder {
     }
 
     public void compute() {
-        compute(256, 4);
+        compute(2000, 1);
     }
 
     public void compute(int loops, int depth) {
+        counter = 0;
+        PathFinding.renderHubs.clear();
         path.clear();
         hubsToWork.clear();
         ArrayList<Vec3> initPath = new ArrayList<>();
@@ -65,7 +67,9 @@ public class AStarCustomPathfinder {
                 hubsToWork.remove(hub);
                 hubs.add(hub);
 
-                for (BlockPos blockPos : RaytracingUtils.getAllTeleportableBlocks(VectorUtils.ceilVec(hub.getLoc()).addVector(0.5, 1.8, 0.5), 8f)) {
+                PathFinding.renderHubs.put(new BlockPos(VectorUtils.ceilVec(hub.getLoc())), 1);
+
+                for (BlockPos blockPos : RaytracingUtils.getAllTeleportableBlocksNew(VectorUtils.ceilVec(hub.getLoc()).addVector(0.5, 1.62 - 0.08, 0.5), 16)) {
                     Vec3 loc = new Vec3(blockPos);
                     if (addHub(hub, loc, 0)) {
                         break search;
@@ -73,6 +77,7 @@ public class AStarCustomPathfinder {
                 }
             }
         }
+        ModUtils.sendMessage("Done calculating path, searched " + PathFinding.renderHubs.size() + " blocks, took: " + counter + "ms with an average of " + Math.round((double) counter / PathFinding.renderHubs.size() * 100) / 100 + "ms per block");
         hubs.sort(new CompareHub());
         path = hubs.get(0).getPath();
     }
@@ -150,8 +155,6 @@ public class AStarCustomPathfinder {
         private double totalCost;
 
         public Hub(Vec3 loc, Hub parent, ArrayList<Vec3> path, double squareDistanceToFromTarget, double cost, double totalCost) {
-            this.loc = null;
-            this.parent = null;
             this.loc = loc;
             this.parent = parent;
             this.path = path;
@@ -215,5 +218,4 @@ public class AStarCustomPathfinder {
             return (int) (o1.getSquareDistanceToFromTarget() + o1.getTotalCost() - (o2.getSquareDistanceToFromTarget() + o2.getTotalCost()));
         }
     }
-
 }
