@@ -16,12 +16,13 @@ import rosegold.gumtuneclient.events.MillisecondEvent;
 import rosegold.gumtuneclient.events.SecondEvent;
 import rosegold.gumtuneclient.modules.macro.AutoHarp;
 import rosegold.gumtuneclient.modules.macro.MobMacro;
+import rosegold.gumtuneclient.modules.mining.MetalDetectorSolver;
 import rosegold.gumtuneclient.modules.player.PathFinding;
 import rosegold.gumtuneclient.modules.render.ESPs;
 import rosegold.gumtuneclient.modules.singleplayer.skyblockitems.AspectOfTheVoid;
 import rosegold.gumtuneclient.modules.world.CanePlacer;
-import rosegold.gumtuneclient.modules.world.Nuker;
-import rosegold.gumtuneclient.modules.world.PowderChestSolver;
+import rosegold.gumtuneclient.modules.mining.Nuker;
+import rosegold.gumtuneclient.modules.mining.PowderChestSolver;
 import rosegold.gumtuneclient.modules.world.WorldScanner;
 import rosegold.gumtuneclient.utils.LocationUtils;
 import rosegold.gumtuneclient.utils.RotationUtils;
@@ -61,6 +62,7 @@ public class GumTuneClient {
         modules.add(new WorldScanner());
         modules.add(new PathFinding());
         modules.add(new AspectOfTheVoid());
+        modules.add(new MetalDetectorSolver());
     }
 
     @Mod.EventHandler

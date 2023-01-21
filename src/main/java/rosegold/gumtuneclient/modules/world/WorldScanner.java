@@ -4,9 +4,9 @@ import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.google.common.collect.Lists;
 import net.minecraft.block.BlockColored;
 import net.minecraft.block.BlockPlanks;
+import net.minecraft.block.BlockSlab;
 import net.minecraft.block.BlockStone;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.multiplayer.ChunkProviderClient;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.EnumDyeColor;
@@ -29,11 +29,14 @@ import rosegold.gumtuneclient.utils.ReflectionUtils;
 import rosegold.gumtuneclient.utils.RenderUtils;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class WorldScanner {
 
@@ -82,8 +85,10 @@ public class WorldScanner {
         }
     }
 
+    private static final Pattern patternControlCode = Pattern.compile("\\u00A7([0-9a-fk-or])", Pattern.CASE_INSENSITIVE);
     public static final HashMap<String, World> worlds = new HashMap<>();
     private static int cooldown = 100;
+    private static boolean initialScan = false;
     private static long lastScan = 0;
     private static boolean lastBoolean = false;
 
@@ -98,7 +103,7 @@ public class WorldScanner {
     }
 
     @SubscribeEvent
-    public void onTick(TickEvent.ClientTickEvent event) {
+    public void onTick(TickEvent.ClientTickEvent event) throws IllegalAccessException {
         if (GumTuneClient.mc.theWorld == null || GumTuneClient.mc.thePlayer == null) return;
         if (!lastBoolean) {
             lastBoolean = GumTuneClientConfig.worldScanner;
@@ -115,12 +120,13 @@ public class WorldScanner {
             worlds.put(LocationUtils.serverName, new World());
         }
         if (cooldown == 0) {
-            if (GumTuneClientConfig.worldScannerScanMode == 0) return;
+            if (GumTuneClientConfig.worldScannerScanMode == 0 && initialScan) return;
             World currentWorld = worlds.get(LocationUtils.serverName);
             if (currentWorld == null) return;
             if (System.currentTimeMillis() - lastScan > GumTuneClientConfig.worldScannerScanFrequency * 1000L) {
+                initialScan = true;
                 lastScan = System.currentTimeMillis();
-                Object object = ReflectionUtils.field((ChunkProviderClient) GumTuneClient.mc.theWorld.getChunkProvider(), "chunkListing");
+                Object object = ReflectionUtils.field(GumTuneClient.mc.theWorld.getChunkProvider(), "field_73237_c");
                 if (object != null && object.getClass() == Lists.newArrayList().getClass()) {
                     for (Chunk chunk : (List<Chunk>) object) {
                         Multithreading.runAsync(() -> handleChunkLoad(chunk, currentWorld));
@@ -133,6 +139,7 @@ public class WorldScanner {
     @SubscribeEvent
     public void onWorldUnload(WorldEvent.Unload event) {
         cooldown = 100;
+        initialScan = false;
     }
 
     @SubscribeEvent
@@ -146,11 +153,11 @@ public class WorldScanner {
             for (Map.Entry<String, BlockPos> entry : currentWorld.getCrystalWaypoints().entrySet()) {
                 BlockPos blockPos = entry.getValue();
                 if (GumTuneClientConfig.espHighlight)
-                    RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.WHITE.getRGB());
+                    RenderUtils.renderEspBox(blockPos, event.partialTicks, colorCodeToColor(entry.getKey()).getRGB());
                 if (GumTuneClientConfig.espWaypointText)
                     RenderUtils.renderWaypointText(entry.getKey(), blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
                 if (GumTuneClientConfig.espBeacon)
-                    RenderUtils.renderBeacon(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()), Color.PINK, event.partialTicks);
+                    RenderUtils.renderBeacon(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()), colorCodeToColor(entry.getKey()), event.partialTicks);
             }
         }
         if (WorldScannerFilter.worldScannerCHMobSpots) {
@@ -161,7 +168,7 @@ public class WorldScanner {
                 if (GumTuneClientConfig.espWaypointText)
                     RenderUtils.renderWaypointText(entry.getKey(), blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
                 if (GumTuneClientConfig.espBeacon)
-                    RenderUtils.renderBeacon(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()), Color.PINK, event.partialTicks);
+                    RenderUtils.renderBeacon(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()), Color.RED, event.partialTicks);
             }
         }
         if (WorldScannerFilter.worldScannerCHFairyGrottos) {
@@ -181,7 +188,7 @@ public class WorldScanner {
                 if (GumTuneClientConfig.espWaypointText)
                     RenderUtils.renderWaypointText("§6Worm Fishing", blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
                 if (GumTuneClientConfig.espBeacon)
-                    RenderUtils.renderBeacon(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()), Color.PINK, event.partialTicks);
+                    RenderUtils.renderBeacon(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()), Color.ORANGE, event.partialTicks);
             }
         }
     }
@@ -272,6 +279,15 @@ public class WorldScanner {
                             currentWorld.updateMobSpotWaypoints("§6Goblin Hall", new BlockPos(chunk.xPosition * 16 + x, y + 7, chunk.zPosition * 16 + z));
                             return;
                         }
+                        // goblin ring
+                        if (chunk.getBlock(x, y, z) == Blocks.oak_fence && // spruce
+                                chunk.getBlock(x, y + 1, z) == Blocks.skull &&
+                                chunk.getBlock(x, y + 6, z) == Blocks.wooden_slab && getBlockState(chunk, x, y + 6, z).getValue(BlockSlab.HALF) == BlockSlab.EnumBlockHalf.TOP &&
+                                chunk.getBlock(x, y + 7, z) == Blocks.wooden_slab && getBlockState(chunk, x, y + 7, z).getValue(BlockSlab.HALF) == BlockSlab.EnumBlockHalf.BOTTOM &&
+                                chunk.getBlock(x, y + 11, z) == Blocks.planks && getBlockState(chunk, x, y + 11, z).getValue(BlockPlanks.VARIANT) == BlockPlanks.EnumType.SPRUCE) { // spruce
+                            currentWorld.updateMobSpotWaypoints("§6Goblin Ring", new BlockPos(chunk.xPosition * 16 + x, y + 11, chunk.zPosition * 16 + z));
+                            return;
+                        }
                         // grunt bridge
                         if (chunk.getBlock(x, y, z) == Blocks.stone_brick_stairs &&
                                 chunk.getBlock(x, y + 5, z) == Blocks.stonebrick &&
@@ -281,6 +297,15 @@ public class WorldScanner {
                                 chunk.getBlock(x, y + 13, z) == Blocks.stonebrick &&
                                 chunk.getBlock(x, y + 14, z) == Blocks.stone_slab) { // stone brick slab
                             currentWorld.updateMobSpotWaypoints("§bGrunt Bridge", new BlockPos(chunk.xPosition * 16 + x, y - 1, chunk.zPosition * 16 + z - 45));
+                            return;
+                        }
+                        // trapped slime spiral
+                        if (chunk.getBlock(x, y, z) == Blocks.stone_slab && getBlockState(chunk, x, y, z).getValue(BlockSlab.HALF) == BlockSlab.EnumBlockHalf.TOP &&
+                                chunk.getBlock(x, y + 1, z) == Blocks.netherrack &&
+                                chunk.getBlock(x, y + 3, z) == Blocks.stone_brick_stairs &&
+                                chunk.getBlock(x, y + 4, z) == Blocks.stone_slab && getBlockState(chunk, x, y, z).getValue(BlockSlab.HALF) == BlockSlab.EnumBlockHalf.BOTTOM &&
+                                chunk.getBlock(x, y + 6, z) == Blocks.stone_slab && getBlockState(chunk, x, y, z).getValue(BlockSlab.HALF) == BlockSlab.EnumBlockHalf.TOP) {
+                            currentWorld.updateMobSpotWaypoints("§bTrapped Slime Spiral", new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z));
                             return;
                         }
                     }
@@ -305,6 +330,48 @@ public class WorldScanner {
                 }
             }
         }
+    }
+
+    private static Color colorCodeToColor(String text) {
+        Matcher matcher = patternControlCode.matcher(text);
+        if (matcher.find()) {
+            String code = matcher.group(1);
+            switch (code) {
+                case "4":
+                    return new Color(170, 0, 0);
+                case "c":
+                    return new Color(255, 85, 85);
+                case "6":
+                    return new Color(255, 170, 0);
+                case "e":
+                    return new Color(255, 255, 85);
+                case "2":
+                    return new Color(0, 170, 0);
+                case "a":
+                    return new Color(85, 255, 85);
+                case "b":
+                    return new Color(85, 255, 255);
+                case "3":
+                    return new Color(0, 170, 170);
+                case "1":
+                    return new Color(0, 0, 170);
+                case "9":
+                    return new Color(85, 85, 255);
+                case "d":
+                    return new Color(255, 85, 255);
+                case "5":
+                    return new Color(170, 0, 170);
+                case "f":
+                    return new Color(255, 255, 255);
+                case "7":
+                    return new Color(170, 170, 170);
+                case "8":
+                    return new Color(85, 85, 85);
+                case "0":
+                    return new Color(0, 0, 0);
+            }
+        }
+        return Color.WHITE;
     }
 
     private static IBlockState getBlockState(Chunk chunk, int x, int y, int z) {

@@ -41,6 +41,8 @@ public class GumTuneClientConfig extends Config {
     private transient static final String CAMERA = "Camera";
     private transient static final String WORLD_SCANNER = "World Scanner";
 
+    private transient static final String METAL_DETECTOR_SOLVER = "Metal Detector Solver";
+
     @Switch(
             name = "Enabled",
             category = WORLD,
@@ -243,6 +245,14 @@ public class GumTuneClientConfig extends Config {
             options = {"Don't", "Pause Nuker", "Pause Nuker Rotations"}
     )
     public static int powderChestPauseNukerMode = 0;
+
+    @Switch(
+            name = "Metal Detector Solver",
+            category = MINING,
+            subcategory = METAL_DETECTOR_SOLVER,
+            size = 2
+    )
+    public static boolean metalDetectorSolver = false;
 
     @Switch(
             name = "ESPs",

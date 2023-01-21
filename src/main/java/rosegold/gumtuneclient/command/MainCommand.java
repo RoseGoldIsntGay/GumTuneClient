@@ -131,7 +131,7 @@ public class MainCommand {
     private void reloadchunks() {
         try {
             ChunkProviderClient chunkProvider = (ChunkProviderClient) GumTuneClient.mc.theWorld.getChunkProvider();
-            Field chunkListingField = chunkProvider.getClass().getDeclaredField("chunkListing");
+            Field chunkListingField = chunkProvider.getClass().getDeclaredField("field_73237_c");
             chunkListingField.setAccessible(true);
             List<Chunk> chunkList = (List<Chunk>) chunkListingField.get(chunkProvider);
             for (Chunk chunk : chunkList) {

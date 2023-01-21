@@ -14,8 +14,8 @@ import rosegold.gumtuneclient.mixin.accessors.EntityPlayerSPAccessor;
 import rosegold.gumtuneclient.mixin.accessors.MinecraftAccessor;
 import rosegold.gumtuneclient.modules.macro.MobMacro;
 import rosegold.gumtuneclient.modules.world.CanePlacer;
-import rosegold.gumtuneclient.modules.world.Nuker;
-import rosegold.gumtuneclient.modules.world.PowderChestSolver;
+import rosegold.gumtuneclient.modules.mining.Nuker;
+import rosegold.gumtuneclient.modules.mining.PowderChestSolver;
 
 import static rosegold.gumtuneclient.GumTuneClient.mc;
 

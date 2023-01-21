@@ -1,4 +1,4 @@
-package rosegold.gumtuneclient.modules.world;
+package rosegold.gumtuneclient.modules.mining;
 
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S2APacketParticles;

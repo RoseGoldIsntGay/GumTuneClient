@@ -25,8 +25,8 @@ public class RenderUtils {
 
     public static void renderBeacon(Vec3 location, Color color, float partialTicks) {
         int height = 300;
-        int bottomOffset = 0;
-        int topOffset = bottomOffset + height;
+        int bOffset = 0;
+        int tOffset = bOffset + height;
 
         Tessellator tessellator = Tessellator.getInstance();
         WorldRenderer worldrenderer = tessellator.getWorldRenderer();
@@ -50,14 +50,14 @@ public class RenderUtils {
         double d1 = MathHelper.func_181162_h(-time * 0.2 - MathHelper.floor_double(-time * 0.1));
 
         double d2 = time * 0.025 * -1.5;
-        double d4 = 0.5 + Math.cos(d2 + 2.356194490192345) * 0.2;
-        double d5 = 0.5 + Math.sin(d2 + 2.356194490192345) * 0.2;
-        double d6 = 0.5 + Math.cos(d2 + (Math.PI / 4)) * 0.2;
-        double d7 = 0.5 + Math.sin(d2 + (Math.PI / 4)) * 0.2;
-        double d8 = 0.5 + Math.cos(d2 + 3.9269908169872414) * 0.2;
-        double d9 = 0.5 + Math.sin(d2 + 3.9269908169872414) * 0.2;
-        double d10 = 0.5 + Math.cos(d2 + 5.497787143782138) * 0.2;
-        double d11 = 0.5 + Math.sin(d2 + 5.497787143782138) * 0.2;
+        double o = 0.5 + Math.cos(d2 + 2.356194490192345) * 0.2;
+        double p = 0.5 + Math.sin(d2 + 2.356194490192345) * 0.2;
+        double q = 0.5 + Math.cos(d2 + (Math.PI / 4)) * 0.2;
+        double r = 0.5 + Math.sin(d2 + (Math.PI / 4)) * 0.2;
+        double s = 0.5 + Math.cos(d2 + 3.9269908169872414) * 0.2;
+        double t = 0.5 + Math.sin(d2 + 3.9269908169872414) * 0.2;
+        double u = 0.5 + Math.cos(d2 + 5.497787143782138) * 0.2;
+        double v = 0.5 + Math.sin(d2 + 5.497787143782138) * 0.2;
         double d14 = -1 + d1;
         double d15 = height * 2.5 + d14;
 
@@ -65,23 +65,27 @@ public class RenderUtils {
         double y = location.yCoord;
         double z = location.zCoord;
 
+        float red = color.getRed() / 256f;
+        float green = color.getGreen() / 256f;
+        float blue = color.getBlue() / 256f;
+
         worldrenderer.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-        worldrenderer.pos(x + d4, y + topOffset, z + d5).tex(1.0D, d15).color(color.getRed(), color.getGreen(), color.getBlue(),1.0F * color.getAlpha()).endVertex();
-        worldrenderer.pos(x + d4, y + bottomOffset, z + d5).tex(1.0D, d14).color(color.getRed(), color.getGreen(), color.getBlue(), 1.0F).endVertex();
-        worldrenderer.pos(x + d6, y + bottomOffset, z + d7).tex(0.0D, d14).color(color.getRed(), color.getGreen(), color.getBlue(), 1.0F).endVertex();
-        worldrenderer.pos(x + d6, y + topOffset, z + d7).tex(0.0D, d15).color(color.getRed(), color.getGreen(), color.getBlue(), 1.0F * color.getAlpha()).endVertex();
-        worldrenderer.pos(x + d10, y + topOffset, z + d11).tex(1.0D, d15).color(color.getRed(), color.getGreen(), color.getBlue(), 1.0F * color.getAlpha()).endVertex();
-        worldrenderer.pos(x + d10, y + bottomOffset, z + d11).tex(1.0D, d14).color(color.getRed(), color.getGreen(), color.getBlue(), 1.0F).endVertex();
-        worldrenderer.pos(x + d8, y + bottomOffset, z + d9).tex(0.0D, d14).color(color.getRed(), color.getGreen(), color.getBlue(), 1.0F).endVertex();
-        worldrenderer.pos(x + d8, y + topOffset, z + d9).tex(0.0D, d15).color(color.getRed(), color.getGreen(), color.getBlue(), 1.0F * color.getAlpha()).endVertex();
-        worldrenderer.pos(x + d6, y + topOffset, z + d7).tex(1.0D, d15).color(color.getRed(), color.getGreen(), color.getBlue(), 1.0F * color.getAlpha()).endVertex();
-        worldrenderer.pos(x + d6, y + bottomOffset, z + d7).tex(1.0D, d14).color(color.getRed(), color.getGreen(), color.getBlue(), 1.0F).endVertex();
-        worldrenderer.pos(x + d10, y + bottomOffset, z + d11).tex(0.0D, d14).color(color.getRed(), color.getGreen(), color.getBlue(), 1.0F).endVertex();
-        worldrenderer.pos(x + d10, y + topOffset, z + d11).tex(0.0D, d15).color(color.getRed(), color.getGreen(), color.getBlue(), 1.0F * color.getAlpha()).endVertex();
-        worldrenderer.pos(x + d8, y + topOffset, z + d9).tex(1.0D, d15).color(color.getRed(), color.getGreen(), color.getBlue(), 1.0F * color.getAlpha()).endVertex();
-        worldrenderer.pos(x + d8, y + bottomOffset, z + d9).tex(1.0D, d14).color(color.getRed(), color.getGreen(), color.getBlue(), 1.0F).endVertex();
-        worldrenderer.pos(x + d4, y + bottomOffset, z + d5).tex(0.0D, d14).color(color.getRed(), color.getGreen(), color.getBlue(), 1.0F).endVertex();
-        worldrenderer.pos(x + d4, y + topOffset, z + d5).tex(0.0D, d15).color(color.getRed(), color.getGreen(), color.getBlue(), 1.0F * color.getAlpha()).endVertex();
+        worldrenderer.pos(x + o, y + tOffset, z + p).tex(1.0D, d15).color(red, green, blue, 1.0f).endVertex();
+        worldrenderer.pos(x + o, y + bOffset, z + p).tex(1.0D, d14).color(red, green, blue, 1.0f).endVertex();
+        worldrenderer.pos(x + q, y + bOffset, z + r).tex(0.0D, d14).color(red, green, blue, 1.0f).endVertex();
+        worldrenderer.pos(x + q, y + tOffset, z + r).tex(0.0D, d15).color(red, green, blue, 1.0f).endVertex();
+        worldrenderer.pos(x + u, y + tOffset, z + v).tex(1.0D, d15).color(red, green, blue, 1.0f).endVertex();
+        worldrenderer.pos(x + u, y + bOffset, z + v).tex(1.0D, d14).color(red, green, blue, 1.0f).endVertex();
+        worldrenderer.pos(x + s, y + bOffset, z + t).tex(0.0D, d14).color(red, green, blue, 1.0f).endVertex();
+        worldrenderer.pos(x + s, y + tOffset, z + t).tex(0.0D, d15).color(red, green, blue, 1.0f).endVertex();
+        worldrenderer.pos(x + q, y + tOffset, z + r).tex(1.0D, d15).color(red, green, blue, 1.0f).endVertex();
+        worldrenderer.pos(x + q, y + bOffset, z + r).tex(1.0D, d14).color(red, green, blue, 1.0f).endVertex();
+        worldrenderer.pos(x + u, y + bOffset, z + v).tex(0.0D, d14).color(red, green, blue, 1.0f).endVertex();
+        worldrenderer.pos(x + u, y + tOffset, z + v).tex(0.0D, d15).color(red, green, blue, 1.0f).endVertex();
+        worldrenderer.pos(x + s, y + tOffset, z + t).tex(1.0D, d15).color(red, green, blue, 1.0f).endVertex();
+        worldrenderer.pos(x + s, y + bOffset, z + t).tex(1.0D, d14).color(red, green, blue, 1.0f).endVertex();
+        worldrenderer.pos(x + o, y + bOffset, z + p).tex(0.0D, d14).color(red, green, blue, 1.0f).endVertex();
+        worldrenderer.pos(x + o, y + tOffset, z + p).tex(0.0D, d15).color(red, green, blue, 1.0f).endVertex();
         tessellator.draw();
 
         GlStateManager.disableCull();
@@ -89,22 +93,22 @@ public class RenderUtils {
         double d13 = height + d12;
 
         worldrenderer.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-        worldrenderer.pos(x + 0.2D, y + topOffset, z + 0.2D).tex(1.0D, d13).color(color.getRed(), color.getGreen(), color.getBlue(), 0.25F * color.getAlpha()).endVertex();
-        worldrenderer.pos(x + 0.2D, y + bottomOffset, z + 0.2D).tex(1.0D, d12).color(color.getRed(), color.getGreen(), color.getBlue(), 0.25F).endVertex();
-        worldrenderer.pos(x + 0.8D, y + bottomOffset, z + 0.2D).tex(0.0D, d12).color(color.getRed(), color.getGreen(), color.getBlue(), 0.25F).endVertex();
-        worldrenderer.pos(x + 0.8D, y + topOffset, z + 0.2D).tex(0.0D, d13).color(color.getRed(), color.getGreen(), color.getBlue(), 0.25F * color.getAlpha()).endVertex();
-        worldrenderer.pos(x + 0.8D, y + topOffset, z + 0.8D).tex(1.0D, d13).color(color.getRed(), color.getGreen(), color.getBlue(), 0.25F * color.getAlpha()).endVertex();
-        worldrenderer.pos(x + 0.8D, y + bottomOffset, z + 0.8D).tex(1.0D, d12).color(color.getRed(), color.getGreen(), color.getBlue(), 0.25F).endVertex();
-        worldrenderer.pos(x + 0.2D, y + bottomOffset, z + 0.8D).tex(0.0D, d12).color(color.getRed(), color.getGreen(), color.getBlue(), 0.25F).endVertex();
-        worldrenderer.pos(x + 0.2D, y + topOffset, z + 0.8D).tex(0.0D, d13).color(color.getRed(), color.getGreen(), color.getBlue(), 0.25F * color.getAlpha()).endVertex();
-        worldrenderer.pos(x + 0.8D, y + topOffset, z + 0.2D).tex(1.0D, d13).color(color.getRed(), color.getGreen(), color.getBlue(), 0.25F * color.getAlpha()).endVertex();
-        worldrenderer.pos(x + 0.8D, y + bottomOffset, z + 0.2D).tex(1.0D, d12).color(color.getRed(), color.getGreen(), color.getBlue(), 0.25F).endVertex();
-        worldrenderer.pos(x + 0.8D, y + bottomOffset, z + 0.8D).tex(0.0D, d12).color(color.getRed(), color.getGreen(), color.getBlue(), 0.25F).endVertex();
-        worldrenderer.pos(x + 0.8D, y + topOffset, z + 0.8D).tex(0.0D, d13).color(color.getRed(), color.getGreen(), color.getBlue(), 0.25F * color.getAlpha()).endVertex();
-        worldrenderer.pos(x + 0.2D, y + topOffset, z + 0.8D).tex(1.0D, d13).color(color.getRed(), color.getGreen(), color.getBlue(), 0.25F * color.getAlpha()).endVertex();
-        worldrenderer.pos(x + 0.2D, y + bottomOffset, z + 0.8D).tex(1.0D, d12).color(color.getRed(), color.getGreen(), color.getBlue(), 0.25F).endVertex();
-        worldrenderer.pos(x + 0.2D, y + bottomOffset, z + 0.2D).tex(0.0D, d12).color(color.getRed(), color.getGreen(), color.getBlue(), 0.25F).endVertex();
-        worldrenderer.pos(x + 0.2D, y + topOffset, z + 0.2D).tex(0.0D, d13).color(color.getRed(), color.getGreen(), color.getBlue(), 0.25F * color.getAlpha()).endVertex();
+        worldrenderer.pos(x + 0.2D, y + tOffset, z + 0.2D).tex(1.0D, d13).color(red, green, blue, 0.125f).endVertex();
+        worldrenderer.pos(x + 0.2D, y + bOffset, z + 0.2D).tex(1.0D, d12).color(red, green, blue, 0.125f).endVertex();
+        worldrenderer.pos(x + 0.8D, y + bOffset, z + 0.2D).tex(0.0D, d12).color(red, green, blue, 0.125f).endVertex();
+        worldrenderer.pos(x + 0.8D, y + tOffset, z + 0.2D).tex(0.0D, d13).color(red, green, blue, 0.125f).endVertex();
+        worldrenderer.pos(x + 0.8D, y + tOffset, z + 0.8D).tex(1.0D, d13).color(red, green, blue, 0.125f).endVertex();
+        worldrenderer.pos(x + 0.8D, y + bOffset, z + 0.8D).tex(1.0D, d12).color(red, green, blue, 0.125f).endVertex();
+        worldrenderer.pos(x + 0.2D, y + bOffset, z + 0.8D).tex(0.0D, d12).color(red, green, blue, 0.125f).endVertex();
+        worldrenderer.pos(x + 0.2D, y + tOffset, z + 0.8D).tex(0.0D, d13).color(red, green, blue, 0.125f).endVertex();
+        worldrenderer.pos(x + 0.8D, y + tOffset, z + 0.2D).tex(1.0D, d13).color(red, green, blue, 0.125f).endVertex();
+        worldrenderer.pos(x + 0.8D, y + bOffset, z + 0.2D).tex(1.0D, d12).color(red, green, blue, 0.125f).endVertex();
+        worldrenderer.pos(x + 0.8D, y + bOffset, z + 0.8D).tex(0.0D, d12).color(red, green, blue, 0.125f).endVertex();
+        worldrenderer.pos(x + 0.8D, y + tOffset, z + 0.8D).tex(0.0D, d13).color(red, green, blue, 0.125f).endVertex();
+        worldrenderer.pos(x + 0.2D, y + tOffset, z + 0.8D).tex(1.0D, d13).color(red, green, blue, 0.125f).endVertex();
+        worldrenderer.pos(x + 0.2D, y + bOffset, z + 0.8D).tex(1.0D, d12).color(red, green, blue, 0.125f).endVertex();
+        worldrenderer.pos(x + 0.2D, y + bOffset, z + 0.2D).tex(0.0D, d12).color(red, green, blue, 0.125f).endVertex();
+        worldrenderer.pos(x + 0.2D, y + tOffset, z + 0.2D).tex(0.0D, d13).color(red, green, blue, 0.125f).endVertex();
         tessellator.draw();
 
         GlStateManager.disableLighting();

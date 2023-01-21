@@ -1,4 +1,4 @@
-package rosegold.gumtuneclient.modules.world;
+package rosegold.gumtuneclient.modules.mining;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockColored;
