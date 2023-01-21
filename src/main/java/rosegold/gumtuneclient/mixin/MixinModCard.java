@@ -9,8 +9,12 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.ModifyArgs;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 import rosegold.gumtuneclient.GumTuneClient;
+import rosegold.gumtuneclient.utils.ModUtils;
 
 @Mixin(value = ModCard.class, remap = false)
 public class MixinModCard {
@@ -19,17 +23,10 @@ public class MixinModCard {
     @Shadow
     private Mod modData;
 
-    @Inject(method = "draw", at = @At("RETURN"), remap = false)
-    public void modifyLogo(long vg, float x, float y, InputHandler inputHandler, CallbackInfo ci) {
+    @Inject(method = "draw", at = @At(value = "INVOKE", target = "Lcc/polyfrost/oneconfig/renderer/NanoVGHelper;drawImage(JLjava/lang/String;FFFF)V", shift = At.Shift.AFTER), remap = false)
+    private void modifyGumTuneClientLogo(long vg, float x, float y, InputHandler inputHandler, CallbackInfo ci) {
         if (!modData.name.equals(GumTuneClient.NAME)) return;
         NanoVGHelper nanoVGHelper = NanoVGHelper.INSTANCE;
-
-        if (modData.modIcon != null) {
-            if (modData.modIcon.toLowerCase().endsWith(".svg"))
-                nanoVGHelper.drawSvg(vg, modData.modIcon, x + 98 - 18, y + 19 - 18, 84, 84);
-            else nanoVGHelper.drawImage(vg, modData.modIcon, x + 98 - 18, y + 19 - 18, 84, 84);
-        }
-
-        nanoVGHelper.setAlpha(vg, 1f);
+        nanoVGHelper.drawImage(vg, modData.modIcon, x + 98 - 18, y + 19 - 18, 84, 84);
     }
 }

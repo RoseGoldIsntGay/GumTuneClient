@@ -47,6 +47,7 @@ public class GumTuneClient {
 
     private final List<Object> modules = new ArrayList<>();
     private boolean login = false;
+    public static boolean debug = false;
 
     public GumTuneClient() {
         modules.add(new PowderChestSolver());

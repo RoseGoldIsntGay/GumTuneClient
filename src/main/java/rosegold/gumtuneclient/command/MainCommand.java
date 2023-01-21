@@ -169,6 +169,12 @@ public class MainCommand {
         PathFinding.temp = RaytracingUtils.getAllTeleportableBlocks(GumTuneClient.mc.thePlayer.getPositionEyes(1f), Float.parseFloat(range));
     }
 
+    @SubCommand(description = "enable debug")
+    private void debug() {
+        GumTuneClient.debug = !GumTuneClient.debug;
+        ModUtils.sendMessage("Debug Mode: " + (GumTuneClient.debug ? "Enabled" : "Disabled"));
+    }
+
     @SubCommand(description = "test2")
     private void test2(String x, String y, String z) {
         if (x == null || !isNumeric(x)) {

@@ -13,4 +13,12 @@ public class ReceivePacketEvent extends Event {
         this.packet = packet;
     }
 
+    public static class Post extends Event {
+        public Packet<?> packet;
+
+        public Post(Packet<?> packet) {
+            this.packet = packet;
+        }
+    }
+
 }

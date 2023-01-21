@@ -5,9 +5,7 @@ import cc.polyfrost.oneconfig.libs.eventbus.Subscribe;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.monster.EntityEnderman;
-import net.minecraft.entity.monster.EntitySpider;
-import net.minecraft.entity.monster.EntityZombie;
+import net.minecraft.entity.monster.*;
 import net.minecraft.entity.passive.EntityWolf;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
@@ -21,10 +19,7 @@ import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.config.pages.MobMacroFilter;
 import rosegold.gumtuneclient.events.PlayerMoveEvent;
-import rosegold.gumtuneclient.utils.LocationUtils;
-import rosegold.gumtuneclient.utils.ModUtils;
-import rosegold.gumtuneclient.utils.RaytracingUtils;
-import rosegold.gumtuneclient.utils.RotationUtils;
+import rosegold.gumtuneclient.utils.*;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -72,12 +67,16 @@ public class MobMacro {
         }
 
         if (sneak) {
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
-            sneak = false;
+            if (GumTuneClientConfig.mobMacroAttackType == 0) {
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
+                sneak = false;
+            }
         } else if (activeEye && (RotationUtils.done || GumTuneClientConfig.mobMacroRotation != 2)) {
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
-            sneak = true;
-            activeEye = false;
+            if (GumTuneClientConfig.mobMacroAttackType == 0) {
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
+                sneak = true;
+                activeEye = false;
+            }
         }
 
         if (ticks < GumTuneClientConfig.mobMacroDelay) return;
@@ -102,7 +101,16 @@ public class MobMacro {
                     RotationUtils.smoothLook(RotationUtils.getRotation(entity), 200L);
                     break;
             }
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
+
+            switch (GumTuneClientConfig.mobMacroAttackType) {
+                case 0:
+                    KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
+                    break;
+                case 1:
+                    PlayerUtils.rightClick();
+                    break;
+            }
+
             ignoreEntities.add(entity);
             sneak = true;
             activeEye = true;
@@ -129,7 +137,9 @@ public class MobMacro {
         return (entity instanceof EntityWolf && MobMacroFilter.wolves) ||
                 (entity instanceof EntityZombie && MobMacroFilter.zombies) ||
                 (entity instanceof EntitySpider && MobMacroFilter.spiders) ||
-                (entity instanceof EntityEnderman && MobMacroFilter.endermen);
+                (entity instanceof EntityEnderman && MobMacroFilter.endermen) ||
+                (entity instanceof EntitySlime && MobMacroFilter.slime) ||
+                (entity instanceof EntityMagmaCube && MobMacroFilter.magmaCubes);
     }
 
     @SubscribeEvent(priority = EventPriority.NORMAL)

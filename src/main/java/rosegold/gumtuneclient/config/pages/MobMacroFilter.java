@@ -22,4 +22,14 @@ public class MobMacroFilter {
             name = "Endermen"
     )
     public static boolean endermen = false;
+
+    @Switch(
+            name = "Slime"
+    )
+    public static boolean slime = false;
+
+    @Switch(
+            name = "Magma Cube"
+    )
+    public static boolean magmaCubes = false;
 }

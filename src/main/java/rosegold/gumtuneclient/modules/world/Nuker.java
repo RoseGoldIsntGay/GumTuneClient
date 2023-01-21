@@ -216,8 +216,8 @@ public class Nuker {
             GumTuneClient.mc.thePlayer.sendQueue.addToSendQueue(new C07PacketPlayerDigging(
                     C07PacketPlayerDigging.Action.START_DESTROY_BLOCK,
                     blockPos,
-                    objectMouseOver.sideHit)
-            );
+                    objectMouseOver.sideHit
+            ));
         }
     }
 

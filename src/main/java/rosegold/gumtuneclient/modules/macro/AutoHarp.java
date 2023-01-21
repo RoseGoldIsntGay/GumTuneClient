@@ -1,81 +1,122 @@
 package rosegold.gumtuneclient.modules.macro;
 
+import cc.polyfrost.oneconfig.utils.Multithreading;
+import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.ItemRenderer;
+import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Slot;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraftforge.client.event.GuiOpenEvent;
+import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
+import rosegold.gumtuneclient.events.ReceivePacketEvent;
+import rosegold.gumtuneclient.events.ScreenClosedEvent;
 import rosegold.gumtuneclient.utils.GuiUtils;
+import rosegold.gumtuneclient.utils.ModUtils;
+import rosegold.gumtuneclient.utils.ReflectionUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.awt.*;
+import java.util.concurrent.TimeUnit;
 
 import static rosegold.gumtuneclient.GumTuneClient.mc;
 
 public class AutoHarp {
-    private int wait;
     private boolean inHarp;
-    private final List<Item> lastInventory = new ArrayList<>();
+    private Slot slot;
+    private long timestamp;
+    private int guiLeft;
+    private int guiTop;
 
     @SubscribeEvent
     public final void onGuiOpen(@NotNull GuiOpenEvent event) {
-        String name = GuiUtils.getInventoryName(event.gui);
+        this.inHarp = GuiUtils.getInventoryName(event.gui).startsWith("Harp -");
+    }
 
-        if (name.startsWith("Harp -")) {
-            this.lastInventory.clear();
-            this.inHarp = true;
+    @SubscribeEvent
+    public void onGuiClose(ScreenClosedEvent event) {
+        this.inHarp = false;
+    }
+
+    @SubscribeEvent
+    public void onGuiRender(GuiScreenEvent.DrawScreenEvent.Post event) {
+        if (!this.inHarp) return;
+        if (this.slot != null && System.currentTimeMillis() - timestamp < GumTuneClientConfig.harpMacroDelay * 0.75) {
+            GlStateManager.disableLighting();
+            GlStateManager.disableDepth();
+            GlStateManager.disableBlend();
+            mc.fontRendererObj.drawStringWithShadow(
+                    "Click",
+                    (event.gui.width - 176) / 2f + slot.xDisplayPosition + 8 - mc.fontRendererObj.getStringWidth("Click") / 2f,
+                    (event.gui.height - 222) / 2f + slot.yDisplayPosition + 24,
+                    Color.GREEN.getRGB()
+            );
+            GlStateManager.enableLighting();
+            GlStateManager.enableDepth();
         }
     }
 
     @SubscribeEvent
-    public final void onTick(@Nullable TickEvent.ClientTickEvent event) {
-        // shadyaddons harp macro fixed feat. delay
-        if (this.wait != 0) {
-            wait += 1;
+    public void onPacket(ReceivePacketEvent.Post event) throws InterruptedException {
+        if (!GumTuneClientConfig.harpMacro) return;
+        if (!this.inHarp) return;
+        if (event.packet instanceof S2FPacketSetSlot) {
+            S2FPacketSetSlot packetSetSlot = (S2FPacketSetSlot) event.packet;
+            ItemStack itemStack = packetSetSlot.func_149174_e();
+            int windowId = packetSetSlot.func_149175_c();
+            if (itemStack != null) {
+                int slotNumber = packetSetSlot.func_149173_d();
+                if (slotNumber > 26 && slotNumber < 36 &&
+                        itemStack.getItem() instanceof ItemBlock &&
+                        ((ItemBlock) itemStack.getItem()).getBlock() == Blocks.wool) {
+                    Multithreading.runAsync(() -> {
+                        try {
+                            Thread.sleep(50L);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                        int clicksNeeded = 0;
+//                        System.out.println(itemStack.getItem());
+//                        mc.thePlayer.openContainer.inventorySlots.forEach(slot1 -> {
+//                            if (slot1.getStack() != null && slot1.getStack().getItem() instanceof ItemBlock) {
+//                                System.out.println(slot1.slotNumber + " " + ((ItemBlock) slot1.getStack().getItem()).getBlock());
+//                            }
+//                        });
+                        for (int i = slotNumber; i >= 0; i -= 9) {
+                            ItemStack stackInSlot = mc.thePlayer.openContainer.inventorySlots.get(i).getStack();
+                            if (((ItemBlock) stackInSlot.getItem()).getBlock() == ((ItemBlock) itemStack.getItem()).getBlock()) {
+                                clicksNeeded++;
+                            } else {
+                                break;
+                            }
+                        }
 
-            if (this.wait != GumTuneClientConfig.harpMacroDelay + 1 /* wait = 1 */) {
-                return;
-            }
-
-            this.wait = 0;
-        }
-
-        if (!inHarp || !GumTuneClientConfig.harpMacro || mc.thePlayer == null) return;
-        if (!GuiUtils.getOpenInventoryName().startsWith("Harp -")) inHarp = false;
-
-        List<Item> thisInventory = new ArrayList<Item>() {{
-            for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
-                if (slot.getStack() != null) add(slot.getStack().getItem());
-            }
-        }};
-
-        if (!Objects.equals(lastInventory.toString(), thisInventory.toString())) {
-            for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
-                if (slot.getStack() != null
-                        && slot.getStack().getItem() instanceof ItemBlock
-                        && ((ItemBlock) slot.getStack().getItem()).getBlock() == Blocks.quartz_block) {
-
-                    mc.playerController.windowClick(
-                            mc.thePlayer.openContainer.windowId,
-                            slot.slotNumber,
-                            2,
-                            3,
-                            mc.thePlayer
-                    );
-
-                    wait = 1;
-                    break;
+                        ModUtils.sendMessage("needed: " + clicksNeeded);
+                        for (int i = 1; i <= clicksNeeded; i++) {
+                            try {
+                                Thread.sleep(GumTuneClientConfig.harpMacroDelay);
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                            this.slot = mc.thePlayer.openContainer.inventorySlots.get(slotNumber);
+                            this.timestamp = System.currentTimeMillis();
+                            ModUtils.sendMessage("clicked at " + this.timestamp);
+                            mc.playerController.windowClick(
+                                    windowId,
+                                    slotNumber + 9,
+                                    2,
+                                    3,
+                                    mc.thePlayer
+                            );
+                        }
+                    });
                 }
             }
         }
-
-        lastInventory.clear();
-        lastInventory.addAll(thisInventory);
     }
 }

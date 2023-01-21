@@ -55,6 +55,7 @@ val shade: Configuration by configurations.creating {
 sourceSets {
     main {
         output.setResourcesDir(java.classesDirectory)
+        println(java.classesDirectory)
     }
 }
 

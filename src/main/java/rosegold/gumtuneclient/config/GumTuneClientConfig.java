@@ -8,6 +8,7 @@ import cc.polyfrost.oneconfig.config.data.Mod;
 import cc.polyfrost.oneconfig.config.data.ModType;
 import cc.polyfrost.oneconfig.config.data.PageLocation;
 import cc.polyfrost.oneconfig.libs.universal.UKeyboard;
+import net.minecraft.util.ResourceLocation;
 import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.config.pages.FrozenTreasureFilter;
 import rosegold.gumtuneclient.config.pages.NukerBlockFilter;
@@ -101,12 +102,11 @@ public class GumTuneClientConfig extends Config {
     public static boolean harpMacro = false;
 
     @Slider(
-            name = "Delay between clicks",
-            description = "Indicated in ticks, more lag = less delay",
+            name = "Click delay (ms): lower = faster song",
+            description = "Change this slider based on song speed and ping",
             category = MACRO,
             subcategory = HARP_MACRO,
-            min = 0, max = 100,
-            step = 1
+            min = 0, max = 1000
     )
     public static int harpMacroDelay = 10;
 
@@ -345,6 +345,14 @@ public class GumTuneClientConfig extends Config {
     )
     public static int mobMacroRotation = 0;
 
+    @Dropdown(
+            name = "Attack Type",
+            category = MACRO,
+            subcategory = MOB_MACRO,
+            options = {"Precursor Eye", "Frozen Scythe (and similar items)", "Shortbows", "Hyperion"}
+    )
+    public static int mobMacroAttackType = 0;
+
     @Switch(
             name = "Smooth Server Side Rotation",
             category = CONFIG,
@@ -386,7 +394,7 @@ public class GumTuneClientConfig extends Config {
     public static boolean espBeacon = false;
 
     public GumTuneClientConfig() {
-        super(new Mod(GumTuneClient.NAME, ModType.SKYBLOCK, "https://i.imgur.com/EJen0w7.png"), GumTuneClient.MODID + ".json");
+        super(new Mod(GumTuneClient.NAME, ModType.SKYBLOCK, "/assets/" + GumTuneClient.MODID + "/gtc_small.png"), GumTuneClient.MODID + ".json");
         registerKeyBind(nukerKeyBind, () -> {});
         registerKeyBind(mobMacroKeyBind, () -> {});
         addDependency("commissionTracker", "trackers");

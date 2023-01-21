@@ -5,9 +5,9 @@
   "refmap": "mixins.gumtuneclient.refmap.json",
   "verbose": true,
   "client": [
-    "MinecraftMixin",
     "MixinEntityPlayerSP",
     "MixinEntityRenderer",
+    "MixinMinecraft",
     "MixinModelBiped",
     "MixinRendererLivingEntity",
     "accessors.EntityPlayerSPAccessor",

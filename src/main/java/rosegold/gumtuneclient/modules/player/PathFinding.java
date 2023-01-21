@@ -101,16 +101,15 @@ public class PathFinding {
             RenderUtils.renderEspBox(new BlockPos(last), event.partialTicks, ColorUtils.getChroma(3000.0f, (int)(last.xCoord + last.yCoord + last.zCoord)));
             RenderUtils.drawLines(PathFinder.path, 1, event.partialTicks);
         }
-        for(BlockPos blockPos : temp) {
-            RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.WHITE.getRGB());
-        }
-        for(Vec3 blockPos : points) {
-            RenderUtils.renderSmallBox(blockPos, Color.RED.getRGB());
-        }
-        renderHubs.forEach((blockPos, integer) -> {
-            RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.CYAN.getRGB());
-//            RenderUtils.renderWaypointText(integer.toString(), blockPos.getX(), blockPos.getY(), blockPos.getZ(), event.partialTicks, false);
-        });
+//        for(BlockPos blockPos : temp) {
+//            RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.WHITE.getRGB());
+//        }
+//        for(Vec3 blockPos : points) {
+//            RenderUtils.renderSmallBox(blockPos, Color.RED.getRGB());
+//        }
+//        renderHubs.forEach((blockPos, integer) -> {
+//            RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.CYAN.getRGB());
+//        });
     }
 
     private static Vec3 goodPoints(ArrayList<Vec3> path) {

@@ -28,4 +28,22 @@ public class PlayerUtils {
             GumTuneClient.mc.thePlayer.swingItem();
         }
     }
+
+    public static void rightClick() {
+        if(!ReflectionUtils.invoke(GumTuneClient.mc, "func_147121_ag")) {
+            ReflectionUtils.invoke(GumTuneClient.mc, "rightClickMouse");
+        }
+    }
+
+    public static void leftClick() {
+        if(!ReflectionUtils.invoke(GumTuneClient.mc, "func_147116_af")) {
+            ReflectionUtils.invoke(GumTuneClient.mc, "clickMouse");
+        }
+    }
+
+    public static void middleClick() {
+        if(!ReflectionUtils.invoke(GumTuneClient.mc, "func_147112_ai")) {
+            ReflectionUtils.invoke(GumTuneClient.mc, "middleClickMouse");
+        }
+    }
 }
