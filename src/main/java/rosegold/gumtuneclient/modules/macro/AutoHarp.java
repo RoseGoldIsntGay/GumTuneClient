@@ -1,10 +1,7 @@
 package rosegold.gumtuneclient.modules.macro;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
-import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.ItemRenderer;
-import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemBlock;
@@ -13,16 +10,16 @@ import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.jetbrains.annotations.NotNull;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
-import rosegold.gumtuneclient.events.ReceivePacketEvent;
+import rosegold.gumtuneclient.events.PacketReceivedEvent;
 import rosegold.gumtuneclient.events.ScreenClosedEvent;
 import rosegold.gumtuneclient.utils.GuiUtils;
 import rosegold.gumtuneclient.utils.ModUtils;
-import rosegold.gumtuneclient.utils.ReflectionUtils;
 
-import java.awt.*;
-import java.util.concurrent.TimeUnit;
+import java.awt.Color;
+import java.util.ArrayList;
 
 import static rosegold.gumtuneclient.GumTuneClient.mc;
 
@@ -30,12 +27,14 @@ public class AutoHarp {
     private boolean inHarp;
     private Slot slot;
     private long timestamp;
-    private int guiLeft;
-    private int guiTop;
+    private long startedSongTimestamp;
+    private int updates;
+    private final ArrayList<ItemStack> currentInventory = new ArrayList<>();
 
     @SubscribeEvent
     public final void onGuiOpen(@NotNull GuiOpenEvent event) {
         this.inHarp = GuiUtils.getInventoryName(event.gui).startsWith("Harp -");
+        this.updates = 0;
     }
 
     @SubscribeEvent
@@ -44,25 +43,64 @@ public class AutoHarp {
     }
 
     @SubscribeEvent
+    public void onTick(TickEvent.ClientTickEvent event) {
+        if (!this.inHarp) return;
+        if (event.phase == TickEvent.Phase.START) return;
+        if (mc.thePlayer.openContainer.inventorySlots.size() != this.currentInventory.size()) {
+            for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
+                this.currentInventory.add(slot.getStack());
+            }
+            this.updates++;
+            return;
+        }
+        boolean flag = false;
+        for (int i = 0; i < mc.thePlayer.openContainer.inventorySlots.size(); i++) {
+            ItemStack itemStack1 = mc.thePlayer.openContainer.inventorySlots.get(i).getStack();
+            ItemStack itemStack2 = this.currentInventory.get(i);
+            if (!ItemStack.areItemStacksEqual(itemStack1, itemStack2)) {
+                if (this.updates < 2) {
+                    ModUtils.sendMessage(this.updates);
+                    this.startedSongTimestamp = System.currentTimeMillis();
+                }
+                this.currentInventory.set(i, itemStack1);
+                flag = true;
+            }
+        }
+
+        if (flag) {
+            this.updates++;
+            ModUtils.sendMessage(updates);
+        }
+    }
+
+    @SubscribeEvent
     public void onGuiRender(GuiScreenEvent.DrawScreenEvent.Post event) {
         if (!this.inHarp) return;
-        if (this.slot != null && System.currentTimeMillis() - timestamp < GumTuneClientConfig.harpMacroDelay * 0.75) {
-            GlStateManager.disableLighting();
-            GlStateManager.disableDepth();
-            GlStateManager.disableBlend();
+        GlStateManager.disableLighting();
+        GlStateManager.disableDepth();
+        GlStateManager.disableBlend();
+        if (this.updates != 0) {
+            mc.fontRendererObj.drawStringWithShadow(
+                    (System.currentTimeMillis() - this.startedSongTimestamp) / this.updates + "ms",
+                    100,
+                    100,
+                    Color.GREEN.getRGB()
+            );
+        }
+        if (this.slot != null && System.currentTimeMillis() - timestamp < GumTuneClientConfig.harpMacroDelay/* * 0.75*/) {
             mc.fontRendererObj.drawStringWithShadow(
                     "Click",
                     (event.gui.width - 176) / 2f + slot.xDisplayPosition + 8 - mc.fontRendererObj.getStringWidth("Click") / 2f,
                     (event.gui.height - 222) / 2f + slot.yDisplayPosition + 24,
                     Color.GREEN.getRGB()
             );
-            GlStateManager.enableLighting();
-            GlStateManager.enableDepth();
         }
+        GlStateManager.enableLighting();
+        GlStateManager.enableDepth();
     }
 
     @SubscribeEvent
-    public void onPacket(ReceivePacketEvent.Post event) throws InterruptedException {
+    public void onPacket(PacketReceivedEvent.Post event) {
         if (!GumTuneClientConfig.harpMacro) return;
         if (!this.inHarp) return;
         if (event.packet instanceof S2FPacketSetSlot) {

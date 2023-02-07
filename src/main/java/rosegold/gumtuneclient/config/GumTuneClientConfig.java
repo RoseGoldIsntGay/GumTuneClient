@@ -18,7 +18,6 @@ import rosegold.gumtuneclient.config.pages.WorldScannerFilter;
 public class GumTuneClientConfig extends Config {
 
     // Categories
-
     private transient static final String MACRO = "Macros";
     private transient static final String WORLD = "World"; //todo better name
     private transient static final String RENDER = "Render";
@@ -37,11 +36,10 @@ public class GumTuneClientConfig extends Config {
     private transient static final String MOB_MACRO = "Mob Macro";
     private transient static final String SERVER_SIDE_ROTATIONS = "Server Side Rotations";
     private transient static final String ROTATION_CONFIG = "Rotations Config";
-
     private transient static final String CAMERA = "Camera";
     private transient static final String WORLD_SCANNER = "World Scanner";
-
     private transient static final String METAL_DETECTOR_SOLVER = "Metal Detector Solver";
+    private transient static final String MOBX_DRILL = "Mobx Drill";
 
     @Switch(
             name = "Enabled",
@@ -88,12 +86,27 @@ public class GumTuneClientConfig extends Config {
 
     @Page(
             name = "Scanner Filter",
-            description = "",
             category = WORLD,
             subcategory = WORLD_SCANNER,
             location = PageLocation.BOTTOM
     )
     public WorldScannerFilter worldScannerFilter = new WorldScannerFilter();
+
+    @Switch(
+            name = "Send Coords In Chat",
+            category = WORLD,
+            subcategory = WORLD_SCANNER,
+            size = 2
+    )
+    public static boolean worldScannerSendCoordsInChat = false;
+
+    @Dropdown(
+            name = "Chat Messages Mode",
+            category = WORLD,
+            subcategory = WORLD_SCANNER,
+            options = {"Name + Coords", "Name + Slightly Randomized Coords", "Different Names + Slightly Randomize Coords"}
+    )
+    public static int worldScannerChatMode = 0;
 
     @Switch(
             name = "Enabled",
@@ -253,6 +266,15 @@ public class GumTuneClientConfig extends Config {
             size = 2
     )
     public static boolean metalDetectorSolver = false;
+
+    @Switch(
+            name = "Cancel Client Item Update Packets",
+            category = MINING,
+            subcategory = MOBX_DRILL,
+            description = "Originally by mobx, stops the client canceling your mining progress",
+            size = 2
+    )
+    public static boolean cancelClientItemUpdates = false;
 
     @Switch(
             name = "ESPs",

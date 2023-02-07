@@ -14,7 +14,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.events.PlayerMoveEvent;
-import rosegold.gumtuneclient.events.ReceivePacketEvent;
+import rosegold.gumtuneclient.events.PacketReceivedEvent;
 import rosegold.gumtuneclient.utils.BlockUtils;
 import rosegold.gumtuneclient.utils.RenderUtils;
 import rosegold.gumtuneclient.utils.RotationUtils;
@@ -50,7 +50,7 @@ public class PowderChestSolver {
     }
 
     @SubscribeEvent
-    public void receivePacket(ReceivePacketEvent event) {
+    public void receivePacket(PacketReceivedEvent event) {
         if (!isEnabled()) return;
         if (event.packet instanceof S2APacketParticles) {
             S2APacketParticles packet = (S2APacketParticles) event.packet;

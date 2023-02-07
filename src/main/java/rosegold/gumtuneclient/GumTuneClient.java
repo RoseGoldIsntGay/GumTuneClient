@@ -17,6 +17,7 @@ import rosegold.gumtuneclient.events.SecondEvent;
 import rosegold.gumtuneclient.modules.macro.AutoHarp;
 import rosegold.gumtuneclient.modules.macro.MobMacro;
 import rosegold.gumtuneclient.modules.mining.MetalDetectorSolver;
+import rosegold.gumtuneclient.modules.mining.MobxDrill;
 import rosegold.gumtuneclient.modules.player.PathFinding;
 import rosegold.gumtuneclient.modules.render.ESPs;
 import rosegold.gumtuneclient.modules.singleplayer.skyblockitems.AspectOfTheVoid;

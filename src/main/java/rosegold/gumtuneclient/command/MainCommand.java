@@ -159,7 +159,7 @@ public class MainCommand {
 
         Multithreading.runAsync(() -> {
             PathFinding.initTeleport();
-            PathFinder.setup(new BlockPos(VectorUtils.floorVec(GumTuneClient.mc.thePlayer.getPositionVector())), new BlockPos(Integer.parseInt(x), Integer.parseInt(y), Integer.parseInt(z)), 0.0);
+            PathFinder.setup(new BlockPos(VectorUtils.floorVec(GumTuneClient.mc.thePlayer.getPositionVector())), new BlockPos(Integer.parseInt(x), Integer.parseInt(y), Integer.parseInt(z)), 0.0, 2000);
         });
     }
 
@@ -192,6 +192,17 @@ public class MainCommand {
 
         PathFinding.points.clear();
         PathFinding.temp = RaytracingUtils.getAllTeleportableBlocksNew(GumTuneClient.mc.thePlayer.getPositionEyes(1f), 16f);
+    }
+
+    @SubCommand(description = "copy")
+    private void setclipboard(String args) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String arg : args.split(";")) {
+            stringBuilder.append(arg).append(" ");
+        }
+        stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+        StringSelection selection = new StringSelection(stringBuilder.toString());
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, selection);
     }
 
     private boolean isNumeric(String str) {

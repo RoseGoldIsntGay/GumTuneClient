@@ -71,7 +71,7 @@ public class Nuker {
         if (!isEnabled()) {
             if (current != null && GumTuneClient.mc.thePlayer != null) {
                 GumTuneClient.mc.thePlayer.sendQueue.addToSendQueue(new C07PacketPlayerDigging(
-                        C07PacketPlayerDigging.Action.STOP_DESTROY_BLOCK,
+                        C07PacketPlayerDigging.Action.ABORT_DESTROY_BLOCK,
                         blockPos,
                         EnumFacing.DOWN)
                 );
@@ -132,15 +132,18 @@ public class Nuker {
                 }
             }
 
-            switch (GumTuneClientConfig.nukerAlgorithm) {
-                case 0:
-                    blockPos = BlockUtils.getClosestBlock(4, GumTuneClientConfig.nukerHeight, GumTuneClientConfig.nukerDepth, this::canMine);
-                    break;
-                case 1:
-                    blockPos = BlockUtils.getEasiestBlock(4, GumTuneClientConfig.nukerHeight, GumTuneClientConfig.nukerDepth, this::canMine);
-                    break;
+            if (current == null) {
+                switch (GumTuneClientConfig.nukerAlgorithm) {
+                    case 0:
+                        blockPos = BlockUtils.getClosestBlock(4, GumTuneClientConfig.nukerHeight, GumTuneClientConfig.nukerDepth, this::canMine);
+                        break;
+                    case 1:
+                        blockPos = BlockUtils.getEasiestBlock(4, GumTuneClientConfig.nukerHeight, GumTuneClientConfig.nukerDepth, this::canMine);
+                        break;
+                }
             }
 
+            if (GumTuneClient.debug) ModUtils.sendMessage(blockPos);
 
             if (blockPos != null) {
                 if (current != null && current.compareTo(blockPos) != 0) {
@@ -346,6 +349,9 @@ public class Nuker {
                 block == Blocks.diamond_ore ||
                 block == Blocks.emerald_ore ||
                 block == Blocks.quartz_ore)) return true;
+
+        if (NukerBlockFilter.nukerBlockFilterObsidian &&
+                block == Blocks.obsidian) return true;
 
         if (NukerBlockFilter.nukerBlockFilterSand &&
                 NukerBlockFilter.nukerBlockFilterWood &&

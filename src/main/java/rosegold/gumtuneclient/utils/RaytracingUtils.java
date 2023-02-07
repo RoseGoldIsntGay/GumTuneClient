@@ -57,7 +57,6 @@ public class RaytracingUtils {
                         mc.theWorld.getBlockState(blockPos).getBlock().getCollisionBoundingBox(mc.theWorld, blockPos, mc.theWorld.getBlockState(blockPos)) != null &&
                         mc.theWorld.getBlockState(blockPos.add(0, 1, 0)).getBlock() == Blocks.air &&
                         mc.theWorld.getBlockState(blockPos.add(0, 2, 0)).getBlock() == Blocks.air &&
-                        vec.distanceTo(new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.95, blockPos.getZ() + 0.5)) <= 61 &&
                         canBlockBeeSeenFromVecNew(vec, blockPos)
         ).collect(Collectors.toList());
         AStarCustomPathfinder.counter += System.currentTimeMillis() - timestamp;
@@ -66,6 +65,7 @@ public class RaytracingUtils {
 
     public static boolean canBlockBeeSeenFromVecNew(Vec3 from, BlockPos blockPos) {
         Vec3 to = new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.95, blockPos.getZ() + 0.5);
+        //PathFinding.points.add(to);
         MovingObjectPosition movingObjectPosition = mc.theWorld.rayTraceBlocks(from, to);
         return movingObjectPosition != null && movingObjectPosition.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && movingObjectPosition.getBlockPos().equals(blockPos);
     }

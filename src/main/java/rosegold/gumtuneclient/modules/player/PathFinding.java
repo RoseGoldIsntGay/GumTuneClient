@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
 public class PathFinding {
@@ -26,7 +27,7 @@ public class PathFinding {
     private static BlockPos curPos;
     public static boolean walk = false;
     public static ArrayList<BlockPos> temp = new ArrayList<>();
-    public static ArrayList<Vec3> points = new ArrayList<>();
+    public static ConcurrentLinkedQueue<Vec3> points = new ConcurrentLinkedQueue<>();
     public static ConcurrentHashMap<BlockPos, Integer> renderHubs = new ConcurrentHashMap<>();
 
     @SubscribeEvent
@@ -39,7 +40,7 @@ public class PathFinding {
                 if (oldPos != null && VectorUtils.getHorizontalDistance(new Vec3(curPos), new Vec3(oldPos)) <= 0.1) {
                     initWalk();
                     PathFinder.path.clear();
-                    new Thread(() -> PathFinder.setup(new BlockPos(VectorUtils.floorVec(GumTuneClient.mc.thePlayer.getPositionVector())), PathFinder.goal, 0.0)).start();
+                    new Thread(() -> PathFinder.setup(new BlockPos(VectorUtils.floorVec(GumTuneClient.mc.thePlayer.getPositionVector())), PathFinder.goal, 0.0, 2000)).start();
                     return;
                 }
                 oldPos = curPos;
@@ -107,9 +108,9 @@ public class PathFinding {
 //        for(Vec3 blockPos : points) {
 //            RenderUtils.renderSmallBox(blockPos, Color.RED.getRGB());
 //        }
-//        renderHubs.forEach((blockPos, integer) -> {
-//            RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.CYAN.getRGB());
-//        });
+        renderHubs.forEach((blockPos, integer) -> {
+            RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.CYAN.getRGB());
+        });
     }
 
     private static Vec3 goodPoints(ArrayList<Vec3> path) {

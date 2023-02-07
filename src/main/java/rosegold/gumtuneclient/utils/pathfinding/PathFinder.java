@@ -6,16 +6,18 @@ import net.minecraft.util.Vec3;
 import java.util.ArrayList;
 
 public class PathFinder {
-    private static AStarCustomPathfinder pathfinder;
     public static ArrayList<Vec3> path;
     public static BlockPos goal;
+    public static boolean calculating = false;
 
 
-    public static void setup(BlockPos from, BlockPos to, double minDistance) {
-        pathfinder = new AStarCustomPathfinder(new Vec3(from), new Vec3(to), minDistance);
-        pathfinder.compute();
+    public static void setup(BlockPos from, BlockPos to, double minDistance, int loops) {
+        calculating = true;
+        AStarCustomPathfinder pathfinder = new AStarCustomPathfinder(new Vec3(from), new Vec3(to), minDistance);
+        pathfinder.compute(loops, 1);
         path = pathfinder.getPath();
         goal = to;
+        calculating = false;
     }
 
     public static Vec3 getCurrent() {
@@ -46,5 +48,10 @@ public class PathFinder {
 
     public static Vec3 getGoal() {
         return path.get(path.size() - 1);
+    }
+
+    public static void reset() {
+        path = null;
+        goal = null;
     }
 }

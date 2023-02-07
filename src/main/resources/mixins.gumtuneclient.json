@@ -9,6 +9,7 @@
     "MixinEntityRenderer",
     "MixinMinecraft",
     "MixinModelBiped",
+    "MixinPlayerControllerMP",
     "MixinRendererLivingEntity",
     "accessors.EntityPlayerSPAccessor",
     "accessors.MinecraftAccessor"

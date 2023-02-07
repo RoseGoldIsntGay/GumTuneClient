@@ -23,7 +23,15 @@ public class RenderUtils {
 
     private static final ResourceLocation beaconBeam = new ResourceLocation("textures/entity/beacon_beam.png");
 
+    public static void renderBeacon(BlockPos blockPos, Color color, float partialTicks) {
+        renderBeacon(blockPos.getX(), blockPos.getY(), blockPos.getZ(), color, partialTicks);
+    }
+
     public static void renderBeacon(Vec3 location, Color color, float partialTicks) {
+        renderBeacon(location.xCoord, location.yCoord, location.zCoord, color, partialTicks);
+    }
+
+    public static void renderBeacon(double x, double y, double z, Color color, float partialTicks) {
         int height = 300;
         int bOffset = 0;
         int tOffset = bOffset + height;
@@ -60,10 +68,6 @@ public class RenderUtils {
         double v = 0.5 + Math.sin(d2 + 5.497787143782138) * 0.2;
         double d14 = -1 + d1;
         double d15 = height * 2.5 + d14;
-
-        double x = location.xCoord;
-        double y = location.yCoord;
-        double z = location.zCoord;
 
         float red = color.getRed() / 256f;
         float green = color.getGreen() / 256f;
@@ -117,6 +121,14 @@ public class RenderUtils {
         GlStateManager.enableDepth();
 
         GlStateManager.popMatrix();
+    }
+
+    public static void renderWaypointText(String str, BlockPos blockPos, float partialTicks) {
+        renderWaypointText(str, blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, partialTicks, true);
+    }
+
+    public static void renderWaypointText(String str, Vec3 vec3, float partialTicks) {
+        renderWaypointText(str, vec3.xCoord, vec3.yCoord, vec3.zCoord, partialTicks, true);
     }
 
     public static void renderWaypointText(String str, double X, double Y, double Z, float partialTicks) {

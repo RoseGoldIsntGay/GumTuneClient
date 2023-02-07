@@ -47,6 +47,12 @@ public class NukerBlockFilter {
     public static boolean nukerBlockFilterOres = false;
 
     @Switch(
+            name = "Obsidian",
+            description = "Obsidian"
+    )
+    public static boolean nukerBlockFilterObsidian = false;
+
+    @Switch(
             name = "Crops",
             description = "All crops"
     )

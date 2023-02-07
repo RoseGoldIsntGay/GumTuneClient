@@ -67,7 +67,7 @@ dependencies {
 
     if (platform.isLegacyForge) {
         compileOnly("org.spongepowered:mixin:0.7.11-SNAPSHOT")
-        shade("cc.polyfrost:oneconfig-wrapper-launchwrapper:1.0.0-alpha+")
+        shade("cc.polyfrost:oneconfig-wrapper-launchwrapper:1.0.0-beta+")
     }
 }
 
