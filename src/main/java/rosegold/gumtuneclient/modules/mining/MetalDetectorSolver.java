@@ -45,6 +45,7 @@ public class MetalDetectorSolver {
 
     private static Walking walking = Walking.IDLE;
     private static long lastScan = 0;
+    private static boolean lobbyInitialized = false;
 
     public MetalDetectorSolver() {
         JsonParser jsonParser = new JsonParser();
@@ -65,42 +66,57 @@ public class MetalDetectorSolver {
         if (event.type != 2) return;
         String text = removeFormatting(event.message.getUnformattedText());
         if (text.contains("TREASURE")) {
-            if (System.currentTimeMillis() - lastScan > 15000) {
-                ModUtils.sendMessage("Let's find anchor!");
+            if (!lobbyInitialized && System.currentTimeMillis() - lastScan > 3000) {
                 lastScan = System.currentTimeMillis();
                 Multithreading.runAsync(MetalDetectorSolver::scanChunks);
+
+                if (anchor != null) {
+                    absoluteChestCoords.clear();
+                    for (BlockPos blockPos : relativeChestCoords) {
+                        BlockPos absolutePosition = new BlockPos(anchor.getX() - blockPos.getX(), anchor.getY() - blockPos.getY() + 1, anchor.getZ() - blockPos.getZ());
+                        absoluteChestCoords.add(absolutePosition);
+                    }
+
+                    lobbyInitialized = true;
+                } else {
+                    return;
+                }
+
+
             }
-            if (anchor == null) return;
             EntityPlayerSP player = GumTuneClient.mc.thePlayer;
+
             if (lastPos == null || player.posX != lastPos.xCoord || player.posY != lastPos.yCoord || player.posZ != lastPos.zCoord) {
                 lastPos = player.getPositionVector();
                 return;
             }
+
             double treasureDistance = Double.parseDouble(text
                     .split("TREASURE: ")[1].split("m")[0].replaceAll("(?!\\.)\\D", ""));
-            absoluteChestCoords.clear();
-            predictedChestLocations.clear();
-            for (BlockPos blockPos : relativeChestCoords) {
-                BlockPos absolutePosition = new BlockPos(anchor.getX() - blockPos.getX(), anchor.getY() - blockPos.getY() + 1, anchor.getZ() - blockPos.getZ());
-                absoluteChestCoords.add(absolutePosition);
+            for (BlockPos blockPos : absoluteChestCoords) {
                 double dist = Math.sqrt(
-                        Math.pow(player.posX - absolutePosition.getX(), 2) +
-                        Math.pow(player.posY - absolutePosition.getY(), 2) +
-                        Math.pow(player.posZ - absolutePosition.getZ(), 2)
+                        Math.pow(player.posX - blockPos.getX(), 2) +
+                        Math.pow(player.posY - blockPos.getY(), 2) +
+                        Math.pow(player.posZ - blockPos.getZ(), 2)
                 );
 
                 if (Math.round(dist * 10D) / 10D == treasureDistance) {
-                    if (absolutePosition.add(0, -1, 0).equals(ignoreBlockPos)) {
+                    if (blockPos.add(0, -1, 0).equals(ignoreBlockPos)) {
                         ignoreBlockPos = null;
                         return;
                     }
 
-                    predictedChestLocations.add(absolutePosition.add(0, -1, 0));
+                    if (!predictedChestLocations.contains(blockPos.add(0, -1, 0))) {
+                        GumTuneClient.mc.thePlayer.playSound("random.orb", 1, 0.5F);
+                    }
+
+                    predictedChestLocations.clear();
+                    predictedChestLocations.add(blockPos.add(0, -1, 0));
                 }
 
             }
 
-            if (predictedChestLocations.size() > 1) {
+            /*if (predictedChestLocations.size() > 1) {
                 BlockPos playerPos = player.getPosition();
                 for (BlockPos blockPos : BlockPos.getAllInBox(playerPos.add(-1, 0, -1), playerPos.add(1, 0, 1))) {
                     if (getBlockState(blockPos).getBlock() == Blocks.air &&
@@ -118,7 +134,7 @@ public class MetalDetectorSolver {
                     PathFinding.initTeleport();
                     PathFinder.setup(new BlockPos(VectorUtils.floorVec(GumTuneClient.mc.thePlayer.getPositionVector().addVector(0, -1, 0))), predictedChestLocations.iterator().next(), 3, 400);
                 });
-            }
+            }*/
         }
     }
 
@@ -146,7 +162,9 @@ public class MetalDetectorSolver {
         if (event.type != 0) return;
         String text = removeFormatting(event.message.getUnformattedText());
         if (text.startsWith("You found") && text.endsWith("Metal Detector!")) {
-            ignoreBlockPos = predictedChestLocations.iterator().next();
+            if (predictedChestLocations.iterator().hasNext()) {
+                ignoreBlockPos = predictedChestLocations.iterator().next();
+            }
             predictedChestLocations.clear();
             PathFinder.reset();
         }
@@ -156,16 +174,21 @@ public class MetalDetectorSolver {
     public void onRender(RenderWorldLastEvent event) {
         if (!GumTuneClientConfig.metalDetectorSolver || GumTuneClient.mc.theWorld == null || GumTuneClient.mc.thePlayer == null)
             return;
-        if (anchor != null) {
-            RenderUtils.renderEspBox(anchor, event.partialTicks, Color.WHITE.getRGB());
-            if (absoluteChestCoords.size() == relativeChestCoords.size()) {
-                absoluteChestCoords.forEach(blockPos -> RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.RED.getRGB()));
+        if (GumTuneClientConfig.metalDetectorSolverShowAllSpots) {
+            if (anchor != null) {
+                RenderUtils.renderEspBox(anchor, event.partialTicks, Color.WHITE.getRGB());
+                if (absoluteChestCoords.size() == relativeChestCoords.size()) {
+                    absoluteChestCoords.forEach(blockPos -> RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.RED.getRGB()));
+                }
             }
         }
         predictedChestLocations.forEach(blockPos -> {
             RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.GREEN.getRGB());
             RenderUtils.renderWaypointText("Treasure", blockPos, event.partialTicks);
             RenderUtils.renderBeacon(blockPos, Color.GREEN, event.partialTicks);
+            if (GumTuneClientConfig.metalDetectorSolverTracer) {
+                RenderUtils.renderTracer(blockPos, Color.GREEN, event.partialTicks);
+            }
         });
     }
 
@@ -176,6 +199,7 @@ public class MetalDetectorSolver {
         ignoreBlockPos = null;
         lastScan = 0;
         lastPos = null;
+        predictedChestLocations.clear();
     }
 
     private static String removeFormatting(String text) {

@@ -18,6 +18,8 @@ import rosegold.gumtuneclient.modules.macro.AutoHarp;
 import rosegold.gumtuneclient.modules.macro.MobMacro;
 import rosegold.gumtuneclient.modules.mining.MetalDetectorSolver;
 import rosegold.gumtuneclient.modules.mining.MobxDrill;
+import rosegold.gumtuneclient.modules.player.AutoSell;
+import rosegold.gumtuneclient.modules.player.AvoidBreakingCrops;
 import rosegold.gumtuneclient.modules.player.PathFinding;
 import rosegold.gumtuneclient.modules.render.ESPs;
 import rosegold.gumtuneclient.modules.singleplayer.skyblockitems.AspectOfTheVoid;
@@ -64,6 +66,8 @@ public class GumTuneClient {
         modules.add(new PathFinding());
         modules.add(new AspectOfTheVoid());
         modules.add(new MetalDetectorSolver());
+        modules.add(new AvoidBreakingCrops());
+        modules.add(new AutoSell());
     }
 
     @Mod.EventHandler

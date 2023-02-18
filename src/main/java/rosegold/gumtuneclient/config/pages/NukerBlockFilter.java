@@ -59,6 +59,12 @@ public class NukerBlockFilter {
     public static boolean nukerBlockFilterCrops = false;
 
     @Switch(
+            name = "Foliage",
+            description = "Grass and leaves"
+    )
+    public static boolean nukerBlockFilterFoliage = false;
+
+    @Switch(
             name = "Wood",
             description = "All logs"
     )
@@ -69,6 +75,12 @@ public class NukerBlockFilter {
             description = "Sand and red sand"
     )
     public static boolean nukerBlockFilterSand = false;
+
+    @Switch(
+            name = "Dirt",
+            description = "Dirt, farmland and grass"
+    )
+    public static boolean nukerBlockFilterDirt = false;
 
     @Switch(
             name = "Glowstone",

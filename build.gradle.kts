@@ -63,7 +63,7 @@ repositories {
 }
 
 dependencies {
-    modCompileOnly("cc.polyfrost:oneconfig-$platform:0.1.0-alpha+")
+    modCompileOnly("cc.polyfrost:oneconfig-$platform:0.2.0-alpha+")
 
     if (platform.isLegacyForge) {
         compileOnly("org.spongepowered:mixin:0.7.11-SNAPSHOT")
@@ -148,7 +148,7 @@ tasks {
                     "ForceLoadAsMod" to true,
                     "TweakOrder" to "0",
                     "MixinConfigs" to "mixins.${mod_id}.json",
-                    "TweakClass" to "cc.polyfrost.oneconfigwrapper.OneConfigWrapper"
+                    "TweakClass" to "cc.polyfrost.oneconfig.loader.stage0.LaunchWrapperTweaker"
                 )
             )
         }

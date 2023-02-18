@@ -2,10 +2,7 @@ package rosegold.gumtuneclient.modules.world;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.google.common.collect.Lists;
-import net.minecraft.block.BlockColored;
-import net.minecraft.block.BlockPlanks;
-import net.minecraft.block.BlockSlab;
-import net.minecraft.block.BlockStone;
+import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.event.ClickEvent;
@@ -16,6 +13,7 @@ import net.minecraft.util.*;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.client.model.ForgeBlockStateV1;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -86,6 +84,7 @@ public class WorldScanner {
     private static boolean initialScan = false;
     private static long lastScan = 0;
     private static boolean lastBoolean = false;
+    public static boolean checkMobs = GumTuneClientConfig.worldScannerScanFrequency == 17;
     private static final HashMap<String, String[]> alternativeNames = new HashMap<String, String[]>() {{
         put("§6King", new String[] { "§6King", "§6Goblin King" });
         put("§6Queen", new String[] { "§6Queen", "§6Goblin Queen", "§6Queen's Den", "§6Goblin Queen's Den" });
@@ -141,6 +140,7 @@ public class WorldScanner {
 
     @SubscribeEvent
     public void onWorldUnload(WorldEvent.Unload event) {
+        checkMobs = GumTuneClientConfig.worldScannerScanFrequency == 14;
         cooldown = 100;
         initialScan = false;
     }
@@ -328,9 +328,20 @@ public class WorldScanner {
                                 chunk.getBlock(x, y + 3, z) == Blocks.stonebrick &&
                                 chunk.getBlock(x, y + 24, z) == Blocks.stonebrick &&
                                 chunk.getBlock(x, y + 25, z) == Blocks.stonebrick &&
-                                chunk.getBlock(x, y + 27, z) == Blocks.stonebrick) {
-                            ModUtils.sendMessage(chunk.getBlock(x, y + 26, z));
-                            // 23 11 17
+                                chunk.getBlock(x, y + 26, z) == Blocks.fire &&
+                                chunk.getBlock(x, y + 27, z) == Blocks.stonebrick && checkMobs) {
+                            currentWorld.updateMobSpotWaypoints("§6Goblin Diggy Hole", new BlockPos(chunk.xPosition * 16 + x + 23, y + 11, chunk.zPosition * 16 + z + 17));
+                            return;
+                        }
+                        // goblin campsite
+                        if (chunk.getBlock(x, y, z) == Blocks.air &&
+                                chunk.getBlock(x, y + 1, z) == Blocks.log && getBlockState(chunk, x, y + 1, z).getValue(BlockOldLog.VARIANT) == BlockPlanks.EnumType.OAK &&
+                                chunk.getBlock(x, y + 2, z) == Blocks.log && getBlockState(chunk, x, y + 2, z).getValue(BlockOldLog.VARIANT) == BlockPlanks.EnumType.OAK &&
+                                chunk.getBlock(x, y + 3, z) == Blocks.log && getBlockState(chunk, x, y + 3, z).getValue(BlockOldLog.VARIANT) == BlockPlanks.EnumType.OAK &&
+                                chunk.getBlock(x, y + 4, z) == Blocks.log && getBlockState(chunk, x, y + 4, z).getValue(BlockOldLog.VARIANT) == BlockPlanks.EnumType.OAK &&
+                                chunk.getBlock(x, y + 5, z) == Blocks.wool && getBlockState(chunk, x, y + 5, z).getValue(BlockColored.COLOR) == EnumDyeColor.GREEN &&
+                                chunk.getBlock(x, y + 5, z) == Blocks.air) {
+                            currentWorld.updateMobSpotWaypoints("§6Goblin Campsite", new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z));
                             return;
                         }
                     }

@@ -23,6 +23,57 @@ public class RenderUtils {
 
     private static final ResourceLocation beaconBeam = new ResourceLocation("textures/entity/beacon_beam.png");
 
+    public static void renderTracer(double posX, double posY, double posZ, double height, Color color, float partialTicks) {
+        Entity render = mc.getRenderViewEntity();
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer worldRenderer = tessellator.getWorldRenderer();
+
+        final double realX = render.lastTickPosX + (render.posX - render.lastTickPosX) * partialTicks;
+        final double realY = render.lastTickPosY + (render.posY - render.lastTickPosY) * partialTicks;
+        final double realZ = render.lastTickPosZ + (render.posZ - render.lastTickPosZ) * partialTicks;
+
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(-realX, -realY, -realZ);
+        GlStateManager.disableTexture2D();
+        GlStateManager.disableLighting();
+        GL11.glDisable(3553);
+        GlStateManager.enableBlend();
+        GlStateManager.disableAlpha();
+        GL11.glLineWidth(2f);
+        GlStateManager.disableDepth();
+        GlStateManager.depthMask(false);
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
+        worldRenderer.begin(3, DefaultVertexFormats.POSITION_COLOR);
+
+        worldRenderer.pos(realX, realY + render.getEyeHeight(), realZ).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()).endVertex();
+        worldRenderer.pos(posX, posY, posZ).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()).endVertex();
+
+        Tessellator.getInstance().draw();
+
+//        GL11.glVertex3d(eyeVector.xCoord, mc.thePlayer.eyeHeight + eyeVector.yCoord, eyeVector.zCoord);
+//        GL11.glVertex3d(x, y, z);
+//        GL11.glVertex3d(x, y, z);
+//        GL11.glVertex3d(x, y + height, z);
+
+        GlStateManager.translate(realX, realY, realZ);
+        GlStateManager.disableBlend();
+        GlStateManager.enableAlpha();
+        GlStateManager.enableTexture2D();
+        GlStateManager.enableDepth();
+        GlStateManager.depthMask(true);
+        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
+        GlStateManager.popMatrix();
+    }
+
+    public static void renderTracer(Entity entity, Color color, float partialTicks) {
+        renderTracer(entity.posX, entity.posY, entity.posZ, entity.height, color, partialTicks);
+    }
+
+    public static void renderTracer(BlockPos blockPos, Color color, float partialTicks) {
+        renderTracer(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, 0.5, color, partialTicks);
+    }
+
     public static void renderBeacon(BlockPos blockPos, Color color, float partialTicks) {
         renderBeacon(blockPos.getX(), blockPos.getY(), blockPos.getZ(), color, partialTicks);
     }
@@ -141,13 +192,11 @@ public class RenderUtils {
         GlStateManager.pushMatrix();
 
         Entity viewer = GumTuneClient.mc.getRenderViewEntity();
-        double viewerX = viewer.lastTickPosX + (viewer.posX - viewer.lastTickPosX) * partialTicks;
-        double viewerY = viewer.lastTickPosY + (viewer.posY - viewer.lastTickPosY) * partialTicks;
-        double viewerZ = viewer.lastTickPosZ + (viewer.posZ - viewer.lastTickPosZ) * partialTicks;
+        RenderManagerAccessor rm = (RenderManagerAccessor) mc.getRenderManager();
 
-        double x = X - viewerX;
-        double y = Y - viewerY - viewer.getEyeHeight();
-        double z = Z - viewerZ;
+        double x = X - rm.getRenderPosX();
+        double y = Y - rm.getRenderPosY();
+        double z = Z - rm.getRenderPosZ();
 
         double distSq = x * x + y * y + z * z;
         double dist = Math.sqrt(distSq);
@@ -178,8 +227,7 @@ public class RenderUtils {
 
     public static void drawNametag(String str) {
         FontRenderer fontrenderer = mc.fontRendererObj;
-        float f = 1.6F;
-        float f1 = 0.016666668F * f;
+        float f1 = 0.0266666688f;
         GlStateManager.pushMatrix();
         GL11.glNormal3f(0.0F, 1.0F, 0.0F);
         GlStateManager.rotate(-GumTuneClient.mc.getRenderManager().playerViewY, 0.0F, 1.0F, 0.0F);

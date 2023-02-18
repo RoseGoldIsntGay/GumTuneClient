@@ -1,8 +1,6 @@
 package rosegold.gumtuneclient.modules.mining;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockColored;
-import net.minecraft.block.BlockStone;
+import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.init.Blocks;
@@ -22,6 +20,7 @@ import rosegold.gumtuneclient.events.MillisecondEvent;
 import rosegold.gumtuneclient.events.PlayerMoveEvent;
 import rosegold.gumtuneclient.events.SecondEvent;
 import rosegold.gumtuneclient.modules.render.ESPs;
+import rosegold.gumtuneclient.modules.world.WorldScanner;
 import rosegold.gumtuneclient.utils.*;
 
 import java.awt.*;
@@ -76,6 +75,7 @@ public class Nuker {
                         EnumFacing.DOWN)
                 );
             }
+            blockPos = null;
             current = null;
             return;
         }
@@ -99,6 +99,9 @@ public class Nuker {
             if (broken.size() > 0) broken.clear();
             return;
         }
+
+        if (GumTuneClient.debug) ModUtils.sendMessage("1" + blockPos);
+
         if (event.timestamp - lastBroken > 1000f / GumTuneClientConfig.nukerSpeed) {
             lastBroken = event.timestamp;
             if (GumTuneClientConfig.nukerShape == 1) {
@@ -106,6 +109,8 @@ public class Nuker {
             } else {
                 if (broken.size() > GumTuneClientConfig.nukerPinglessCutoff) broken.clear();
             }
+
+            if (GumTuneClient.debug) ModUtils.sendMessage("2" + blockPos);
 
             if (GumTuneClientConfig.mineBlocksInFront) {
                 blockPos = blockInFront();
@@ -143,7 +148,7 @@ public class Nuker {
                 }
             }
 
-            if (GumTuneClient.debug) ModUtils.sendMessage(blockPos);
+            if (GumTuneClient.debug) ModUtils.sendMessage("3" + blockPos);
 
             if (blockPos != null) {
                 if (current != null && current.compareTo(blockPos) != 0) {
@@ -214,12 +219,20 @@ public class Nuker {
 
     private void breakBlock(BlockPos blockPos) {
         MovingObjectPosition objectMouseOver = GumTuneClient.mc.objectMouseOver;
-        objectMouseOver.hitVec = new Vec3(blockPos);
-        if (objectMouseOver.sideHit != null) {
+        if (objectMouseOver != null) {
+            objectMouseOver.hitVec = new Vec3(blockPos);
+            if (objectMouseOver.sideHit != null) {
+                GumTuneClient.mc.thePlayer.sendQueue.addToSendQueue(new C07PacketPlayerDigging(
+                        C07PacketPlayerDigging.Action.START_DESTROY_BLOCK,
+                        blockPos,
+                        objectMouseOver.sideHit
+                ));
+            }
+        } else {
             GumTuneClient.mc.thePlayer.sendQueue.addToSendQueue(new C07PacketPlayerDigging(
                     C07PacketPlayerDigging.Action.START_DESTROY_BLOCK,
                     blockPos,
-                    objectMouseOver.sideHit
+                    EnumFacing.UP
             ));
         }
     }
@@ -233,21 +246,20 @@ public class Nuker {
         BlockPos playerPos = new BlockPos((int) Math.floor(player.posX), (int) Math.floor(player.posY), (int) Math.floor(player.posZ));
         Vec3i axisVector = player.getHorizontalFacing().getDirectionVec();
 
-        if (getBlockState(playerPos).getBlock() != Blocks.air && getBlockState(playerPos).getBlock() != Blocks.bedrock
-                && !broken.contains(playerPos)) {
+        if (getBlockState(playerPos).getBlock() != Blocks.air && !(getBlockState(playerPos).getBlock() instanceof BlockLiquid) &&
+                getBlockState(playerPos).getBlock() != Blocks.bedrock && !broken.contains(playerPos)) {
             return playerPos;
         }
-        if (getBlockState(playerPos.add(new Vec3i(0, 1, 0))).getBlock() != Blocks.air &&
+        if (getBlockState(playerPos.add(new Vec3i(0, 1, 0))).getBlock() != Blocks.air && !(getBlockState(playerPos).getBlock() instanceof BlockLiquid) &&
                 getBlockState(playerPos).getBlock() != Blocks.bedrock && !broken.contains(playerPos.add(new Vec3i(0, 1, 0)))) {
             return playerPos.add(new Vec3i(0, 1, 0));
         }
-        if (getBlockState(playerPos.add(axisVector)).getBlock() != Blocks.air && getBlockState(playerPos).getBlock() != Blocks.bedrock
-                && !broken.contains(playerPos.add(axisVector))) {
+        if (getBlockState(playerPos.add(axisVector)).getBlock() != Blocks.air && !(getBlockState(playerPos).getBlock() instanceof BlockLiquid) &&
+                getBlockState(playerPos).getBlock() != Blocks.bedrock && !broken.contains(playerPos.add(axisVector))) {
             return playerPos.add(axisVector);
         }
-        if (getBlockState(playerPos.add(axisVector).add(new Vec3i(0, 1, 0))).getBlock() != Blocks.air &&
-                getBlockState(playerPos).getBlock() != Blocks.bedrock &&
-                !broken.contains(playerPos.add(axisVector).add(new Vec3i(0, 1, 0)))) {
+        if (getBlockState(playerPos.add(axisVector).add(new Vec3i(0, 1, 0))).getBlock() != Blocks.air && !(getBlockState(playerPos).getBlock() instanceof BlockLiquid) &&
+                getBlockState(playerPos).getBlock() != Blocks.bedrock && !broken.contains(playerPos.add(axisVector).add(new Vec3i(0, 1, 0)))) {
             return playerPos.add(axisVector).add(new Vec3i(0, 1, 0));
         }
         return null;
@@ -257,24 +269,26 @@ public class Nuker {
         if (canMineBlockType(blockPos) && !broken.contains(blockPos) && blocksInRange.contains(blockPos)) {
             EntityPlayerSP player = GumTuneClient.mc.thePlayer;
             EnumFacing axis = player.getHorizontalFacing();
-            Vec3i ray = new Vec3i((int) Math.floor(player.posX), 0, (int) Math.floor(player.posZ));
+
+            Vec3i ray = VectorUtils.addVector(VectorUtils.addVector(new Vec3i((int) Math.floor(player.posX), 0, (int) Math.floor(player.posZ)), VectorUtils.scaleVec(axis.getDirectionVec(), GumTuneClientConfig.nukerForwardsOffset)), VectorUtils.scaleVec(axis.rotateY().getDirectionVec(), GumTuneClientConfig.nukerSidewaysOffset));
 
             switch (GumTuneClientConfig.nukerShape) {
                 case 1:
-                    for (int i = 0; i < 5; i++) {
-                        ray = VectorUtils.addVector(ray, axis.getDirectionVec());
+                    for (int i = 0; i < 6; i++) {
                         if (ray.getX() == blockPos.getX() && ray.getZ() == blockPos.getZ()) {
                             return true;
                         }
+
+                        ray = VectorUtils.addVector(ray, axis.getDirectionVec());
                     }
 
                     return false;
                 case 2:
-                    for (int i = 0; i < 5; i++) {
-                        ray = VectorUtils.addVector(ray, axis.getDirectionVec());
+                    for (int i = 0; i < 6; i++) {
                         if (ray.getX() == blockPos.getX() && ray.getZ() == blockPos.getZ()) {
                             return true;
                         }
+
                         if (axis.getAxis() == EnumFacing.Axis.Z) {
                             if (ray.getX() + 2 == blockPos.getX() && ray.getZ() == blockPos.getZ()) {
                                 return true;
@@ -290,6 +304,8 @@ public class Nuker {
                                 return true;
                             }
                         }
+
+                        ray = VectorUtils.addVector(ray, axis.getDirectionVec());
                     }
 
                     return false;
@@ -353,22 +369,27 @@ public class Nuker {
         if (NukerBlockFilter.nukerBlockFilterObsidian &&
                 block == Blocks.obsidian) return true;
 
-        if (NukerBlockFilter.nukerBlockFilterSand &&
-                NukerBlockFilter.nukerBlockFilterWood &&
-                block == Blocks.chest) return true;
-
         if (NukerBlockFilter.nukerBlockFilterCrops &&
-                (block == Blocks.carrots ||
-                block == Blocks.potatoes ||
-                block == Blocks.reeds ||
-                block == Blocks.cocoa ||
+                ((block == Blocks.carrots && blockState.getValue(BlockCrops.AGE) == 7) ||
+                (block == Blocks.potatoes && blockState.getValue(BlockCrops.AGE) == 7) ||
+                (block == Blocks.reeds && getBlockState(bp.add(0, -1, 0)).getBlock() == Blocks.reeds) ||
+                (block == Blocks.cocoa && blockState.getValue(BlockCrops.AGE) == 7) ||
                 block == Blocks.melon_block ||
                 block == Blocks.pumpkin ||
-                block == Blocks.cactus ||
+                (block == Blocks.cactus && getBlockState(bp.add(0, -1, 0)).getBlock() == Blocks.cactus) ||
                 block == Blocks.brown_mushroom ||
-                block == Blocks.red_mushroom ||
-                block == Blocks.nether_wart ||
-                block == Blocks.wheat)) return true;
+                block == Blocks.red_mushroom  ||
+                (block == Blocks.nether_wart && blockState.getValue(BlockCrops.AGE) == 7) ||
+                (block == Blocks.wheat && blockState.getValue(BlockCrops.AGE) == 7))) return true;
+
+        if (NukerBlockFilter.nukerBlockFilterFoliage &&
+                (block == Blocks.leaves ||
+                block == Blocks.leaves2 ||
+                block == Blocks.tallgrass ||
+                block == Blocks.red_flower ||
+                block == Blocks.yellow_flower ||
+                block == Blocks.double_plant ||
+                block == Blocks.deadbush)) return true;
 
         if (NukerBlockFilter.nukerBlockFilterWood &&
                 (block == Blocks.log ||
@@ -376,6 +397,11 @@ public class Nuker {
 
         if (NukerBlockFilter.nukerBlockFilterSand &&
                 block == Blocks.sand) return true;
+
+        if (NukerBlockFilter.nukerBlockFilterDirt &&
+                (block == Blocks.dirt ||
+                block == Blocks.grass ||
+                block == Blocks.farmland)) return true;
 
         if (NukerBlockFilter.nukerBlockFilterGlowstone &&
                 block == Blocks.glowstone) return true;

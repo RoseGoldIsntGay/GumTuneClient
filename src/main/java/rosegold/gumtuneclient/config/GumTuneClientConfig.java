@@ -24,6 +24,8 @@ public class GumTuneClientConfig extends Config {
     private transient static final String CONFIG = "Config";
     private transient static final String MINING = "Mining";
     private transient static final String QOL = "QoL";
+
+    private transient static final String AVOID_BREAKING_CROPS = "Avoid Breaking Crops";
     private transient static final String ESPS = "ESPs";
     private transient static final String ESP_SETTINGS = "ESP Settings";
 
@@ -40,6 +42,8 @@ public class GumTuneClientConfig extends Config {
     private transient static final String WORLD_SCANNER = "World Scanner";
     private transient static final String METAL_DETECTOR_SOLVER = "Metal Detector Solver";
     private transient static final String MOBX_DRILL = "Mobx Drill";
+    private transient static final String PLAYER = "Player";
+    private transient static final String AUTO_SELL = "Auto Sell";
 
     @Switch(
             name = "Enabled",
@@ -104,7 +108,8 @@ public class GumTuneClientConfig extends Config {
             name = "Chat Messages Mode",
             category = WORLD,
             subcategory = WORLD_SCANNER,
-            options = {"Name + Coords", "Name + Slightly Randomized Coords", "Different Names + Slightly Randomize Coords"}
+            options = {"Name + Coords", "Name + Slightly Randomized Coords", "Different Names + Slightly Randomize Coords"},
+            size = 2
     )
     public static int worldScannerChatMode = 0;
 
@@ -173,8 +178,7 @@ public class GumTuneClientConfig extends Config {
             description = "Blocks per second",
             category = MINING,
             subcategory = NUKER,
-            min = 0, max = 80,
-            step = 10
+            min = 0, max = 80
     )
     public static int nukerSpeed = 20;
 
@@ -234,6 +238,26 @@ public class GumTuneClientConfig extends Config {
     public static boolean nukerPreview = false;
 
     @Slider(
+            name = "Sideways Offset",
+            description = "For facing axis mode (positive - offset to the right)",
+            category = MINING,
+            subcategory = NUKER,
+            min = -4, max = 4,
+            step = 1
+    )
+    public static int nukerSidewaysOffset = 0;
+
+    @Slider(
+            name = "Forwards-Backwards Offset",
+            description = "For facing axis mode (positive - forwards)",
+            category = MINING,
+            subcategory = NUKER,
+            min = -4, max = 4,
+            step = 1
+    )
+    public static int nukerForwardsOffset = 0;
+
+    @Slider(
             name = "Pingless reset cutoff",
             description = "Mess with this slider and see if it makes nuker faster",
             category = MINING,
@@ -268,6 +292,24 @@ public class GumTuneClientConfig extends Config {
     public static boolean metalDetectorSolver = false;
 
     @Switch(
+            name = "All Spots",
+            description = "Show all possible spots for divan treasures",
+            category = MINING,
+            subcategory = METAL_DETECTOR_SOLVER,
+            size = 2
+    )
+    public static boolean metalDetectorSolverShowAllSpots = false;
+
+    @Switch(
+            name = "Tracer",
+            description = "Draw a tracer to solved treasure",
+            category = MINING,
+            subcategory = METAL_DETECTOR_SOLVER,
+            size = 2
+    )
+    public static boolean metalDetectorSolverTracer = false;
+
+    @Switch(
             name = "Cancel Client Item Update Packets",
             category = MINING,
             subcategory = MOBX_DRILL,
@@ -275,6 +317,40 @@ public class GumTuneClientConfig extends Config {
             size = 2
     )
     public static boolean cancelClientItemUpdates = false;
+
+    @Switch(
+            name = "Avoid Breaking Stems",
+            category = QOL,
+            subcategory = AVOID_BREAKING_CROPS,
+            description = "Prevents the client from breaking pumpkin and melon stems"
+    )
+    public static boolean avoidBreakingStems = false;
+
+    @Switch(
+            name = "Avoid Breaking Bottom Sugar Cane",
+            category = QOL,
+            subcategory = AVOID_BREAKING_CROPS,
+            description = "Prevents the client from breaking bottom sugar cane blocks"
+    )
+    public static boolean avoidBreakingBottomSugarCane = false;
+
+    @Switch(
+            name = "Avoid Breaking Non Fully-Grown Crops",
+            category = QOL,
+            subcategory = AVOID_BREAKING_CROPS,
+            description = "Prevents the client from breaking crops that are still growing"
+    )
+    public static boolean avoidBreakingChildCrops = false;
+
+    @Dropdown(
+            name = "Avoid Breaking Mode",
+            category = QOL,
+            subcategory = AVOID_BREAKING_CROPS,
+            description = "Select how the mod should act when avoiding breaking crops",
+            options = {"Don't break", "Break only on the client"},
+            size = 2
+    )
+    public static int avoidBreakingMode = 0;
 
     @Switch(
             name = "ESPs",
@@ -386,6 +462,23 @@ public class GumTuneClientConfig extends Config {
     public static int mobMacroAttackType = 0;
 
     @Switch(
+            name = "Auto Sell",
+            category = PLAYER,
+            subcategory = AUTO_SELL,
+            size = 2,
+            description = "Main toggle"
+    )
+    public static boolean autoSell = false;
+
+    @Switch(
+            name = "Open Trades When Inventory Full",
+            category = PLAYER,
+            subcategory = AUTO_SELL,
+            size = 2
+    )
+    public static boolean autoSellOpenTradesInventoryFull = false;
+
+    @Switch(
             name = "Smooth Server Side Rotation",
             category = CONFIG,
             subcategory = ROTATION_CONFIG,
@@ -426,7 +519,7 @@ public class GumTuneClientConfig extends Config {
     public static boolean espBeacon = false;
 
     public GumTuneClientConfig() {
-        super(new Mod(GumTuneClient.NAME, ModType.SKYBLOCK, "/assets/" + GumTuneClient.MODID + "/gtc_small.png"), GumTuneClient.MODID + ".json");
+        super(new Mod(GumTuneClient.NAME, ModType.SKYBLOCK, "/assets/" + GumTuneClient.MODID + "/gtc_small.png", 84, 84), GumTuneClient.MODID + ".json");
         registerKeyBind(nukerKeyBind, () -> {});
         registerKeyBind(mobMacroKeyBind, () -> {});
         addDependency("commissionTracker", "trackers");
