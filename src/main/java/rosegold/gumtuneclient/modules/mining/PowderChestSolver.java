@@ -16,6 +16,7 @@ import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.events.PlayerMoveEvent;
 import rosegold.gumtuneclient.events.PacketReceivedEvent;
 import rosegold.gumtuneclient.utils.BlockUtils;
+import rosegold.gumtuneclient.utils.LocationUtils;
 import rosegold.gumtuneclient.utils.RenderUtils;
 import rosegold.gumtuneclient.utils.RotationUtils;
 
@@ -101,7 +102,7 @@ public class PowderChestSolver {
     }
 
     private boolean isEnabled() {
-        return GumTuneClientConfig.powderChestSolver && GumTuneClient.mc.thePlayer != null && GumTuneClient.mc.theWorld != null;
+        return GumTuneClientConfig.powderChestSolver && GumTuneClient.mc.thePlayer != null && GumTuneClient.mc.theWorld != null && LocationUtils.currentIsland == LocationUtils.Island.CRYSTAL_HOLLOWS;
     }
 
     private boolean isPowderChest(BlockPos blockPos) {

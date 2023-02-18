@@ -82,8 +82,8 @@ public class Nuker {
         blocksInRange.clear();
         EntityPlayerSP player =  GumTuneClient.mc.thePlayer;
         BlockPos playerPos = new BlockPos((int) Math.floor(player.posX), (int) Math.floor(player.posY) + 1, (int) Math.floor(player.posZ));
-        Vec3i vec3Top = new Vec3i(4, GumTuneClientConfig.nukerHeight, 4);
-        Vec3i vec3Bottom = new Vec3i(4, GumTuneClientConfig.nukerDepth, 4);
+        Vec3i vec3Top = new Vec3i(GumTuneClientConfig.nukerRange, GumTuneClientConfig.nukerHeight, GumTuneClientConfig.nukerRange);
+        Vec3i vec3Bottom = new Vec3i(GumTuneClientConfig.nukerRange, GumTuneClientConfig.nukerDepth, GumTuneClientConfig.nukerRange);
 
         for (BlockPos blockPos : BlockPos.getAllInBox(playerPos.subtract(vec3Bottom), playerPos.add(vec3Top))) {
             Vec3 target = new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5);
@@ -140,10 +140,10 @@ public class Nuker {
             if (current == null) {
                 switch (GumTuneClientConfig.nukerAlgorithm) {
                     case 0:
-                        blockPos = BlockUtils.getClosestBlock(4, GumTuneClientConfig.nukerHeight, GumTuneClientConfig.nukerDepth, this::canMine);
+                        blockPos = BlockUtils.getClosestBlock(GumTuneClientConfig.nukerRange, GumTuneClientConfig.nukerHeight, GumTuneClientConfig.nukerDepth, this::canMine);
                         break;
                     case 1:
-                        blockPos = BlockUtils.getEasiestBlock(4, GumTuneClientConfig.nukerHeight, GumTuneClientConfig.nukerDepth, this::canMine);
+                        blockPos = BlockUtils.getEasiestBlock(GumTuneClientConfig.nukerRange, GumTuneClientConfig.nukerHeight, GumTuneClientConfig.nukerDepth, this::canMine);
                         break;
                 }
             }
@@ -373,7 +373,7 @@ public class Nuker {
                 ((block == Blocks.carrots && blockState.getValue(BlockCrops.AGE) == 7) ||
                 (block == Blocks.potatoes && blockState.getValue(BlockCrops.AGE) == 7) ||
                 (block == Blocks.reeds && getBlockState(bp.add(0, -1, 0)).getBlock() == Blocks.reeds) ||
-                (block == Blocks.cocoa && blockState.getValue(BlockCrops.AGE) == 7) ||
+                (block == Blocks.cocoa && blockState.getValue(BlockCocoa.AGE) == 2) ||
                 block == Blocks.melon_block ||
                 block == Blocks.pumpkin ||
                 (block == Blocks.cactus && getBlockState(bp.add(0, -1, 0)).getBlock() == Blocks.cactus) ||

@@ -13,7 +13,7 @@ import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.mixin.accessors.EntityPlayerSPAccessor;
 import rosegold.gumtuneclient.mixin.accessors.MinecraftAccessor;
 import rosegold.gumtuneclient.modules.macro.MobMacro;
-import rosegold.gumtuneclient.modules.world.CanePlacer;
+import rosegold.gumtuneclient.modules.world.CropPlacer;
 import rosegold.gumtuneclient.modules.mining.Nuker;
 import rosegold.gumtuneclient.modules.mining.PowderChestSolver;
 
@@ -43,7 +43,7 @@ public class MixinModelBiped {
     }
 
     private boolean shouldShowRotations() {
-        return (Nuker.isEnabled() && Nuker.enabled || GumTuneClientConfig.sugarCanePlacer && CanePlacer.point != null ||
+        return (Nuker.isEnabled() && Nuker.enabled || GumTuneClientConfig.cropPlacer && CropPlacer.point != null ||
                 MobMacro.isEnabled() && MobMacro.enabled || GumTuneClientConfig.powderChestSolver && PowderChestSolver.particle != null) || GumTuneClientConfig.alwaysShowServerRotations;
     }
 

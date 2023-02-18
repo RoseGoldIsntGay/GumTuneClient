@@ -26,7 +26,8 @@ public class LocationUtils {
         DUNGEON_HUB("Dungeon Hub"),
         LIMBO("UNKNOWN"),
         LOBBY("PROTOTYPE"),
-        DUNGEON("Dungeon");
+        DUNGEON("Dungeon"),
+        GARDEN("Garden");
 
         private final String name;
 

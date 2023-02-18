@@ -15,15 +15,15 @@ import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.events.MillisecondEvent;
 import rosegold.gumtuneclient.events.SecondEvent;
 import rosegold.gumtuneclient.modules.macro.AutoHarp;
+import rosegold.gumtuneclient.modules.macro.FarmingMacro;
 import rosegold.gumtuneclient.modules.macro.MobMacro;
 import rosegold.gumtuneclient.modules.mining.MetalDetectorSolver;
-import rosegold.gumtuneclient.modules.mining.MobxDrill;
 import rosegold.gumtuneclient.modules.player.AutoSell;
 import rosegold.gumtuneclient.modules.player.AvoidBreakingCrops;
 import rosegold.gumtuneclient.modules.player.PathFinding;
 import rosegold.gumtuneclient.modules.render.ESPs;
 import rosegold.gumtuneclient.modules.singleplayer.skyblockitems.AspectOfTheVoid;
-import rosegold.gumtuneclient.modules.world.CanePlacer;
+import rosegold.gumtuneclient.modules.world.CropPlacer;
 import rosegold.gumtuneclient.modules.mining.Nuker;
 import rosegold.gumtuneclient.modules.mining.PowderChestSolver;
 import rosegold.gumtuneclient.modules.world.WorldScanner;
@@ -57,7 +57,7 @@ public class GumTuneClient {
         modules.add(new PowderChestSolver());
         modules.add(new AutoHarp());
         modules.add(new ESPs());
-        modules.add(new CanePlacer());
+        modules.add(new CropPlacer());
         modules.add(new Nuker());
         modules.add(new LocationUtils());
         modules.add(new RotationUtils());
@@ -68,6 +68,7 @@ public class GumTuneClient {
         modules.add(new MetalDetectorSolver());
         modules.add(new AvoidBreakingCrops());
         modules.add(new AutoSell());
+        modules.add(new FarmingMacro());
     }
 
     @Mod.EventHandler

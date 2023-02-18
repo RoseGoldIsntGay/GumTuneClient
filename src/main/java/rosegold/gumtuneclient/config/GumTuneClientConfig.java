@@ -30,7 +30,7 @@ public class GumTuneClientConfig extends Config {
     private transient static final String ESP_SETTINGS = "ESP Settings";
 
     // Modules
-    private transient static final String SUGAR_CANE_PLACER = "Sugar Cane Placer";
+    private transient static final String CROP_PLACER = "Crop Placer";
     private transient static final String HARP_MACRO = "Harp Macro";
     private transient static final String POWDER_CHEST_SOLVER = "Powder Chest Solver";
     private transient static final String NUKER = "Nuker";
@@ -44,23 +44,33 @@ public class GumTuneClientConfig extends Config {
     private transient static final String MOBX_DRILL = "Mobx Drill";
     private transient static final String PLAYER = "Player";
     private transient static final String AUTO_SELL = "Auto Sell";
+    private transient static final String FARMING_MACRO = "Farming Macro";
+
 
     @Switch(
             name = "Enabled",
             category = WORLD,
-            subcategory = SUGAR_CANE_PLACER,
+            subcategory = CROP_PLACER,
             size = 2
     )
-    public static boolean sugarCanePlacer = false;
+    public static boolean cropPlacer = false;
 
     @Slider(
             name = "Blocks Per Second",
             category = WORLD,
-            subcategory = SUGAR_CANE_PLACER,
+            subcategory = CROP_PLACER,
             min = 10, max = 80,
             step = 10
     )
-    public static int sugarCanePlacerSpeed = 20;
+    public static int cropPlacerSpeed = 20;
+
+    @Dropdown(
+            name = "Crop Type",
+            category = WORLD,
+            subcategory = CROP_PLACER,
+            options = {"Sugar Cane", "Cactus"}
+    )
+    public static int cropPlacerCropType = 0;
 
     @Switch(
             name = "World Scanner",
@@ -183,11 +193,20 @@ public class GumTuneClientConfig extends Config {
     public static int nukerSpeed = 20;
 
     @Slider(
+            name = "Range",
+            description = "Range in blocks",
+            category = MINING,
+            subcategory = NUKER,
+            min = 1, max = 5
+    )
+    public static int nukerRange = 5;
+
+    @Slider(
             name = "Height",
             description = "Blocks above your head",
             category = MINING,
             subcategory = NUKER,
-            min = 0, max = 4,
+            min = 0, max = 5,
             step = 1
     )
     public static int nukerHeight = 0;
@@ -462,6 +481,42 @@ public class GumTuneClientConfig extends Config {
     public static int mobMacroAttackType = 0;
 
     @Switch(
+            name = "Farming Macro",
+            category = MACRO,
+            subcategory = FARMING_MACRO,
+            size = 2,
+            description = "Main Toggle"
+    )
+    public static boolean farmingMacro = false;
+
+    @KeyBind(
+            name = "Keybind",
+            category = MACRO,
+            subcategory = FARMING_MACRO,
+            size = 2
+    )
+    public static OneKeyBind farmingMacroKeyBind = new OneKeyBind(UKeyboard.KEY_NONE);
+
+    @Dropdown(
+            name = "Mode",
+            category = MACRO,
+            subcategory = FARMING_MACRO,
+            size = 2,
+            options = {"Cocoa Beans Preset"}
+    )
+    public static int farmingMacroMode = 0;
+
+    @Slider(
+            name = "Speed",
+            description = "Blocks per second",
+            category = MACRO,
+            subcategory = FARMING_MACRO,
+            min = 10, max = 80
+    )
+    public static int farmingMacroSpeed = 20;
+
+
+    @Switch(
             name = "Auto Sell",
             category = PLAYER,
             subcategory = AUTO_SELL,
@@ -522,6 +577,7 @@ public class GumTuneClientConfig extends Config {
         super(new Mod(GumTuneClient.NAME, ModType.SKYBLOCK, "/assets/" + GumTuneClient.MODID + "/gtc_small.png", 84, 84), GumTuneClient.MODID + ".json");
         registerKeyBind(nukerKeyBind, () -> {});
         registerKeyBind(mobMacroKeyBind, () -> {});
+        //registerKeyBind(farmingMacroKeyBind, () -> {});
         addDependency("commissionTracker", "trackers");
         initialize();
     }
