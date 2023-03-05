@@ -5,9 +5,10 @@
 </p>
 
 [![GitHub license](https://img.shields.io/github/license/RoseGoldIsntGay/GumTuneClient)](https://img.shields.io/github/license/RoseGoldIsntGay/GumTuneClient)
-[![Discord invite](https://img.shields.io/discord/1042017608783888415?label=Join%20the%20Discord%21&logo=discord)](https://gumtune.net/discord)
 [![Total downloads](https://img.shields.io/github/downloads/RoseGoldIsntGay/GumTuneClient/total)](https://github.com/RoseGoldIsntGay/GumTuneClient/releases/latest)
 ![Minecraft version](https://img.shields.io/badge/MC%20Version-1.8.9-yellow)
+  
+[Join The Discord!](https://gumtune.net/discord)
 </div>
 
 ---
