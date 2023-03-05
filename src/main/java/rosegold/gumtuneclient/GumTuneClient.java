@@ -2,7 +2,10 @@ package rosegold.gumtuneclient;
 
 import cc.polyfrost.oneconfig.events.EventManager;
 import cc.polyfrost.oneconfig.utils.commands.CommandManager;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.BlockPos;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -15,7 +18,6 @@ import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.events.MillisecondEvent;
 import rosegold.gumtuneclient.events.SecondEvent;
 import rosegold.gumtuneclient.modules.macro.AutoHarp;
-import rosegold.gumtuneclient.modules.macro.FarmingMacro;
 import rosegold.gumtuneclient.modules.macro.MobMacro;
 import rosegold.gumtuneclient.modules.mining.MetalDetectorSolver;
 import rosegold.gumtuneclient.modules.player.AutoSell;
@@ -27,9 +29,12 @@ import rosegold.gumtuneclient.modules.world.CropPlacer;
 import rosegold.gumtuneclient.modules.mining.Nuker;
 import rosegold.gumtuneclient.modules.mining.PowderChestSolver;
 import rosegold.gumtuneclient.modules.world.WorldScanner;
+import rosegold.gumtuneclient.utils.BlockUtils;
 import rosegold.gumtuneclient.utils.LocationUtils;
+import rosegold.gumtuneclient.utils.RenderUtils;
 import rosegold.gumtuneclient.utils.RotationUtils;
 
+import java.awt.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -52,6 +57,7 @@ public class GumTuneClient {
     private final List<Object> modules = new ArrayList<>();
     private boolean login = false;
     public static boolean debug = false;
+    public static ArrayList<String> blockNames = new ArrayList<>();
 
     public GumTuneClient() {
         modules.add(new PowderChestSolver());
@@ -68,7 +74,6 @@ public class GumTuneClient {
         modules.add(new MetalDetectorSolver());
         modules.add(new AvoidBreakingCrops());
         modules.add(new AutoSell());
-        modules.add(new FarmingMacro());
     }
 
     @Mod.EventHandler
@@ -95,11 +100,23 @@ public class GumTuneClient {
     }
 
     @SubscribeEvent
+    public void onRenderWorld(RenderWorldLastEvent event) {
+        for (BlockPos blockPos : BlockUtils.blockPosConcurrentLinkedQueue) {
+            RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.RED.getRGB());
+        }
+    }
+
+    @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null || login) return;
         login = true;
-        // Disabled notification since I fxed locraw
-        //if (bladecore) ModUtils.sendMessage("§c[WARNING]: §fBladecore currently prevents some features that require your current skyblock island type from working!");
+        initialize();
+    }
+
+    private void initialize() {
+        for (Block block : Block.blockRegistry)  {
+            System.out.println(block.getRegistryName());
+        }
     }
 
     private void registerModule(Object obj) {

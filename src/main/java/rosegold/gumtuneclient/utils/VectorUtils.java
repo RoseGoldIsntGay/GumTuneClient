@@ -32,6 +32,10 @@ public class VectorUtils {
         return new Vec3i(vec.getX() * scale, vec.getY() * scale, vec.getZ() * scale);
     }
 
+    public static Vec3 scaleVec(Vec3i vec, float scale) {
+        return new Vec3(vec.getX() * scale, vec.getY() * scale, vec.getZ() * scale);
+    }
+
     public static Vec3 scaleVec(Vec3 vec, float scale) {
         return new Vec3(vec.xCoord * scale, vec.yCoord * scale, vec.zCoord * scale);
     }

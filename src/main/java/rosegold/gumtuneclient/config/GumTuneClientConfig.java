@@ -4,16 +4,13 @@ import cc.polyfrost.oneconfig.config.Config;
 import cc.polyfrost.oneconfig.config.annotations.*;
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.config.core.OneKeyBind;
+import cc.polyfrost.oneconfig.config.data.InfoType;
 import cc.polyfrost.oneconfig.config.data.Mod;
 import cc.polyfrost.oneconfig.config.data.ModType;
 import cc.polyfrost.oneconfig.config.data.PageLocation;
 import cc.polyfrost.oneconfig.libs.universal.UKeyboard;
-import net.minecraft.util.ResourceLocation;
 import rosegold.gumtuneclient.GumTuneClient;
-import rosegold.gumtuneclient.config.pages.FrozenTreasureFilter;
-import rosegold.gumtuneclient.config.pages.NukerBlockFilter;
-import rosegold.gumtuneclient.config.pages.MobMacroFilter;
-import rosegold.gumtuneclient.config.pages.WorldScannerFilter;
+import rosegold.gumtuneclient.config.pages.*;
 
 public class GumTuneClientConfig extends Config {
 
@@ -44,8 +41,7 @@ public class GumTuneClientConfig extends Config {
     private transient static final String MOBX_DRILL = "Mobx Drill";
     private transient static final String PLAYER = "Player";
     private transient static final String AUTO_SELL = "Auto Sell";
-    private transient static final String FARMING_MACRO = "Farming Macro";
-
+    private transient static final String BLOCK_HITBOXES = "Block Hitboxes";
 
     @Switch(
             name = "Enabled",
@@ -68,9 +64,17 @@ public class GumTuneClientConfig extends Config {
             name = "Crop Type",
             category = WORLD,
             subcategory = CROP_PLACER,
-            options = {"Sugar Cane", "Cactus"}
+            options = {"Sugar Cane", "Cactus", "Cocoa Beans"}
     )
     public static int cropPlacerCropType = 0;
+
+    @Dropdown(
+            name = "Finding Algorithm",
+            category = WORLD,
+            subcategory = CROP_PLACER,
+            options = {"Closest first", "Furthest first"}
+    )
+    public static int cropPlacerFindingAlgorithm = 0;
 
     @Switch(
             name = "World Scanner",
@@ -124,6 +128,14 @@ public class GumTuneClientConfig extends Config {
     public static int worldScannerChatMode = 0;
 
     @Switch(
+            name = "Block Hitbox Modifier",
+            category = WORLD,
+            subcategory = BLOCK_HITBOXES,
+            size = 2
+    )
+    public static boolean blockHitboxesModifier = false;
+
+    @Switch(
             name = "Enabled",
             category = MACRO,
             subcategory = HARP_MACRO,
@@ -139,6 +151,14 @@ public class GumTuneClientConfig extends Config {
             min = 0, max = 1000
     )
     public static int harpMacroDelay = 10;
+
+    @Info(
+            text = "Remember to toggle both Nuker and it's keybind!",
+            type = InfoType.INFO,
+            category = MINING,
+            subcategory = NUKER
+    )
+    public static boolean nukerReminderIgnored;
 
     @Switch(
             name = "Enabled",
@@ -175,7 +195,7 @@ public class GumTuneClientConfig extends Config {
     public static boolean serverSideNukerRotations = false;
 
     @Switch(
-            name = "Mine Blocks In Front",
+            name = "Mine ALL Blocks In Front",
             description = "Mine all blocks in the way of the player",
             category = MINING,
             subcategory = NUKER,
@@ -197,7 +217,8 @@ public class GumTuneClientConfig extends Config {
             description = "Range in blocks",
             category = MINING,
             subcategory = NUKER,
-            min = 1, max = 5
+            min = 1, max = 5,
+            step = 1
     )
     public static int nukerRange = 5;
 
@@ -206,8 +227,7 @@ public class GumTuneClientConfig extends Config {
             description = "Blocks above your head",
             category = MINING,
             subcategory = NUKER,
-            min = 0, max = 5,
-            step = 1
+            min = 0, max = 5
     )
     public static int nukerHeight = 0;
 
@@ -216,8 +236,7 @@ public class GumTuneClientConfig extends Config {
             description = "Blocks below your head",
             category = MINING,
             subcategory = NUKER,
-            min = 0f, max = 4,
-            step = 1
+            min = 0, max = 4
     )
     public static int nukerDepth = 1;
 
@@ -311,7 +330,7 @@ public class GumTuneClientConfig extends Config {
     public static boolean metalDetectorSolver = false;
 
     @Switch(
-            name = "All Spots",
+            name = "Show All Spots",
             description = "Show all possible spots for divan treasures",
             category = MINING,
             subcategory = METAL_DETECTOR_SOLVER,
@@ -378,7 +397,25 @@ public class GumTuneClientConfig extends Config {
             description = "Required for all of the ESPs below",
             size = 4
     )
-    public static boolean customESP = false;
+    public static boolean ESPs = false;
+
+    @Switch(
+            name = "Custom Block ESP",
+            category = RENDER,
+            subcategory = ESPS,
+            description = "use /gtc esp",
+            size = 2
+    )
+    public static boolean customBlockESP = false;
+
+    @Switch(
+            name = "Force Recheck",
+            category = RENDER,
+            subcategory = ESPS,
+            description = "force recheck all blocks when /gtc esp is executed",
+            size = 2
+    )
+    public static boolean customESPForceRecheck = false;
 
     @Color(
             name = "ESP Color",
@@ -468,7 +505,7 @@ public class GumTuneClientConfig extends Config {
             name = "Rotation Type",
             category = MACRO,
             subcategory = MOB_MACRO,
-            options = {"Instant", "Server Side", "Smooth"}
+            options = {"Instant", "Server Side"}
     )
     public static int mobMacroRotation = 0;
 
@@ -481,42 +518,6 @@ public class GumTuneClientConfig extends Config {
     public static int mobMacroAttackType = 0;
 
     @Switch(
-            name = "Farming Macro",
-            category = MACRO,
-            subcategory = FARMING_MACRO,
-            size = 2,
-            description = "Main Toggle"
-    )
-    public static boolean farmingMacro = false;
-
-    @KeyBind(
-            name = "Keybind",
-            category = MACRO,
-            subcategory = FARMING_MACRO,
-            size = 2
-    )
-    public static OneKeyBind farmingMacroKeyBind = new OneKeyBind(UKeyboard.KEY_NONE);
-
-    @Dropdown(
-            name = "Mode",
-            category = MACRO,
-            subcategory = FARMING_MACRO,
-            size = 2,
-            options = {"Cocoa Beans Preset"}
-    )
-    public static int farmingMacroMode = 0;
-
-    @Slider(
-            name = "Speed",
-            description = "Blocks per second",
-            category = MACRO,
-            subcategory = FARMING_MACRO,
-            min = 10, max = 80
-    )
-    public static int farmingMacroSpeed = 20;
-
-
-    @Switch(
             name = "Auto Sell",
             category = PLAYER,
             subcategory = AUTO_SELL,
@@ -525,13 +526,13 @@ public class GumTuneClientConfig extends Config {
     )
     public static boolean autoSell = false;
 
-    @Switch(
-            name = "Open Trades When Inventory Full",
+    @Slider(
+            name = "Auto Open Trades At Inventory Filled %",
             category = PLAYER,
             subcategory = AUTO_SELL,
-            size = 2
+            min = 0, max = 100
     )
-    public static boolean autoSellOpenTradesInventoryFull = false;
+    public static int autoSellOpenTradesInventoryFull = 100;
 
     @Switch(
             name = "Smooth Server Side Rotation",
@@ -577,7 +578,6 @@ public class GumTuneClientConfig extends Config {
         super(new Mod(GumTuneClient.NAME, ModType.SKYBLOCK, "/assets/" + GumTuneClient.MODID + "/gtc_small.png", 84, 84), GumTuneClient.MODID + ".json");
         registerKeyBind(nukerKeyBind, () -> {});
         registerKeyBind(mobMacroKeyBind, () -> {});
-        //registerKeyBind(farmingMacroKeyBind, () -> {});
         addDependency("commissionTracker", "trackers");
         initialize();
     }

@@ -20,7 +20,6 @@ import rosegold.gumtuneclient.events.MillisecondEvent;
 import rosegold.gumtuneclient.events.PlayerMoveEvent;
 import rosegold.gumtuneclient.events.SecondEvent;
 import rosegold.gumtuneclient.modules.render.ESPs;
-import rosegold.gumtuneclient.modules.world.WorldScanner;
 import rosegold.gumtuneclient.utils.*;
 
 import java.awt.*;
@@ -60,6 +59,7 @@ public class Nuker {
 
     @SubscribeEvent
     public void onSecond(SecondEvent event) {
+        if (GumTuneClient.mc.thePlayer == null) return;
         if (!isEnabled()) return;
         if (broken.size() > 0) broken.clear();
     }
@@ -100,8 +100,6 @@ public class Nuker {
             return;
         }
 
-        if (GumTuneClient.debug) ModUtils.sendMessage("1" + blockPos);
-
         if (event.timestamp - lastBroken > 1000f / GumTuneClientConfig.nukerSpeed) {
             lastBroken = event.timestamp;
             if (GumTuneClientConfig.nukerShape == 1) {
@@ -109,8 +107,6 @@ public class Nuker {
             } else {
                 if (broken.size() > GumTuneClientConfig.nukerPinglessCutoff) broken.clear();
             }
-
-            if (GumTuneClient.debug) ModUtils.sendMessage("2" + blockPos);
 
             if (GumTuneClientConfig.mineBlocksInFront) {
                 blockPos = blockInFront();
@@ -121,15 +117,9 @@ public class Nuker {
                     }
                     if (isSlow(getBlockState(blockPos))) {
                         if (current == null) {
-                            if (GumTuneClientConfig.smoothServerSideRotations && (GumTuneClientConfig.powderChestPauseNukerMode != 2 || PowderChestSolver.particle == null)) {
-                                RotationUtils.serverSmoothLook(RotationUtils.getRotation(blockPos), 1000L / GumTuneClientConfig.nukerSpeed);
-                            }
                             mineBlock(blockPos);
                         }
                     } else {
-                        if (GumTuneClientConfig.smoothServerSideRotations && (GumTuneClientConfig.powderChestPauseNukerMode != 2 || PowderChestSolver.particle == null)) {
-                            RotationUtils.serverSmoothLook(RotationUtils.getRotation(blockPos), 1000L / GumTuneClientConfig.nukerSpeed);
-                        }
                         pinglessMineBlock(blockPos);
                         current = null;
                     }
@@ -148,23 +138,15 @@ public class Nuker {
                 }
             }
 
-            if (GumTuneClient.debug) ModUtils.sendMessage("3" + blockPos);
-
             if (blockPos != null) {
                 if (current != null && current.compareTo(blockPos) != 0) {
                     current = null;
                 }
                 if (isSlow(getBlockState(blockPos))) {
                     if (current == null) {
-                        if (GumTuneClientConfig.smoothServerSideRotations && (GumTuneClientConfig.powderChestPauseNukerMode != 2 || PowderChestSolver.particle == null)) {
-                            RotationUtils.serverSmoothLook(RotationUtils.getRotation(blockPos), 1000L / GumTuneClientConfig.nukerSpeed);
-                        }
                         mineBlock(blockPos);
                     }
                 } else {
-                    if (GumTuneClientConfig.smoothServerSideRotations && (GumTuneClientConfig.powderChestPauseNukerMode != 2 || PowderChestSolver.particle == null)) {
-                        RotationUtils.serverSmoothLook(RotationUtils.getRotation(blockPos), 1000L / GumTuneClientConfig.nukerSpeed);
-                    }
                     pinglessMineBlock(blockPos);
                     current = null;
                 }
@@ -178,6 +160,7 @@ public class Nuker {
     public void onRender(RenderWorldLastEvent event) {
         if (!isEnabled()) return;
         RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.GRAY.getRGB());
+        RenderUtils.renderEspBox(current, event.partialTicks, Color.BLUE.getRGB());
         if (GumTuneClientConfig.nukerPreview) blocksInRange.forEach(bp -> RenderUtils.renderEspBox(bp, event.partialTicks, Color.CYAN.getRGB(), 0.1f));
     }
 
@@ -187,22 +170,10 @@ public class Nuker {
         if (!GumTuneClientConfig.serverSideNukerRotations) return;
         if (GumTuneClientConfig.powderChestPauseNukerMode == 2 && PowderChestSolver.particle != null) return;
         if (blockPos != null) {
-            if (GumTuneClientConfig.smoothServerSideRotations) {
-                if (RotationUtils.done) {
-                    RotationUtils.look(RotationUtils.getRotation(blockPos));
-                }
-            } else {
-                RotationUtils.look(RotationUtils.getRotation(blockPos));
-            }
+            RotationUtils.look(RotationUtils.getRotation(blockPos));
         }
         if (current != null) {
-            if (GumTuneClientConfig.smoothServerSideRotations) {
-                if (RotationUtils.done) {
-                    RotationUtils.look(RotationUtils.getRotation(current));
-                }
-            } else {
-                RotationUtils.look(RotationUtils.getRotation(current));
-            }
+            RotationUtils.look(RotationUtils.getRotation(current));
         }
     }
 
@@ -425,7 +396,9 @@ public class Nuker {
         Block block = blockState.getBlock();
         return block == Blocks.prismarine || block == Blocks.wool || block == Blocks.stained_hardened_clay ||
                 block == Blocks.gold_block || block == Blocks.stained_glass_pane || block == Blocks.stained_glass ||
-                block == Blocks.glowstone || block == Blocks.chest;
+                block == Blocks.glowstone || block == Blocks.chest ||
+                (block == Blocks.stone && blockState.getValue(BlockStone.VARIANT) == BlockStone.EnumType.DIORITE_SMOOTH) ||
+                block == Blocks.obsidian;
     }
 
     private IBlockState getBlockState(BlockPos blockPos) {

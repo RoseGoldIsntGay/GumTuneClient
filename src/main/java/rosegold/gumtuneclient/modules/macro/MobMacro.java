@@ -71,7 +71,7 @@ public class MobMacro {
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
                 sneak = false;
             }
-        } else if (activeEye && (RotationUtils.done || GumTuneClientConfig.mobMacroRotation != 2)) {
+        } else if (activeEye && RotationUtils.done) {
             if (GumTuneClientConfig.mobMacroAttackType == 0) {
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
                 sneak = true;

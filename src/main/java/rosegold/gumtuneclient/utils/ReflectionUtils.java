@@ -23,4 +23,13 @@ public class ReflectionUtils {
         } catch(Exception ignored) {}
         return null;
     }
+
+    public static Field asField(Object object, String name) {
+        try {
+            Field field = object.getClass().getDeclaredField(name);
+            field.setAccessible(true);
+            return field;
+        } catch(Exception ignored) {}
+        return null;
+    }
 }

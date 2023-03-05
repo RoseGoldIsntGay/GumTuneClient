@@ -15,6 +15,7 @@
     "accessors.MinecraftAccessor"
   ],
   "mixins": [
+    "MixinChunk",
     "MixinModList",
     "MixinNetworkManager",
     "accessors.RenderManagerAccessor"

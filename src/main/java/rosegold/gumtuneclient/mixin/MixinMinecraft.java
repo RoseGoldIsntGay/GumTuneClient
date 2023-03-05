@@ -1,6 +1,8 @@
 package rosegold.gumtuneclient.mixin;
 
+import net.minecraft.block.BlockCocoa;
 import net.minecraft.block.BlockCrops;
+import net.minecraft.block.BlockNetherWart;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -66,8 +68,14 @@ public class MixinMinecraft {
         }
 
         if (GumTuneClientConfig.avoidBreakingChildCrops) {
-            if (blockState.getBlock() instanceof BlockCrops || blockState.getBlock() == Blocks.nether_wart) {
+            if (blockState.getBlock() instanceof BlockNetherWart) {
+                return blockState.getValue(BlockNetherWart.AGE) != 3;
+            }
+            else if (blockState.getBlock() instanceof BlockCrops) {
                 return blockState.getValue(BlockCrops.AGE) != 7;
+            }
+            else if (blockState.getBlock() instanceof BlockCocoa) {
+                return blockState.getValue(BlockCocoa.AGE) != 2;
             }
         }
 

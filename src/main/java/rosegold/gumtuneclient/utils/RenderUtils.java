@@ -432,4 +432,97 @@ public class RenderUtils {
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
+    public static void renderAxisSquare(BlockPos blockPos, EnumFacing enumFacing, float partialTicks, int color) {
+        renderAxisSquare(blockPos, enumFacing, partialTicks, color, 0.5f);
+    }
+
+    public static void renderAxisSquare(BlockPos blockPos, EnumFacing enumFacing, float partialTicks, int color, float opacity) {
+        if (blockPos != null) {
+            IBlockState blockState = mc.theWorld.getBlockState(blockPos);
+
+            if (blockState != null) {
+                Block block = blockState.getBlock();
+                block.setBlockBoundsBasedOnState(mc.theWorld, blockPos);
+                double d0 = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * (double) partialTicks;
+                double d1 = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * (double) partialTicks;
+                double d2 = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * (double) partialTicks;
+                drawFilledAxisSquare(block.getSelectedBoundingBox(mc.theWorld, blockPos).expand(0.002D, 0.002D, 0.002D).offset(-d0, -d1, -d2), enumFacing, color, opacity);
+            }
+        }
+    }
+
+    public static void drawFilledAxisSquare(AxisAlignedBB aabb, EnumFacing enumFacing, int color, float opacity) {
+        GlStateManager.enableBlend();
+        GlStateManager.disableDepth();
+        GlStateManager.disableLighting();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.disableTexture2D();
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+
+        float a = (color >> 24 & 0xFF) / 255.0F;
+        float r = (color >> 16 & 0xFF) / 255.0F;
+        float g = (color >> 8 & 0xFF) / 255.0F;
+        float b = (color & 0xFF) / 255.0F;
+
+        GlStateManager.color(r, g, b, a * opacity);
+
+        switch (enumFacing) {
+            case UP:
+                worldrenderer.begin(7, DefaultVertexFormats.POSITION);
+                worldrenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex();
+                worldrenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex();
+                worldrenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex();
+                worldrenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex();
+                tessellator.draw();
+                break;
+            case DOWN:
+                worldrenderer.begin(7, DefaultVertexFormats.POSITION);
+                worldrenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex();
+                worldrenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex();
+                worldrenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex();
+                worldrenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex();
+                tessellator.draw();
+                break;
+            case EAST:
+                worldrenderer.begin(7, DefaultVertexFormats.POSITION);
+                worldrenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex();
+                worldrenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex();
+                worldrenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex();
+                worldrenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex();
+                tessellator.draw();
+                break;
+            case WEST:
+                worldrenderer.begin(7, DefaultVertexFormats.POSITION);
+                worldrenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex();
+                worldrenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex();
+                worldrenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex();
+                worldrenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex();
+                tessellator.draw();
+                break;
+            case NORTH:
+                worldrenderer.begin(7, DefaultVertexFormats.POSITION);
+                worldrenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex();
+                worldrenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex();
+                worldrenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex();
+                worldrenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex();
+                tessellator.draw();
+                break;
+            case SOUTH:
+                worldrenderer.begin(7, DefaultVertexFormats.POSITION);
+                worldrenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex();
+                worldrenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex();
+                worldrenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex();
+                worldrenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex();
+                tessellator.draw();
+                break;
+        }
+
+        GlStateManager.color(r, g, b, a);
+//        RenderGlobal.drawSelectionBoundingBox(aabb);
+        GlStateManager.enableTexture2D();
+        GlStateManager.enableDepth();
+        GlStateManager.disableBlend();
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+    }
 }
