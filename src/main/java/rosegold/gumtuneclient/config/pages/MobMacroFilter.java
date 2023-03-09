@@ -32,4 +32,9 @@ public class MobMacroFilter {
             name = "Magma Cube"
     )
     public static boolean magmaCubes = false;
+
+    @Switch(
+            name = "Creepers"
+    )
+    public static boolean creepers = false;
 }

@@ -1,4 +1,4 @@
-package rosegold.gumtuneclient.modules.render;
+package rosegold.gumtuneclient.utils.objects;
 
 import net.minecraft.util.BlockPos;
 

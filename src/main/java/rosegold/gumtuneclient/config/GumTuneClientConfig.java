@@ -473,8 +473,7 @@ public class GumTuneClientConfig extends Config {
             name = "Delay in Ticks",
             category = MACRO,
             subcategory = MOB_MACRO,
-            min = 4, max = 40,
-            step = 1
+            min = 1, max = 40
     )
     public static int mobMacroDelay = 5;
 
@@ -492,6 +491,21 @@ public class GumTuneClientConfig extends Config {
     )
     public static boolean mobMacroJump = false;
 
+    @Switch(
+            name = "Smart Sprint",
+            category = MACRO,
+            subcategory = MOB_MACRO
+    )
+    public static boolean mobMacroSmartSprint = false;
+
+    @Switch(
+            name = "Entity Lock",
+            category = MACRO,
+            subcategory = MOB_MACRO,
+            description = "Once targeted an entity, will not change to a different entity until it is defeated or becomes impossible to defeat"
+    )
+    public static boolean mobMacroEntityLock = false;
+
     @Page(
             name = "Mobs Filters",
             description = "Select mobs to kill with macro",
@@ -505,7 +519,7 @@ public class GumTuneClientConfig extends Config {
             name = "Rotation Type",
             category = MACRO,
             subcategory = MOB_MACRO,
-            options = {"Instant", "Server Side"}
+            options = {"Instant", "Server Side", "Smooth"}
     )
     public static int mobMacroRotation = 0;
 
@@ -513,7 +527,7 @@ public class GumTuneClientConfig extends Config {
             name = "Attack Type",
             category = MACRO,
             subcategory = MOB_MACRO,
-            options = {"Precursor Eye", "Frozen Scythe (and similar items)", "Shortbows", "Hyperion"}
+            options = {"Precursor Eye", "Frozen Scythe (and similar items)", "Left Click"}
     )
     public static int mobMacroAttackType = 0;
 

@@ -20,6 +20,7 @@ import rosegold.gumtuneclient.events.BlockChangeEvent;
 import rosegold.gumtuneclient.events.RenderLivingEntityEvent;
 import rosegold.gumtuneclient.utils.LocationUtils;
 import rosegold.gumtuneclient.utils.RenderUtils;
+import rosegold.gumtuneclient.utils.objects.HighlightBlock;
 
 import java.awt.*;
 import java.util.ArrayList;

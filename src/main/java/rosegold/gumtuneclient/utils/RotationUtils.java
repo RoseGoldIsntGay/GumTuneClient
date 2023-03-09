@@ -159,6 +159,14 @@ public class RotationUtils {
         endTime = System.currentTimeMillis() + time;
     }
 
+    public static void smartSmoothLook(Rotation rotation, int msPer180) {
+        float rotationDifference = wrapAngleTo180(Math.max(
+                Math.abs(rotation.pitch - mc.thePlayer.rotationPitch),
+                Math.abs(rotation.yaw - mc.thePlayer.rotationYaw)
+        ));
+        smoothLook(rotation, (int) (rotationDifference / 180 * msPer180));
+    }
+
     public static void serverSmoothLook(Rotation rotation, long time) {
         rotationType = RotationType.SERVER;
         done = false;
@@ -191,12 +199,6 @@ public class RotationUtils {
         currentFakeYaw = 0;
         currentFakePitch = 0;
     }
-
-//    @SubscribeEvent
-//    public void renderOverlayEvent(RenderGameOverlayEvent.Text text) {
-//        mc.fontRendererObj.drawStringWithShadow("currentFakePitch: " + currentFakePitch, 100, 100, Color.CYAN.getRGB());
-//        mc.fontRendererObj.drawStringWithShadow("currentFakeYaw: " + currentFakeYaw, 100, 100 + mc.fontRendererObj.FONT_HEIGHT + 4, Color.CYAN.getRGB());
-//    }
 
     @SubscribeEvent
     public void onRenderWorld(RenderWorldLastEvent event) {
