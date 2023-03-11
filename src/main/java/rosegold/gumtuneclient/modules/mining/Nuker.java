@@ -350,7 +350,7 @@ public class Nuker {
                 (block == Blocks.cactus && getBlockState(bp.add(0, -1, 0)).getBlock() == Blocks.cactus) ||
                 block == Blocks.brown_mushroom ||
                 block == Blocks.red_mushroom  ||
-                (block == Blocks.nether_wart && blockState.getValue(BlockCrops.AGE) == 7) ||
+                (block == Blocks.nether_wart && blockState.getValue(BlockNetherWart.AGE) == 3) ||
                 (block == Blocks.wheat && blockState.getValue(BlockCrops.AGE) == 7))) return true;
 
         if (NukerBlockFilter.nukerBlockFilterFoliage &&
