@@ -5,10 +5,13 @@ import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemSkull;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -37,6 +40,8 @@ public class ESPs {
     public static final ArrayList<BlockPos> frozenTreasures = new ArrayList<>();
     public static final HashSet<Entity> checked = new HashSet<>();
     public static final ConcurrentHashMap<Block, Color> blockEsp = new ConcurrentHashMap<>();
+
+    private static final String FAIRY_SOUL_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjk2OTIzYWQyNDczMTAwMDdmNmFlNWQzMjZkODQ3YWQ1Mzg2NGNmMTZjMzU2NWExODFkYzhlNmIyMGJlMjM4NyJ9fX0=";
 
     @SubscribeEvent
     public void onBlockChange(BlockChangeEvent event) {
@@ -70,6 +75,7 @@ public class ESPs {
                     highlightEntity(event.entity, event.entity.getCustomNameTag());
                 }
             }
+
             if (GumTuneClientConfig.frozenTreasureESP && isFrozenTreasure((EntityArmorStand) event.entity)) {
                 BlockPos blockPos = new BlockPos(event.entity.posX, event.entity.posY + 2, event.entity.posZ);
                 if (GumTuneClient.mc.theWorld.getBlockState(blockPos).getBlock() == Blocks.ice ||
@@ -78,6 +84,11 @@ public class ESPs {
                     highlightBlock(blockPos, event.entity, event.entity.getCurrentArmor(3).serializeNBT().getCompoundTag("tag").getCompoundTag("display").getTag("Name").toString().replace("\"", ""));
                 }
             }
+
+            if (GumTuneClientConfig.fairySoulESP && isFairySoul((EntityArmorStand) event.entity)) {
+                highlightEntity(event.entity, "§dFairy Soul");
+            }
+
             checked.add(event.entity);
         }
     }
@@ -178,6 +189,20 @@ public class ESPs {
                     name.contains("Red Gift") && FrozenTreasureFilter.frozenTreasureRedGift ||
                     name.contains("Glacial Talisman") && FrozenTreasureFilter.frozenTreasureGlacialTalisman;
         }
+        return false;
+    }
+
+    private boolean isFairySoul(EntityArmorStand entity) {
+        ItemStack helmetItemStack = entity.getCurrentArmor(3);
+        if (helmetItemStack != null && helmetItemStack.getItem() instanceof ItemSkull) {
+            NBTTagList textures = helmetItemStack.serializeNBT().getCompoundTag("tag").getCompoundTag("SkullOwner").getCompoundTag("Properties").getTagList("textures", Constants.NBT.TAG_COMPOUND);
+            for (int i = 0; i < textures.tagCount(); i++) {
+                if (textures.getCompoundTagAt(i).getString("Value").equals(FAIRY_SOUL_TEXTURE)) {
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 

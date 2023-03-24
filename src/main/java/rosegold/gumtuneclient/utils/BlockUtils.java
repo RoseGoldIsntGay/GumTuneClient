@@ -53,7 +53,7 @@ public class BlockUtils {
 
         for (BlockPos blockPos : BlockPos.getAllInBox(playerPos.subtract(vec3Bottom), playerPos.add(vec3Top))) {
             if (predicate.test(blockPos) && canBlockBeSeen(blockPos, 8, new Vec3(0, 0, 0), x -> false)) {
-                if (easiest == null || RotationUtils.getNeededChange(RotationUtils.getRotation(blockPos)).getValue() < RotationUtils.getNeededChange(RotationUtils.getRotation(easiest)).getValue()) {
+                if (easiest == null || RotationUtils.getServerNeededChange(RotationUtils.getRotation(blockPos)).getValue() < RotationUtils.getServerNeededChange(RotationUtils.getRotation(easiest)).getValue()) {
                     easiest = blockPos;
                 }
             }
@@ -63,7 +63,7 @@ public class BlockUtils {
 
         for (BlockPos blockPos : BlockPos.getAllInBox(playerPos.subtract(vec3Bottom), playerPos.add(vec3Top))) {
             if (predicate.test(blockPos)) {
-                if (easiest == null || RotationUtils.getNeededChange(RotationUtils.getRotation(blockPos)).getValue() < RotationUtils.getNeededChange(RotationUtils.getRotation(easiest)).getValue()) {
+                if (easiest == null || RotationUtils.getServerNeededChange(RotationUtils.getRotation(blockPos)).getValue() < RotationUtils.getServerNeededChange(RotationUtils.getRotation(easiest)).getValue()) {
                     easiest = blockPos;
                 }
             }

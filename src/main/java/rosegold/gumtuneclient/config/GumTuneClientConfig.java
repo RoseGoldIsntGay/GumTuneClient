@@ -10,7 +10,10 @@ import cc.polyfrost.oneconfig.config.data.ModType;
 import cc.polyfrost.oneconfig.config.data.PageLocation;
 import cc.polyfrost.oneconfig.libs.universal.UKeyboard;
 import rosegold.gumtuneclient.GumTuneClient;
-import rosegold.gumtuneclient.config.pages.*;
+import rosegold.gumtuneclient.config.pages.FrozenTreasureFilter;
+import rosegold.gumtuneclient.config.pages.MobMacroFilter;
+import rosegold.gumtuneclient.config.pages.NukerBlockFilter;
+import rosegold.gumtuneclient.config.pages.WorldScannerFilter;
 
 public class GumTuneClientConfig extends Config {
 
@@ -42,6 +45,8 @@ public class GumTuneClientConfig extends Config {
     private transient static final String PLAYER = "Player";
     private transient static final String AUTO_SELL = "Auto Sell";
     private transient static final String BLOCK_HITBOXES = "Block Hitboxes";
+    private transient static final String FAIRY_SOUL_AURA = "Fairy Soul Aura";
+    private transient static final String AUTO_MADDOX = "Auto Maddox";
 
     @Switch(
             name = "Enabled",
@@ -185,14 +190,22 @@ public class GumTuneClientConfig extends Config {
     )
     public NukerBlockFilter nukerBlockFilter = new NukerBlockFilter();
 
-    @Switch(
-            name = "Server Side Rotation",
-            description = "Rotate to mined blocks",
+    @Dropdown(
+            name = "Rotation Type",
             category = MINING,
             subcategory = NUKER,
-            size = 2
+            options = {"None", "Server Side", "Smooth Server Side"}
     )
-    public static boolean serverSideNukerRotations = false;
+    public static int nukerRotationType = 0;
+
+    @Slider(
+            name = "Rotation Speed",
+            description = "Rotation time in ms",
+            category = MINING,
+            subcategory = NUKER,
+            min = 50, max = 500
+    )
+    public static int nukerRotationSpeed = 250;
 
     @Switch(
             name = "Mine ALL Blocks In Front",
@@ -437,6 +450,13 @@ public class GumTuneClientConfig extends Config {
     )
     public static boolean frozenTreasureESP = false;
 
+    @Switch(
+            name = "Fairy Soul ESP",
+            category = RENDER,
+            subcategory = ESPS
+    )
+    public static boolean fairySoulESP = false;
+
     @Page(
             name = "Frozen Treasure Filters",
             description = "Filter out treasures for the ESP",
@@ -549,13 +569,36 @@ public class GumTuneClientConfig extends Config {
     public static int autoSellOpenTradesInventoryFull = 100;
 
     @Switch(
-            name = "Smooth Server Side Rotation",
-            category = CONFIG,
-            subcategory = ROTATION_CONFIG,
-            size = 2,
-            description = "Smooth rotate when possible"
+            name = "Fairy Soul Aura",
+            category = PLAYER,
+            subcategory = FAIRY_SOUL_AURA,
+            size = 2
     )
-    public static boolean smoothServerSideRotations = false;
+    public static boolean fairySoulAura = false;
+
+    @Switch(
+            name = "Auto Maddox Batphone",
+            category = PLAYER,
+            subcategory = AUTO_MADDOX,
+            size = 2
+    )
+    public static boolean autoMaddoxBatphone = false;
+
+    @Dropdown(
+            name = "Boss Type",
+            category = PLAYER,
+            subcategory = AUTO_MADDOX,
+            options = {"Revenant", "Broodfather", "Sven", "Voidgloom", "Inferno"}
+    )
+    public static int autoMaddoxBossType = 0;
+
+    @Dropdown(
+            name = "Boss Level",
+            category = PLAYER,
+            subcategory = AUTO_MADDOX,
+            options = {"1", "2", "3", "4", "5"}
+    )
+    public static int autoMaddoxBossLevel = 0;
 
     @Switch(
             name = "Always show server rotations",
@@ -592,7 +635,7 @@ public class GumTuneClientConfig extends Config {
         super(new Mod(GumTuneClient.NAME, ModType.SKYBLOCK, "/assets/" + GumTuneClient.MODID + "/gtc_small.png", 84, 84), GumTuneClient.MODID + ".json");
         registerKeyBind(nukerKeyBind, () -> {});
         registerKeyBind(mobMacroKeyBind, () -> {});
-        addDependency("commissionTracker", "trackers");
+        addDependency("smoothServerSideRotations", "serverSideNukerRotations");
         initialize();
     }
 }

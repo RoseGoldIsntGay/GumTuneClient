@@ -109,6 +109,10 @@ public class RotationUtils {
         return getRotation(new Vec3(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ));
     }
 
+    public static Rotation getRotation(Entity entity, float offset) {
+        return getRotation(new Vec3(entity.posX, entity.posY + offset, entity.posZ));
+    }
+
     public static Rotation getNeededChange(Rotation startRot, Rotation endRot) {
         float yawDiff = wrapAngleTo180(endRot.yaw) - wrapAngleTo180(startRot.yaw);
 
@@ -136,6 +140,10 @@ public class RotationUtils {
 
     public static Rotation getNeededChange(Rotation endRot) {
         return getNeededChange(new Rotation(mc.thePlayer.rotationPitch, mc.thePlayer.rotationYaw), endRot);
+    }
+
+    public static Rotation getServerNeededChange(Rotation endRot) {
+        return getNeededChange(new Rotation(serverPitch, serverYaw), endRot);
     }
 
     private static float interpolate(float start, float end) {
@@ -184,6 +192,28 @@ public class RotationUtils {
         endTime = System.currentTimeMillis() + time;
     }
 
+    public static void updateServerLook() {
+        if (System.currentTimeMillis() <= endTime) {
+            mc.thePlayer.rotationYaw = interpolate(startRot.getYaw(), endRot.getYaw());
+            mc.thePlayer.rotationPitch = interpolate(startRot.getPitch(), endRot.getPitch());
+
+            currentFakeYaw = mc.thePlayer.rotationYaw;
+            currentFakePitch = mc.thePlayer.rotationPitch;
+        } else {
+            if (!done) {
+                mc.thePlayer.rotationYaw = endRot.getYaw();
+                mc.thePlayer.rotationPitch = endRot.getPitch();
+
+                currentFakeYaw = mc.thePlayer.rotationYaw;
+                currentFakePitch = mc.thePlayer.rotationPitch;
+
+//                if (System.currentTimeMillis() >= endTime + 250) {
+//                    reset();
+//                }
+            }
+        }
+    }
+
     public static void look(Rotation rotation) {
         mc.thePlayer.rotationPitch = rotation.pitch;
         mc.thePlayer.rotationYaw = rotation.yaw;
@@ -220,27 +250,6 @@ public class RotationUtils {
     public void onUpdatePre(PlayerMoveEvent.Pre pre) {
         serverPitch = mc.thePlayer.rotationPitch;
         serverYaw = mc.thePlayer.rotationYaw;
-
-        if (rotationType != RotationType.SERVER) return;
-        if (System.currentTimeMillis() <= endTime) {
-            mc.thePlayer.rotationYaw = interpolate(startRot.yaw, endRot.yaw);
-            mc.thePlayer.rotationPitch = interpolate(startRot.pitch, endRot.pitch);
-
-            currentFakeYaw = mc.thePlayer.rotationYaw;
-            currentFakePitch = mc.thePlayer.rotationPitch;
-        } else {
-            if (!done) {
-                mc.thePlayer.rotationYaw = endRot.yaw;
-                mc.thePlayer.rotationPitch = endRot.pitch;
-
-                currentFakeYaw = mc.thePlayer.rotationYaw;
-                currentFakePitch = mc.thePlayer.rotationPitch;
-
-                if (System.currentTimeMillis() >= endTime + 250) {
-                    reset();
-                }
-            }
-        }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

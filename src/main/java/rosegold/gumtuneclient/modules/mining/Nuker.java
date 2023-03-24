@@ -7,6 +7,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.util.*;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -24,14 +25,17 @@ import rosegold.gumtuneclient.utils.*;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class Nuker {
     public static boolean enabled;
     private final ArrayList<BlockPos> broken = new ArrayList<>();
     public static BlockPos blockPos;
     private long lastBroken = 0;
+    private long stuckTimestamp = 0;
     private BlockPos current;
     private final ArrayList<BlockPos> blocksInRange = new ArrayList<>();
+    private final HashSet<BlockPos> badBlocks = new HashSet<>();
 
     @SubscribeEvent
     public void onKey(InputEvent.KeyInputEvent event) {
@@ -53,6 +57,17 @@ public class Nuker {
                 if (GumTuneClientConfig.nukerShape == 2 && (NukerBlockFilter.nukerBlockFilterHardstone || NukerBlockFilter.nukerBlockFilterStone) && !GumTuneClientConfig.phaseCameraThroughBlocks) {
                     ModUtils.sendMessage("&cRecommended to turn on Phase Camera Through Blocks when using tunnel shape and hardstone filter!");
                 }
+            } else {
+                if (current != null && GumTuneClient.mc.thePlayer != null) {
+                    GumTuneClient.mc.thePlayer.sendQueue.addToSendQueue(new C07PacketPlayerDigging(
+                            C07PacketPlayerDigging.Action.ABORT_DESTROY_BLOCK,
+                            blockPos,
+                            EnumFacing.DOWN)
+                    );
+                }
+                RotationUtils.reset();
+                blockPos = null;
+                current = null;
             }
         }
     }
@@ -65,20 +80,18 @@ public class Nuker {
     }
 
     @SubscribeEvent
+    public void onOverlayRender(RenderGameOverlayEvent.Post event) {
+        if (!isEnabled()) return;
+        if (event.type == RenderGameOverlayEvent.ElementType.ALL) {
+            FontUtils.drawScaledString("Stuck timer: " + (System.currentTimeMillis() - stuckTimestamp), 1, 300, 100, true);
+        }
+    }
+
+    @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END) return;
-        if (!isEnabled()) {
-            if (current != null && GumTuneClient.mc.thePlayer != null) {
-                GumTuneClient.mc.thePlayer.sendQueue.addToSendQueue(new C07PacketPlayerDigging(
-                        C07PacketPlayerDigging.Action.ABORT_DESTROY_BLOCK,
-                        blockPos,
-                        EnumFacing.DOWN)
-                );
-            }
-            blockPos = null;
-            current = null;
-            return;
-        }
+        if (!isEnabled()) return;
+
         blocksInRange.clear();
         EntityPlayerSP player =  GumTuneClient.mc.thePlayer;
         BlockPos playerPos = new BlockPos((int) Math.floor(player.posX), (int) Math.floor(player.posY) + 1, (int) Math.floor(player.posZ));
@@ -89,6 +102,13 @@ public class Nuker {
             Vec3 target = new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5);
             if (Math.abs(RotationUtils.wrapAngleTo180(RotationUtils.fovToVec3(target) - RotationUtils.wrapAngleTo180(GumTuneClient.mc.thePlayer.rotationYaw))) < (float) GumTuneClientConfig.nukerFieldOfView / 2) blocksInRange.add(blockPos);
         }
+
+        if (System.currentTimeMillis() - stuckTimestamp > 3000) {
+            stuckTimestamp = System.currentTimeMillis();
+            blockPos = null;
+            current = null;
+        }
+
         if (current != null) PlayerUtils.swingHand(null);
     }
 
@@ -167,43 +187,51 @@ public class Nuker {
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public void onUpdatePre(PlayerMoveEvent.Pre pre) {
         if (!isEnabled()) return;
-        if (!GumTuneClientConfig.serverSideNukerRotations) return;
+        if (GumTuneClientConfig.nukerRotationType == 0) return;
         if (GumTuneClientConfig.powderChestPauseNukerMode == 2 && PowderChestSolver.particle != null) return;
-        if (blockPos != null) {
-            RotationUtils.look(RotationUtils.getRotation(blockPos));
-        }
-        if (current != null) {
-            RotationUtils.look(RotationUtils.getRotation(current));
+        switch (GumTuneClientConfig.nukerRotationType) {
+            case 1:
+                if (blockPos != null) {
+                    RotationUtils.look(RotationUtils.getRotation(blockPos));
+                }
+                if (current != null) {
+                    RotationUtils.look(RotationUtils.getRotation(current));
+                }
+                break;
+            case 2:
+                RotationUtils.updateServerLook();
+                break;
         }
     }
 
     private void mineBlock(BlockPos blockPos) {
+        RotationUtils.serverSmoothLook(RotationUtils.getRotation(blockPos), GumTuneClientConfig.nukerRotationSpeed);
         breakBlock(blockPos);
+        stuckTimestamp = System.currentTimeMillis();
         current = blockPos;
     }
 
     private void pinglessMineBlock(BlockPos blockPos) {
+        RotationUtils.serverSmoothLook(RotationUtils.getRotation(blockPos), GumTuneClientConfig.nukerRotationSpeed);
         PlayerUtils.swingHand(null);
+        stuckTimestamp = System.currentTimeMillis();
         breakBlock(blockPos);
         broken.add(blockPos);
     }
 
     private void breakBlock(BlockPos blockPos) {
-        MovingObjectPosition objectMouseOver = GumTuneClient.mc.objectMouseOver;
-        if (objectMouseOver != null) {
-            objectMouseOver.hitVec = new Vec3(blockPos);
-            if (objectMouseOver.sideHit != null) {
-                GumTuneClient.mc.thePlayer.sendQueue.addToSendQueue(new C07PacketPlayerDigging(
-                        C07PacketPlayerDigging.Action.START_DESTROY_BLOCK,
-                        blockPos,
-                        objectMouseOver.sideHit
-                ));
-            }
+        EnumFacing enumFacing = calculateEnumfacing(new Vec3(blockPos).add(RandomUtils.randomVec()));
+        if (enumFacing != null) {
+            GumTuneClient.mc.thePlayer.sendQueue.addToSendQueue(new C07PacketPlayerDigging(
+                    C07PacketPlayerDigging.Action.START_DESTROY_BLOCK,
+                    blockPos,
+                    enumFacing
+            ));
         } else {
             GumTuneClient.mc.thePlayer.sendQueue.addToSendQueue(new C07PacketPlayerDigging(
                     C07PacketPlayerDigging.Action.START_DESTROY_BLOCK,
                     blockPos,
-                    EnumFacing.UP
+                    GumTuneClient.mc.thePlayer.getHorizontalFacing().getOpposite()
             ));
         }
     }
@@ -390,6 +418,20 @@ public class Nuker {
 
         return NukerBlockFilter.nukerBlockFilterNetherrack &&
                 block == Blocks.netherrack;
+    }
+
+    public static EnumFacing calculateEnumfacing(Vec3 vec) {
+        int x = MathHelper.floor_double(vec.xCoord);
+        int y = MathHelper.floor_double(vec.yCoord);
+        int z = MathHelper.floor_double(vec.zCoord);
+        MovingObjectPosition position = calculateIntercept(new AxisAlignedBB(x, y, z, x + 1, y + 1, z + 1), vec, 50.0f);
+        return (position != null) ? position.sideHit : null;
+    }
+
+    public static MovingObjectPosition calculateIntercept(AxisAlignedBB aabb, Vec3 vec, float range) {
+        Vec3 playerPositionEyes = GumTuneClient.mc.thePlayer.getPositionEyes(1f);
+        Vec3 blockVector = RotationUtils.getLook(vec);
+        return aabb.calculateIntercept(playerPositionEyes, playerPositionEyes.addVector(blockVector.xCoord * range, blockVector.yCoord * range, blockVector.zCoord * range));
     }
 
     private boolean isSlow(IBlockState blockState) {

@@ -79,12 +79,21 @@ public class MobMacro {
                         RotationUtils.look(RotationUtils.getRotation(lookAt));
                         break;
                     case 2:
-                        RotationUtils.smoothLook(RotationUtils.getRotation(lookAt), 200);
+                        if (lookAt.posY > mc.thePlayer.posY) {
+                            RotationUtils.smoothLook(RotationUtils.getRotation(lookAt, 0.1f), 200);
+                        } else {
+                            RotationUtils.smoothLook(RotationUtils.getRotation(lookAt, mc.thePlayer.getEyeHeight()), 200);
+                        }
                         break;
                 }
             }
         }
-        ignoreEntities.forEach(entity -> RenderUtils.renderBoundingBox(entity, event.partialTicks, Color.BLUE.getRGB()));
+
+        for (Entity entity : ignoreEntities) {
+            if (entity != null) {
+                RenderUtils.renderBoundingBox(entity, event.partialTicks, Color.BLUE.getRGB());
+            }
+        }
     }
 
     @SubscribeEvent
@@ -135,8 +144,9 @@ public class MobMacro {
             }
         }
 
-        if (stuckTicks > 100) {
+        if (stuckTicks > 100 && lookAt != null) {
             ignoreEntities.put(lookAt);
+            return;
         }
 
         if (lookAt != null) {

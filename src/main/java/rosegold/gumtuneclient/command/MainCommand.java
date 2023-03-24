@@ -46,6 +46,30 @@ public class MainCommand {
         clipboard.setContents(selection, selection);
     }
 
+    @SubCommand(description = "Copies all entities in range to clipboard")
+    private void entities(String arg) {
+        if (!isInteger(arg)) {
+            ModUtils.sendMessage("Invalid range.");
+        }
+        int range = Integer.parseInt(arg);
+        List<Entity> entityList = GumTuneClient.mc.theWorld.loadedEntityList.stream().filter(
+                entity -> entity.getDistanceToEntity(GumTuneClient.mc.thePlayer) <= range
+        ).sorted(
+                Comparator.comparingDouble(entity -> entity.getDistanceToEntity(GumTuneClient.mc.thePlayer))
+        ).collect(Collectors.toList());
+
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for (Entity entity : entityList) {
+            stringBuilder.append(EntityUtils.getEntityData(entity));
+        }
+
+        ModUtils.sendMessage("Copied NBT date of " + entityList.size() + " Entities");
+        StringSelection selection = new StringSelection(stringBuilder.toString());
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(selection, selection);
+    }
+
     @SubCommand(description = "Copies all armorstands to clipboard")
     private void armorstands(String arg) {
         if (!isInteger(arg)) {
@@ -71,7 +95,7 @@ public class MainCommand {
     }
 
     @SubCommand(description = "Rotate to <yaw, pitch>")
-    private void rotate(String pitch, String yaw, String mode) {
+    private void rotate(String pitch, String yaw) {
         if (pitch == null || !isNumeric(yaw)) {
             ModUtils.sendMessage("&cInvalid pitch: " + pitch);
             return;
@@ -80,26 +104,8 @@ public class MainCommand {
             ModUtils.sendMessage("&cInvalid yaw:" + yaw);
             return;
         }
-        if (mode == null || !mode.toLowerCase(Locale.ROOT).equals("instant") &&
-                !mode.toLowerCase(Locale.ROOT).equals("smooth") && !mode.toLowerCase(Locale.ROOT).equals("serversmooth")) {
-            ModUtils.sendMessage("&cInvalid mode " + mode + " please select either <instant, smooth, serversmooth>");
-            return;
-        }
 
-        switch (mode.toLowerCase(Locale.ROOT)) {
-            case "instant":
-                RotationUtils.look(new RotationUtils.Rotation(Float.parseFloat(pitch), Float.parseFloat(yaw)));
-                break;
-            case "smooth":
-                RotationUtils.smoothLook(new RotationUtils.Rotation(Float.parseFloat(pitch), Float.parseFloat(yaw)), 250);
-                break;
-            case "serversmooth":
-                if (!GumTuneClientConfig.alwaysShowServerRotations) {
-                    ModUtils.sendMessage("Turn on \"Always show server rotations\" under config");
-                }
-                RotationUtils.serverSmoothLook(new RotationUtils.Rotation(Float.parseFloat(pitch), Float.parseFloat(yaw)), 250);
-                break;
-        }
+        RotationUtils.smoothLook(new RotationUtils.Rotation(Float.parseFloat(pitch), Float.parseFloat(yaw)), 250);
     }
 
     @SubCommand(description = "Break specified block", aliases = {"break"})
@@ -219,12 +225,16 @@ public class MainCommand {
 
         @SubCommand()
         private void add(@Description(autoCompletesTo = {"air", "stone", "grass", "dirt", "cobblestone", "planks", "sapling", "bedrock", "flowing_water", "water", "flowing_lava", "lava", "sand", "gravel", "gold_ore", "iron_ore", "coal_ore", "log", "leaves", "sponge", "glass", "lapis_ore", "lapis_block", "dispenser", "sandstone", "noteblock", "bed", "golden_rail", "detector_rail", "sticky_piston", "web", "tallgrass", "deadbush", "piston", "piston_head", "wool", "piston_extension", "yellow_flower", "red_flower", "brown_mushroom", "red_mushroom", "gold_block", "iron_block", "double_stone_slab", "stone_slab", "brick_block", "tnt", "bookshelf", "mossy_cobblestone", "obsidian", "torch", "fire", "mob_spawner", "oak_stairs", "chest", "redstone_wire", "diamond_ore", "diamond_block", "crafting_table", "wheat", "farmland", "furnace", "lit_furnace", "standing_sign", "wooden_door", "ladder", "rail", "stone_stairs", "wall_sign", "lever", "stone_pressure_plate", "iron_door", "wooden_pressure_plate", "redstone_ore", "lit_redstone_ore", "unlit_redstone_torch", "redstone_torch", "stone_button", "snow_layer", "ice", "snow", "cactus", "clay", "reeds", "jukebox", "fence", "pumpkin", "netherrack", "soul_sand", "glowstone", "portal", "lit_pumpkin", "cake", "unpowered_repeater", "powered_repeater", "stained_glass", "trapdoor", "monster_egg", "stonebrick", "brown_mushroom_block", "red_mushroom_block", "iron_bars", "glass_pane", "melon_block", "pumpkin_stem", "melon_stem", "vine", "fence_gate", "brick_stairs", "stone_brick_stairs", "mycelium", "waterlily", "nether_brick", "nether_brick_fence", "nether_brick_stairs", "nether_wart", "enchanting_table", "brewing_stand", "cauldron", "end_portal", "end_portal_frame", "end_stone", "dragon_egg", "redstone_lamp", "lit_redstone_lamp", "double_wooden_slab", "wooden_slab", "cocoa", "sandstone_stairs", "emerald_ore", "ender_chest", "tripwire_hook", "tripwire", "emerald_block", "spruce_stairs", "birch_stairs", "jungle_stairs", "command_block", "beacon", "cobblestone_wall", "flower_pot", "carrots", "potatoes", "wooden_button", "skull", "anvil", "trapped_chest", "light_weighted_pressure_plate", "heavy_weighted_pressure_plate", "unpowered_comparator", "powered_comparator", "daylight_detector", "redstone_block", "quartz_ore", "hopper", "quartz_block", "quartz_stairs", "activator_rail", "dropper", "stained_hardened_clay", "stained_glass_pane", "leaves2", "log2", "acacia_stairs", "dark_oak_stairs", "slime", "barrier", "iron_trapdoor", "prismarine", "sea_lantern", "hay_block", "carpet", "hardened_clay", "coal_block", "packed_ice", "double_plant", "standing_banner", "wall_banner", "daylight_detector_inverted", "red_sandstone", "red_sandstone_stairs", "double_stone_slab2", "stone_slab2", "spruce_fence_gate", "birch_fence_gate", "jungle_fence_gate", "dark_oak_fence_gate", "acacia_fence_gate", "spruce_fence", "birch_fence", "jungle_fence", "dark_oak_fence", "acacia_fence", "spruce_door", "birch_door", "jungle_door", "acacia_door", "dark_oak_door"}) String blockName, String color) {
-            ESPs.blockEsp.put(Block.blockRegistry.getObject(new ResourceLocation(blockName)), Color.decode(color));
+            Block block = Block.blockRegistry.getObject(new ResourceLocation(blockName));
+            if (block == null) {
+                ModUtils.sendMessage("Invalid block!");
+                return;
+            }
+            ESPs.blockEsp.put(block, Color.decode(color));
 
             if (GumTuneClientConfig.customESPForceRecheck) {
                 Object object = ReflectionUtils.field(GumTuneClient.mc.theWorld.getChunkProvider(), "field_73237_c");
                 if (object != null && object.getClass() == Lists.newArrayList().getClass()) {
-                    System.out.println(object);
                     for (Chunk chunk : (List<Chunk>) object) {
                         Multithreading.runAsync(() -> ESPs.handleChunkLoad(chunk));
                     }

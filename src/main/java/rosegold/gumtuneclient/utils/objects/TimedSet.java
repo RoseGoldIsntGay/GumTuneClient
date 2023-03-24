@@ -35,7 +35,8 @@ public class TimedSet<T> implements Iterable<T> {
 
     public boolean contains(T entry) {
         for (TimedEntry<T> timedEntry : ENTRIES) {
-            if (timedEntry.getEntry().equals(entry)) {
+            T entry2 = timedEntry.getEntry();
+            if (entry2 != null && entry2.equals(entry)) {
                 return true;
             }
         }
