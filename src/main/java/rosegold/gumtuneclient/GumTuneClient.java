@@ -16,12 +16,15 @@ import rosegold.gumtuneclient.command.MainCommand;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.events.MillisecondEvent;
 import rosegold.gumtuneclient.events.SecondEvent;
+import rosegold.gumtuneclient.modules.dev.PacketLogger;
 import rosegold.gumtuneclient.modules.macro.AutoHarp;
 import rosegold.gumtuneclient.modules.macro.MobMacro;
 import rosegold.gumtuneclient.modules.mining.MetalDetectorSolver;
 import rosegold.gumtuneclient.modules.mining.Nuker;
 import rosegold.gumtuneclient.modules.mining.PowderChestSolver;
 import rosegold.gumtuneclient.modules.player.*;
+import rosegold.gumtuneclient.modules.qol.AvoidBreakingCrops;
+import rosegold.gumtuneclient.modules.qol.PreventRenderingCrops;
 import rosegold.gumtuneclient.modules.render.ESPs;
 import rosegold.gumtuneclient.modules.singleplayer.skyblockitems.AspectOfTheVoid;
 import rosegold.gumtuneclient.modules.world.CropPlacer;
@@ -72,6 +75,8 @@ public class GumTuneClient {
         modules.add(new AutoSell());
         modules.add(new FairySoulAura());
         modules.add(new AutoMaddox());
+        modules.add(new PacketLogger());
+        modules.add(new PreventRenderingCrops());
     }
 
     @Mod.EventHandler

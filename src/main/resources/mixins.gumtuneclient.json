@@ -5,6 +5,7 @@
   "refmap": "mixins.gumtuneclient.refmap.json",
   "verbose": true,
   "client": [
+    "MixinBlockRendererDispatcher",
     "MixinEntityPlayerSP",
     "MixinEntityRenderer",
     "MixinMinecraft",

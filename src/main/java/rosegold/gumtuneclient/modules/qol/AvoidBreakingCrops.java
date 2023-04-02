@@ -1,12 +1,10 @@
-package rosegold.gumtuneclient.modules.player;
+package rosegold.gumtuneclient.modules.qol;
 
-import net.minecraft.block.BlockSand;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import rosegold.gumtuneclient.GumTuneClient;
-import rosegold.gumtuneclient.utils.ModUtils;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

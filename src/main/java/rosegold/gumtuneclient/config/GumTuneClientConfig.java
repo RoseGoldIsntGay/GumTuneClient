@@ -47,6 +47,9 @@ public class GumTuneClientConfig extends Config {
     private transient static final String BLOCK_HITBOXES = "Block Hitboxes";
     private transient static final String FAIRY_SOUL_AURA = "Fairy Soul Aura";
     private transient static final String AUTO_MADDOX = "Auto Maddox";
+    private transient static final String DEV = "Dev";
+    private transient static final String PACKET_LOGGER = "Packet Logger";
+    private transient static final String PREVENT_RENDERING_CROPS = "Prevent Rendering Crops";
 
     @Switch(
             name = "Enabled",
@@ -404,6 +407,14 @@ public class GumTuneClientConfig extends Config {
     public static int avoidBreakingMode = 0;
 
     @Switch(
+            name = "Prevent Rendering Crops",
+            category = QOL,
+            subcategory = PREVENT_RENDERING_CROPS,
+            description = "Prevents the client from rendering crops"
+    )
+    public static boolean preventRenderingCrops = false;
+
+    @Switch(
             name = "ESPs",
             category = RENDER,
             subcategory = ESPS,
@@ -630,6 +641,23 @@ public class GumTuneClientConfig extends Config {
             size = 2
     )
     public static boolean espBeacon = false;
+
+    @Switch(
+            name = "Packet Logger",
+            category = DEV,
+            subcategory = PACKET_LOGGER,
+            size = 2
+    )
+    public static boolean packetLogger = false;
+
+    @Dropdown(
+            name = "Packet Type",
+            category = DEV,
+            subcategory = PACKET_LOGGER,
+            options = {"S08PacketPlayerPosLook"}
+    )
+    public static int packetLoggerType = 0;
+
 
     public GumTuneClientConfig() {
         super(new Mod(GumTuneClient.NAME, ModType.SKYBLOCK, "/assets/" + GumTuneClient.MODID + "/gtc_small.png", 84, 84), GumTuneClient.MODID + ".json");
