@@ -61,7 +61,7 @@ public class MainCommand {
         StringBuilder stringBuilder = new StringBuilder();
 
         for (Entity entity : entityList) {
-            stringBuilder.append(EntityUtils.getEntityData(entity));
+            stringBuilder.append(DevUtils.getEntityData(entity));
         }
 
         ModUtils.sendMessage("Copied NBT date of " + entityList.size() + " Entities");
@@ -85,7 +85,7 @@ public class MainCommand {
         StringBuilder stringBuilder = new StringBuilder();
 
         for (Entity entity : entityList) {
-            stringBuilder.append(EntityUtils.getEntityData(entity));
+            stringBuilder.append(DevUtils.getEntityData(entity));
         }
 
         ModUtils.sendMessage("Copied NBT date of " + entityList.size() + " Entities");
@@ -214,6 +214,13 @@ public class MainCommand {
         stringBuilder.deleteCharAt(stringBuilder.length() - 1);
         StringSelection selection = new StringSelection(stringBuilder.toString());
         Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, selection);
+    }
+
+    @SubCommand(description = "tablist")
+    private void tablist() {
+        for (String entry : TabListUtils.getTabList()) {
+            ModUtils.sendMessage(entry);
+        }
     }
 
     @SubCommandGroup(value = "esp")

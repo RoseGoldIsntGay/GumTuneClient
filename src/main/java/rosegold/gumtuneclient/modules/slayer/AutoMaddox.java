@@ -1,4 +1,4 @@
-package rosegold.gumtuneclient.modules.player;
+package rosegold.gumtuneclient.modules.slayer;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import net.minecraft.client.gui.inventory.GuiChest;
@@ -31,7 +31,7 @@ public class AutoMaddox {
 
     private static String lastMaddoxCommand = "/cb placeholder";
     private static MaddoxState maddoxState = MaddoxState.IDLE;
-    private static long timestamp = 0;
+    private static long timestamp = System.currentTimeMillis();
 
     @SubscribeEvent
     public void chat(ClientChatReceivedEvent event) {
@@ -75,7 +75,7 @@ public class AutoMaddox {
                 maddoxState = MaddoxState.RESTART;
                 break;
             case WAITING_TO_IDLE:
-                if (System.currentTimeMillis() - timestamp > 1000) {
+                if (System.currentTimeMillis() - timestamp > 3000) {
                     // Detect if restarting quest failed then bounce back
                     // probably not needed
                     maddoxState = MaddoxState.IDLE;
@@ -83,8 +83,8 @@ public class AutoMaddox {
                 break;
             case IDLE:
                 if (ScoreboardUtils.scoreboardContains("Boss slain!")) {
-                    int maddox = PlayerUtils.findItemInHotbar("Batphone");
-                    int abiphone = PlayerUtils.findItemInHotbar("Abiphone");
+                    int maddox = InventoryUtils.findItemInHotbar("Batphone");
+                    int abiphone = InventoryUtils.findItemInHotbar("Abiphone");
 
                     if (maddox != -1) {
                         ItemStack item = GumTuneClient.mc.thePlayer.inventory.getStackInSlot(maddox);
@@ -92,6 +92,7 @@ public class AutoMaddox {
                         GumTuneClient.mc.thePlayer.inventory.currentItem = maddox;
                         GumTuneClient.mc.playerController.sendUseItem(GumTuneClient.mc.thePlayer, GumTuneClient.mc.theWorld, item);
                         GumTuneClient.mc.thePlayer.inventory.currentItem = save;
+                        timestamp = System.currentTimeMillis();
                         maddoxState = MaddoxState.WAIT_FOR_PICK_UP;
                     } else if (abiphone != -1) {
                         ItemStack item = GumTuneClient.mc.thePlayer.inventory.getStackInSlot(abiphone);
@@ -104,6 +105,14 @@ public class AutoMaddox {
                     }
                 }
                 break;
+            case WAIT_FOR_PICK_UP:
+                if (GumTuneClient.mc.currentScreen == null && System.currentTimeMillis() - timestamp > 6000) {
+                    ModUtils.sendMessage("Seems like calling maddox failed for some reason. switching back to idle");
+
+                    timestamp = System.currentTimeMillis();
+                    maddoxState = MaddoxState.WAITING_TO_IDLE;
+                }
+                break;
         }
     }
 
@@ -114,7 +123,7 @@ public class AutoMaddox {
 
         switch (maddoxState) {
             case WAIT_FOR_PICK_UP:
-                if (GuiUtils.getInventoryName(event.gui).contains("Abiphone") && System.currentTimeMillis() - timestamp > 2000) {
+                if (GuiUtils.getInventoryName(event.gui).contains("Abiphone") && System.currentTimeMillis() - timestamp > 1000) {
                     ModUtils.sendMessage("Detected failed clicking in abiphone menu, trying again");
                     maddoxState = MaddoxState.CALL_MADDOX;
                 }

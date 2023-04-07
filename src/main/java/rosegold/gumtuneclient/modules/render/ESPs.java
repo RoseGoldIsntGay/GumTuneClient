@@ -40,7 +40,6 @@ public class ESPs {
     public static final ArrayList<BlockPos> frozenTreasures = new ArrayList<>();
     public static final HashSet<Entity> checked = new HashSet<>();
     public static final ConcurrentHashMap<Block, Color> blockEsp = new ConcurrentHashMap<>();
-
     private static final String FAIRY_SOUL_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjk2OTIzYWQyNDczMTAwMDdmNmFlNWQzMjZkODQ3YWQ1Mzg2NGNmMTZjMzU2NWExODFkYzhlNmIyMGJlMjM4NyJ9fX0=";
 
     @SubscribeEvent
@@ -88,9 +87,9 @@ public class ESPs {
             if (GumTuneClientConfig.fairySoulESP && isFairySoul((EntityArmorStand) event.entity)) {
                 highlightEntity(event.entity, "§dFairy Soul");
             }
-
-            checked.add(event.entity);
         }
+
+        checked.add(event.entity);
     }
 
     @SubscribeEvent

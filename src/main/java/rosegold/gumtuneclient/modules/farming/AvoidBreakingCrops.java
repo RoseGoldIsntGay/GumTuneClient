@@ -1,4 +1,4 @@
-package rosegold.gumtuneclient.modules.qol;
+package rosegold.gumtuneclient.modules.farming;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.BlockPos;

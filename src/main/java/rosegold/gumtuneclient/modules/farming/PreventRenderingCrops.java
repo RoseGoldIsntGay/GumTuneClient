@@ -1,4 +1,4 @@
-package rosegold.gumtuneclient.modules.qol;
+package rosegold.gumtuneclient.modules.farming;
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;

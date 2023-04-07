@@ -4,6 +4,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
 import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
+import rosegold.gumtuneclient.utils.InventoryUtils;
 
 public class MobxDrill {
 
@@ -13,7 +14,7 @@ public class MobxDrill {
         flag = currentItemHittingBlock == null && itemstack == null;
         if (currentItemHittingBlock != null && itemstack != null) {
             if (GumTuneClientConfig.cancelClientItemUpdates && itemstack.getTagCompound() != null) {
-                String lore = itemstack.getTagCompound().getCompoundTag("display").getTagList("Lore", 8).toString();
+                String lore = InventoryUtils.getItemLore(itemstack);
                 if (lore.contains("GAUNTLET") || lore.contains("DRILL") || lore.contains("PICKAXE")) {
                     return blockPos.equals(currentBlock) &&
                             itemstack.getItem() == currentItemHittingBlock.getItem();

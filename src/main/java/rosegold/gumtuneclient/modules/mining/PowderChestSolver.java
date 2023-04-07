@@ -59,6 +59,7 @@ public class PowderChestSolver {
                 Vec3 particlePos = new Vec3(packet.getXCoordinate(), packet.getYCoordinate(), packet.getZCoordinate());
                 if (closestChest != null) {
                     if (particlePos.distanceTo(new Vec3(closestChest.getX() + 0.5, closestChest.getY() + 0.5, closestChest.getZ() + 0.5)) < 1) {
+                        RotationUtils.serverSmoothLook(RotationUtils.getRotation(particlePos), GumTuneClientConfig.powderChestRotationTime);
                         particle = particlePos;
                     }
                 }
@@ -91,7 +92,7 @@ public class PowderChestSolver {
     public void onUpdatePre(PlayerMoveEvent.Pre pre) {
         if (!isEnabled()) return;
         if (particle == null) return;
-        RotationUtils.look(RotationUtils.getRotation(particle));
+        RotationUtils.updateServerLook();
     }
 
     @SubscribeEvent
@@ -106,6 +107,6 @@ public class PowderChestSolver {
     }
 
     private boolean isPowderChest(BlockPos blockPos) {
-        return !solved.contains(blockPos) && GumTuneClient.mc.theWorld.getBlockState(blockPos).getBlock() == Blocks.chest;
+        return GumTuneClient.mc.theWorld.getBlockState(blockPos).getBlock() == Blocks.chest && !solved.contains(blockPos);
     }
 }

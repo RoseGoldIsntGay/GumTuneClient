@@ -10,10 +10,8 @@ import cc.polyfrost.oneconfig.config.data.ModType;
 import cc.polyfrost.oneconfig.config.data.PageLocation;
 import cc.polyfrost.oneconfig.libs.universal.UKeyboard;
 import rosegold.gumtuneclient.GumTuneClient;
-import rosegold.gumtuneclient.config.pages.FrozenTreasureFilter;
-import rosegold.gumtuneclient.config.pages.MobMacroFilter;
-import rosegold.gumtuneclient.config.pages.NukerBlockFilter;
-import rosegold.gumtuneclient.config.pages.WorldScannerFilter;
+import rosegold.gumtuneclient.config.pages.*;
+import rosegold.gumtuneclient.huds.SlayerHud;
 
 public class GumTuneClientConfig extends Config {
 
@@ -28,6 +26,10 @@ public class GumTuneClientConfig extends Config {
     private transient static final String AVOID_BREAKING_CROPS = "Avoid Breaking Crops";
     private transient static final String ESPS = "ESPs";
     private transient static final String ESP_SETTINGS = "ESP Settings";
+    private transient static final String FARMING = "Farming";
+    private transient static final String DEV = "Dev";
+    private transient static final String SLAYER = "Slayer";
+    private transient static final String PLAYER = "Player";
 
     // Modules
     private transient static final String CROP_PLACER = "Crop Placer";
@@ -42,14 +44,17 @@ public class GumTuneClientConfig extends Config {
     private transient static final String WORLD_SCANNER = "World Scanner";
     private transient static final String METAL_DETECTOR_SOLVER = "Metal Detector Solver";
     private transient static final String MOBX_DRILL = "Mobx Drill";
-    private transient static final String PLAYER = "Player";
     private transient static final String AUTO_SELL = "Auto Sell";
     private transient static final String BLOCK_HITBOXES = "Block Hitboxes";
     private transient static final String FAIRY_SOUL_AURA = "Fairy Soul Aura";
     private transient static final String AUTO_MADDOX = "Auto Maddox";
-    private transient static final String DEV = "Dev";
     private transient static final String PACKET_LOGGER = "Packet Logger";
     private transient static final String PREVENT_RENDERING_CROPS = "Prevent Rendering Crops";
+    private transient static final String REVEAL_HIDDEN_MOBS = "Reveal Hidden Mobs";
+    private transient static final String SKILL_TRACKER = "Skill Tracker";
+    private transient static final String COPY_NBT_DATA = "Copy NBT Data";
+    private transient static final String HIGHLIGHT_SLAYER_BOSS = "Highlight Slayer Boss";
+    private transient static final String VISITOR_HELPERS = "Visitor Helpers";
 
     @Switch(
             name = "Enabled",
@@ -121,10 +126,16 @@ public class GumTuneClientConfig extends Config {
     @Switch(
             name = "Send Coords In Chat",
             category = WORLD,
-            subcategory = WORLD_SCANNER,
-            size = 2
+            subcategory = WORLD_SCANNER
     )
     public static boolean worldScannerSendCoordsInChat = false;
+
+    @Switch(
+            name = "Add Waypoint To Skytils Map",
+            category = WORLD,
+            subcategory = WORLD_SCANNER
+    )
+    public static boolean worldScannerAddWaypointToSkytilsMap = false;
 
     @Dropdown(
             name = "Chat Messages Mode",
@@ -329,6 +340,15 @@ public class GumTuneClientConfig extends Config {
     )
     public static boolean powderChestSolver = false;
 
+    @Slider(
+            name = "Rotation time (ms)",
+            description = "How many milliseconds to complete a rotation",
+            category = MINING,
+            subcategory = POWDER_CHEST_SOLVER,
+            min = 0, max = 500
+    )
+    public static int powderChestRotationTime = 200;
+
     @Dropdown(
             name = "Pause nuker when solving",
             category = MINING,
@@ -374,7 +394,7 @@ public class GumTuneClientConfig extends Config {
 
     @Switch(
             name = "Avoid Breaking Stems",
-            category = QOL,
+            category = FARMING,
             subcategory = AVOID_BREAKING_CROPS,
             description = "Prevents the client from breaking pumpkin and melon stems"
     )
@@ -382,7 +402,7 @@ public class GumTuneClientConfig extends Config {
 
     @Switch(
             name = "Avoid Breaking Bottom Sugar Cane",
-            category = QOL,
+            category = FARMING,
             subcategory = AVOID_BREAKING_CROPS,
             description = "Prevents the client from breaking bottom sugar cane blocks"
     )
@@ -390,7 +410,7 @@ public class GumTuneClientConfig extends Config {
 
     @Switch(
             name = "Avoid Breaking Non Fully-Grown Crops",
-            category = QOL,
+            category = FARMING,
             subcategory = AVOID_BREAKING_CROPS,
             description = "Prevents the client from breaking crops that are still growing"
     )
@@ -398,7 +418,7 @@ public class GumTuneClientConfig extends Config {
 
     @Dropdown(
             name = "Avoid Breaking Mode",
-            category = QOL,
+            category = FARMING,
             subcategory = AVOID_BREAKING_CROPS,
             description = "Select how the mod should act when avoiding breaking crops",
             options = {"Don't break", "Break only on the client"},
@@ -408,7 +428,7 @@ public class GumTuneClientConfig extends Config {
 
     @Switch(
             name = "Prevent Rendering Crops",
-            category = QOL,
+            category = FARMING,
             subcategory = PREVENT_RENDERING_CROPS,
             description = "Prevents the client from rendering crops"
     )
@@ -476,6 +496,23 @@ public class GumTuneClientConfig extends Config {
             location = PageLocation.BOTTOM
     )
     public FrozenTreasureFilter frozenTreasureFilter = new FrozenTreasureFilter();
+
+    @Switch(
+            name = "Reveal Hidden Mobs",
+            category = RENDER,
+            subcategory = REVEAL_HIDDEN_MOBS,
+            size = 4
+    )
+    public static boolean revealHiddenMobs = false;
+
+    @Page(
+            name = "Reveal Hidden Mobs Filters",
+            description = "Filter out mobs to be revealed",
+            category = RENDER,
+            subcategory = REVEAL_HIDDEN_MOBS,
+            location = PageLocation.BOTTOM
+    )
+    public RevealHiddenMobsFilter revealHiddenMobsFilter = new RevealHiddenMobsFilter();
 
     @Switch(
             name = "Phase Camera Through Blocks",
@@ -589,7 +626,7 @@ public class GumTuneClientConfig extends Config {
 
     @Switch(
             name = "Auto Maddox Batphone",
-            category = PLAYER,
+            category = SLAYER,
             subcategory = AUTO_MADDOX,
             size = 2
     )
@@ -597,7 +634,7 @@ public class GumTuneClientConfig extends Config {
 
     @Dropdown(
             name = "Boss Type",
-            category = PLAYER,
+            category = SLAYER,
             subcategory = AUTO_MADDOX,
             options = {"Revenant", "Broodfather", "Sven", "Voidgloom", "Inferno"}
     )
@@ -605,7 +642,7 @@ public class GumTuneClientConfig extends Config {
 
     @Dropdown(
             name = "Boss Level",
-            category = PLAYER,
+            category = SLAYER,
             subcategory = AUTO_MADDOX,
             options = {"1", "2", "3", "4", "5"}
     )
@@ -658,12 +695,89 @@ public class GumTuneClientConfig extends Config {
     )
     public static int packetLoggerType = 0;
 
+    @Switch(
+            name = "Copy NBT Data",
+            category = DEV,
+            subcategory = COPY_NBT_DATA,
+            size = 2
+    )
+    public static boolean copyNBTData = false;
+
+    @KeyBind(
+            name = "Keybind",
+            category = DEV,
+            subcategory = COPY_NBT_DATA,
+            size = 2
+    )
+    public static OneKeyBind copyNBTDataKeyBind = new OneKeyBind(UKeyboard.KEY_NONE);
+
+    @Switch(
+            name = "Highlight Slayer Boss",
+            category = SLAYER,
+            subcategory = HIGHLIGHT_SLAYER_BOSS,
+            size = 2
+    )
+    public static boolean highlightSlayerBoss = false;
+
+    @HUD(
+            name = "Slayer Status Hud",
+            category = SLAYER,
+            subcategory = HIGHLIGHT_SLAYER_BOSS
+    )
+    public SlayerHud slayerHud = new SlayerHud();
+
+    @Switch(
+            name = "Visitor Queue Full Chat Message",
+            category = FARMING,
+            subcategory = VISITOR_HELPERS
+    )
+    public static boolean visitorQueueFullChatMessage = false;
+
+    @Dropdown(
+            name = "Message Chat Type",
+            category = FARMING,
+            subcategory = VISITOR_HELPERS,
+            options = {"Coop Chat", "All Chat", "Party Chat", "Guild Chat"}
+    )
+    public static int visitorQueueFullChatType = 0;
+
+    @Switch(
+            name = "Visitor Quick Buy",
+            category = FARMING,
+            subcategory = VISITOR_HELPERS,
+            size = 1
+    )
+    public static boolean visitorQuickBuy = false;
+
+    @Dropdown(
+            name = "Visitor Quick Buy Mode",
+            category = FARMING,
+            subcategory = VISITOR_HELPERS,
+            options = {"When Shift Clicking Accept Offer", "When Opening Visitor GUI"}
+    )
+    public static int visitorQuickBuyMode = 0;
+
+//    @Switch(
+//            name = "Skill Tracker",
+//            category = TRACKERS,
+//            subcategory = SKILL_TRACKER,
+//            size = 2
+//    )
+//    public static boolean skillTracker = false;
+//
+//    @Dropdown(
+//            name = "Skill Type",
+//            category = TRACKERS,
+//            subcategory = SKILL_TRACKER,
+//            options = {"Combat", "Mining", }
+//    )
+
 
     public GumTuneClientConfig() {
         super(new Mod(GumTuneClient.NAME, ModType.SKYBLOCK, "/assets/" + GumTuneClient.MODID + "/gtc_small.png", 84, 84), GumTuneClient.MODID + ".json");
         registerKeyBind(nukerKeyBind, () -> {});
         registerKeyBind(mobMacroKeyBind, () -> {});
-        addDependency("smoothServerSideRotations", "serverSideNukerRotations");
+        registerKeyBind(copyNBTDataKeyBind, () -> {});
         initialize();
     }
 }

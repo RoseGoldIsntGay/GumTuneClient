@@ -42,7 +42,7 @@ public class CropPlacer {
                 int slot;
                 switch (GumTuneClientConfig.cropPlacerCropType) {
                     case 0:
-                        slot = PlayerUtils.findItemInHotbar("Cane");
+                        slot = InventoryUtils.findItemInHotbar("Cane");
                         if (slot != -1) {
                             enumFacing = EnumFacing.UP;
                             player.inventory.currentItem = slot;
@@ -58,7 +58,7 @@ public class CropPlacer {
                         }
                         break;
                     case 1:
-                        slot = PlayerUtils.findItemInHotbar("Cactus");
+                        slot = InventoryUtils.findItemInHotbar("Cactus");
                         if (slot != -1) {
                             enumFacing = EnumFacing.UP;
                             player.inventory.currentItem = slot;
@@ -74,7 +74,7 @@ public class CropPlacer {
                         }
                         break;
                     case 2:
-                        slot = PlayerUtils.findItemInHotbar("Cocoa");
+                        slot = InventoryUtils.findItemInHotbar("Cocoa");
                         enumFacing = getClosestEnumFacing(blockPos);
                         if (slot != -1 && enumFacing != null) {
                             player.inventory.currentItem = slot;

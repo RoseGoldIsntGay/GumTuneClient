@@ -3,6 +3,7 @@ package rosegold.gumtuneclient.utils;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.*;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.Constants;
 
 import java.awt.*;
@@ -12,7 +13,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Iterator;
 
-public class EntityUtils {
+public class DevUtils {
     public static String getEntityData(Entity entity) {
         NBTTagCompound entityData = new NBTTagCompound();
         entity.writeToNBT(entityData);
@@ -32,6 +33,10 @@ public class EntityUtils {
         return stringBuilder.toString();
     }
 
+    public static String getTileEntityData(TileEntity tileEntity) {
+        return prettyPrintNBT(tileEntity.getTileData());
+    }
+
     public static void copyStringToClipboard(String string, String successMessage) {
         writeToClipboard(string, successMessage);
     }
@@ -42,10 +47,18 @@ public class EntityUtils {
 
         try {
             clipboard.setContents(output, output);
-                ModUtils.sendMessage(successMessage);
+            ModUtils.sendMessage(successMessage);
         } catch (IllegalStateException exception) {
             ModUtils.sendMessage("&cClipboard not available!");
         }
+    }
+
+    public static void copyNBTTagToClipboard(NBTBase nbtTag, String message) {
+        if (nbtTag == null) {
+            ModUtils.sendMessage("&cThis item has no NBT data!");
+            return;
+        }
+        writeToClipboard(prettyPrintNBT(nbtTag), message);
     }
 
     public static String prettyPrintNBT(NBTBase nbt) {

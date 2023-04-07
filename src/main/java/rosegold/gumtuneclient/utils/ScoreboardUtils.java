@@ -16,17 +16,21 @@ import java.util.stream.Collectors;
 
 public class ScoreboardUtils {
     public static boolean scoreboardContains(String string) {
-        boolean result = false;
-        List<String> scoreboard = getScoreboard();
-        for (String line : scoreboard) {
-            line = cleanSB(line);
-            line = removeFormatting(line);
-            if(line.contains(string)) {
-                result = true;
-                break;
+        for (String line : getScoreboard()) {
+            if(removeFormatting(cleanSB(line)).contains(string)) {
+                return true;
             }
         }
-        return result;
+        return false;
+    }
+
+    public static boolean scoreboardContains(String string, List<String> scoreboard) {
+        for (String line : scoreboard) {
+            if(removeFormatting(cleanSB(line)).contains(string)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static String removeFormatting(String input) {

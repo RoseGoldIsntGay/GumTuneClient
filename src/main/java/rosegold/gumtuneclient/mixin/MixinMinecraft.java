@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
-import rosegold.gumtuneclient.modules.qol.AvoidBreakingCrops;
+import rosegold.gumtuneclient.modules.farming.AvoidBreakingCrops;
 
 @Mixin(Minecraft.class)
 public class MixinMinecraft {

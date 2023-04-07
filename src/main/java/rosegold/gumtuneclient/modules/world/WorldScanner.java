@@ -4,6 +4,7 @@ import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.google.common.collect.Lists;
 import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.command.ICommandSender;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
@@ -12,6 +13,7 @@ import net.minecraft.item.EnumDyeColor;
 import net.minecraft.util.*;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.client.model.ForgeBlockStateV1;
 import net.minecraftforge.event.world.ChunkEvent;
@@ -36,13 +38,13 @@ public class WorldScanner {
     public static class World {
         private final ConcurrentHashMap<String, BlockPos> crystalWaypoints;
         private final ConcurrentHashMap<String, BlockPos> mobSpotWaypoints;
-        private final ConcurrentLinkedQueue<BlockPos> fairyGrottosWaypoints;
-        private final ConcurrentLinkedQueue<BlockPos> wormFishingWaypoints;
+        private final ConcurrentHashMap<BlockPos, Integer> fairyGrottosWaypoints;
+        private final ConcurrentHashMap<BlockPos, Integer> wormFishingWaypoints;
         public World() {
             this.crystalWaypoints = new ConcurrentHashMap<>();
             this.mobSpotWaypoints = new ConcurrentHashMap<>();
-            this.fairyGrottosWaypoints = new ConcurrentLinkedQueue<>();
-            this.wormFishingWaypoints = new ConcurrentLinkedQueue<>();
+            this.fairyGrottosWaypoints = new ConcurrentHashMap<>();
+            this.wormFishingWaypoints = new ConcurrentHashMap<>();
         }
 
         public void updateCrystalWaypoints(String name, BlockPos blockPos) {
@@ -62,18 +64,18 @@ public class WorldScanner {
         }
 
         public void updateFairyGrottos(BlockPos blockPos) {
-            this.fairyGrottosWaypoints.add(blockPos);
+            this.fairyGrottosWaypoints.put(blockPos, 0);
         }
 
-        public ConcurrentLinkedQueue<BlockPos> getFairyGrottos() {
+        public ConcurrentHashMap<BlockPos, Integer> getFairyGrottos() {
             return this.fairyGrottosWaypoints;
         }
 
         public void updateWormFishing(BlockPos blockPos) {
-            this.wormFishingWaypoints.add(blockPos);
+            this.wormFishingWaypoints.put(blockPos, 0);
         }
 
-        public ConcurrentLinkedQueue<BlockPos> getWormFishing() {
+        public ConcurrentHashMap<BlockPos, Integer> getWormFishing() {
             return this.wormFishingWaypoints;
         }
     }
@@ -88,10 +90,18 @@ public class WorldScanner {
     private static final HashMap<String, String[]> alternativeNames = new HashMap<String, String[]>() {{
         put("§6King", new String[] { "§6King", "§6Goblin King" });
         put("§6Queen", new String[] { "§6Queen", "§6Goblin Queen", "§6Queen's Den", "§6Goblin Queen's Den" });
-        put("§2Divan", new String[] { "§2Divan", "§2Mines of Divan", "§2Mines Of Divan", "§2Mines" });
+        put("§2Divan", new String[] { "§2Divan", "§2Mines of Divan", "§2Mines" });
         put("§5Temple", new String[] { "§5Temple", "§5Jungle Temple" });
-        put("§bCity", new String[] { "§bCity", "§bPrec City", "§bPrecursor City", "§bAutomaton City" });
+        put("§bCity", new String[] { "§bCity", "§bPrecursor City"});
         put("§6Bal", new String[] { "§6Bal", "§6Khazad-dûm", "§6Khazad-dum" });
+    }};
+    private static HashMap<String, String> internalSkytilsNames = new HashMap<String, String>() {{
+        put("§6King", "internal_king");
+        put("§6Queen", "internal_den");
+        put("§2Divan", "internal_mines");
+        put("§5Temple", "internal_temple");
+        put("§bCity", "internal_city");
+        put("§6Bal", "internal_bal");
     }};
 
     @SubscribeEvent
@@ -110,7 +120,7 @@ public class WorldScanner {
         if (!lastBoolean) {
             lastBoolean = GumTuneClientConfig.worldScanner;
             if (lastBoolean) {
-                ModUtils.sendMessage("&cNote that bal ESP will only render after all other crystals are found!");
+                ModUtils.sendMessage("&cNote that bal can only be found after the temple is found!");
             }
         }
         if (!GumTuneClientConfig.worldScanner) return;
@@ -175,7 +185,7 @@ public class WorldScanner {
             }
         }
         if (WorldScannerFilter.worldScannerCHFairyGrottos) {
-            for (BlockPos blockPos : currentWorld.getFairyGrottos()) {
+            for (BlockPos blockPos : currentWorld.getFairyGrottos().keySet()) {
                 if (GumTuneClientConfig.espHighlight)
                     RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.PINK.getRGB());
                 if (GumTuneClientConfig.espWaypointText)
@@ -185,7 +195,7 @@ public class WorldScanner {
             }
         }
         if (WorldScannerFilter.worldScannerCHWormFishing) {
-            for (BlockPos blockPos : currentWorld.getWormFishing()) {
+            for (BlockPos blockPos : currentWorld.getWormFishing().keySet()) {
                 if (GumTuneClientConfig.espHighlight)
                     RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.ORANGE.getRGB());
                 if (GumTuneClientConfig.espWaypointText)
@@ -209,6 +219,7 @@ public class WorldScanner {
                                 chunk.getBlock(x, y + 4, z) == Blocks.log2 &&
                                 chunk.getBlock(x, y + 5, z) == Blocks.cauldron) {
                             sendCoordsMessage("§6Queen", chunk.xPosition * 16 + x, y + 5, chunk.zPosition * 16 + z);
+                            addToSkytilsMap("§6Queen", chunk.xPosition * 16 + x, y + 5, chunk.zPosition * 16 + z);
                             currentWorld.updateCrystalWaypoints("§6Queen", new BlockPos(chunk.xPosition * 16 + x, y + 5, chunk.zPosition * 16 + z));
                             return;
                         }
@@ -218,6 +229,7 @@ public class WorldScanner {
                                 chunk.getBlock(x, y + 2, z) == Blocks.stone_brick_stairs &&
                                 chunk.getBlock(x, y + 3, z) == Blocks.stonebrick) { // chiseled
                             sendCoordsMessage("§2Divan", chunk.xPosition * 16 + x, y + 5, chunk.zPosition * 16 + z);
+                            addToSkytilsMap("§2Divan", chunk.xPosition * 16 + x, y + 5, chunk.zPosition * 16 + z);
                             currentWorld.updateCrystalWaypoints("§2Divan", new BlockPos(chunk.xPosition * 16 + x, y + 5, chunk.zPosition * 16 + z));
                             return;
                         }
@@ -230,6 +242,7 @@ public class WorldScanner {
                                 chunk.getBlock(x, y + 5, z) == Blocks.leaves &&
                                 chunk.getBlock(x, y + 6, z) == Blocks.leaves) { // oak leaves
                             sendCoordsMessage("§5Temple", chunk.xPosition * 16 + x - 45, y + 47, chunk.zPosition * 16 + z - 18);
+                            addToSkytilsMap("§5Temple", chunk.xPosition * 16 + x - 45, y + 47, chunk.zPosition * 16 + z - 18);
                             currentWorld.updateCrystalWaypoints("§5Temple Crystal", new BlockPos(chunk.xPosition * 16 + x + 9, y + 2, chunk.zPosition * 16 + z));
                             currentWorld.updateCrystalWaypoints("§5Temple Door Guardian", new BlockPos(chunk.xPosition * 16 + x - 45, y + 47, chunk.zPosition * 16 + z - 18));
                             return;
@@ -244,6 +257,7 @@ public class WorldScanner {
                                 chunk.getBlock(x, y + 6, z) == Blocks.stone && getBlockState(chunk, x, y + 5, z).getValue(BlockStone.VARIANT) == BlockStone.EnumType.ANDESITE_SMOOTH  &&  // smooth andesite
                                 chunk.getBlock(x, y + 7, z) == Blocks.dark_oak_stairs) {
                             sendCoordsMessage("§bCity", chunk.xPosition * 16 + x + 24, y, chunk.zPosition * 16 + z - 17);
+                            addToSkytilsMap("§bCity", chunk.xPosition * 16 + x + 24, y, chunk.zPosition * 16 + z - 17);
                             currentWorld.updateCrystalWaypoints("§bCity", new BlockPos(chunk.xPosition * 16 + x + 24, y, chunk.zPosition * 16 + z - 17));
                             return;
                         }
@@ -253,6 +267,7 @@ public class WorldScanner {
                                 chunk.getBlock(x, y + 2, z) == Blocks.dark_oak_stairs &&
                                 chunk.getBlock(x, y + 3, z) == Blocks.dark_oak_stairs) {
                             sendCoordsMessage("§6King", chunk.xPosition * 16 + x + 1, y - 1, chunk.zPosition * 16 + z + 2);
+                            addToSkytilsMap("§6King", chunk.xPosition * 16 + x + 1, y - 1, chunk.zPosition * 16 + z + 2);
                             currentWorld.updateCrystalWaypoints("§6King", new BlockPos(chunk.xPosition * 16 + x + 1, y - 1, chunk.zPosition * 16 + z + 2));
                             return;
                         }
@@ -268,12 +283,10 @@ public class WorldScanner {
                                 chunk.getBlock(x, y + 8, z) == Blocks.barrier &&
                                 chunk.getBlock(x, y + 9, z) == Blocks.barrier &&
                                 chunk.getBlock(x, y + 10, z) == Blocks.barrier &&
-                                currentWorld.getCrystalWaypoints().size() == 6 &&
-                                distance(new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z), currentWorld.getCrystalWaypoints().get("§bCity")) > 25 &&
-                                distance(new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z), currentWorld.getCrystalWaypoints().get("§5Temple Crystal")) > 25 &&
-                                distance(new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z), currentWorld.getCrystalWaypoints().get("§2Divan")) > 25 &&
-                                distance(new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z), currentWorld.getCrystalWaypoints().get("§6Queen")) > 25) {
+                                currentWorld.getCrystalWaypoints().containsKey("§5Temple Crystal") &&
+                                distance(new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z), currentWorld.getCrystalWaypoints().get("§5Temple Crystal")) > 25) {
                             sendCoordsMessage("§6Bal", chunk.xPosition * 16 + x + 1, y - 1, chunk.zPosition * 16 + z + 2);
+                            addToSkytilsMap("§6Bal", chunk.xPosition * 16 + x + 1, y - 1, chunk.zPosition * 16 + z + 2);
                             currentWorld.updateCrystalWaypoints("§6Bal", new BlockPos(chunk.xPosition * 16 + x + 1, y - 1, chunk.zPosition * 16 + z + 2));
                             return;
                         }
@@ -334,14 +347,13 @@ public class WorldScanner {
                             return;
                         }
                         // goblin campsite
-                        if (chunk.getBlock(x, y, z) == Blocks.air &&
-                                chunk.getBlock(x, y + 1, z) == Blocks.log && getBlockState(chunk, x, y + 1, z).getValue(BlockOldLog.VARIANT) == BlockPlanks.EnumType.OAK &&
-                                chunk.getBlock(x, y + 2, z) == Blocks.log && getBlockState(chunk, x, y + 2, z).getValue(BlockOldLog.VARIANT) == BlockPlanks.EnumType.OAK &&
-                                chunk.getBlock(x, y + 3, z) == Blocks.log && getBlockState(chunk, x, y + 3, z).getValue(BlockOldLog.VARIANT) == BlockPlanks.EnumType.OAK &&
-                                chunk.getBlock(x, y + 4, z) == Blocks.log && getBlockState(chunk, x, y + 4, z).getValue(BlockOldLog.VARIANT) == BlockPlanks.EnumType.OAK &&
-                                chunk.getBlock(x, y + 5, z) == Blocks.wool && getBlockState(chunk, x, y + 5, z).getValue(BlockColored.COLOR) == EnumDyeColor.GREEN &&
-                                chunk.getBlock(x, y + 5, z) == Blocks.air) {
-                            currentWorld.updateMobSpotWaypoints("§6Goblin Campsite", new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z));
+                        if (chunk.getBlock(x, y, z) == Blocks.stone_slab && getBlockState(chunk, x, y, z).getValue(BlockSlab.HALF) == BlockSlab.EnumBlockHalf.BOTTOM &&
+                                chunk.getBlock(x, y + 1, z) != Blocks.stone_slab &&
+                                chunk.getBlock(x, y + 14, z) == Blocks.stone_slab && getBlockState(chunk, x, y + 14, z).getValue(BlockSlab.HALF) == BlockSlab.EnumBlockHalf.TOP &&
+                                chunk.getBlock(x, y + 15, z) == Blocks.double_stone_slab &&
+                                chunk.getBlock(x, y + 17, z) == Blocks.stone_slab && getBlockState(chunk, x, y + 17, z).getValue(BlockSlab.HALF) == BlockSlab.EnumBlockHalf.TOP &&
+                                chunk.getBlock(x, y + 18, z) == Blocks.stonebrick && checkMobs) {
+                            currentWorld.updateMobSpotWaypoints("§6Goblin Campsite", new BlockPos(chunk.xPosition * 16 + x, y - 3, chunk.zPosition * 16 + z + 34));
                             return;
                         }
                     }
@@ -452,6 +464,11 @@ public class WorldScanner {
         coordsMessage.setChatStyle(style);
 
         GumTuneClient.mc.thePlayer.addChatMessage(coordsMessage);
+    }
+
+    private static void addToSkytilsMap(String name, int x, int y, int z) {
+        if (!GumTuneClientConfig.worldScannerAddWaypointToSkytilsMap) return;
+        ClientCommandHandler.instance.executeCommand(GumTuneClient.mc.thePlayer, "/sthw set " + x + " " + y + " " + z + " " + internalSkytilsNames.get(name));
     }
 
     private static String removeFormatting(String text) {

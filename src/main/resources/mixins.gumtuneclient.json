@@ -8,6 +8,8 @@
     "MixinBlockRendererDispatcher",
     "MixinEntityPlayerSP",
     "MixinEntityRenderer",
+    "MixinGuiContainer",
+    "MixinGuiEditSign",
     "MixinMinecraft",
     "MixinModelBiped",
     "MixinPlayerControllerMP",
