@@ -1,0 +1,29 @@
+# This workflow is designed for automation of Aurora deployment
+
+name: Build (Automatic)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    - name: Fix execution permissions
+      run: chmod +x gradlew
+    - name: Build with Gradle
+      run: ./gradlew build
+#    - name: Collect build artifact
+#      uses: actions/upload-artifact@v3
+#      with:
+#        name: binary
+#        path: path/to/artifact
