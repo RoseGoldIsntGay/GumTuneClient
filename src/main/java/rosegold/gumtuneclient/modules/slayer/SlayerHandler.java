@@ -54,7 +54,6 @@ public class SlayerHandler {
 
                     if (removeFormatting(entity.getCustomNameTag()).equals("Spawned by: " + GumTuneClient.mc.thePlayer.getName())) {
                         List<Entity> possibleSlayerBosses = entity.getEntityWorld().getEntitiesInAABBexcluding(entity, entity.getEntityBoundingBox().expand(0, 2, 0), e -> (!(e instanceof EntityArmorStand) && !(e instanceof EntityPlayer)));
-
                         for (Map.Entry<String, Predicate<? super Entity>> boss : bosses.entrySet()) {
                             if (ScoreboardUtils.scoreboardContains(boss.getKey(), scoreboard)) {
                                 possibleSlayerBosses = entity.getEntityWorld().getEntitiesInAABBexcluding(entity, entity.getEntityBoundingBox().expand(0, 2, 0), boss.getValue());

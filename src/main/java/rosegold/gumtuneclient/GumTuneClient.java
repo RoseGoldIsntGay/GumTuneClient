@@ -64,6 +64,7 @@ public class GumTuneClient {
     private boolean login = false;
     public static boolean debug = false;
 
+    // TODO: varargs, repeating modules.add(...) is bad!
     public GumTuneClient() {
         modules.add(new PowderChestSolver());
         modules.add(new AutoHarp());

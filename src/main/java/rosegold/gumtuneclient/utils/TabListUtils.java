@@ -6,39 +6,31 @@ import rosegold.gumtuneclient.GumTuneClient;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class TabListUtils {
 
     public static boolean tabListContains(String string) {
-        for (String line : getTabList()) {
-            if (removeFormatting(cleanSB(line)).contains(string)) {
-                return true;
-            }
-        }
-        return false;
+        return tabListContains(string, getTabList());
     }
 
+    // why??
     public static boolean tabListContains(String string, List<String> tabList) {
-        for (String line : tabList) {
-            if (removeFormatting(cleanSB(line)).contains(string)) {
-                return true;
-            }
-        }
-        return false;
+        return tabList.stream().map(line -> removeFormatting(cleanSB(line))).anyMatch(line -> line.contains(string));
     }
 
     public static List<String> getTabList() {
-        ArrayList<String> entries = new ArrayList<>();
-
         if (GumTuneClient.mc.thePlayer != null) {
-            for (NetworkPlayerInfo networkPlayerInfo : GumTuneClient.mc.thePlayer.sendQueue.getPlayerInfoMap()) {
-                entries.add(GumTuneClient.mc.ingameGUI.getTabList().getPlayerName(networkPlayerInfo));
-            }
+            return GumTuneClient.mc.thePlayer.sendQueue.getPlayerInfoMap().stream()
+                    .map(GumTuneClient.mc.ingameGUI.getTabList()::getPlayerName)
+                    .collect(Collectors.toList());
+        } else {
+            return new ArrayList<String>();
         }
 
-        return entries;
     }
 
+    // TODO: This should be used in a lot of places. I saw this function a couple of times already!
     public static String removeFormatting(String input) {
         return input.replaceAll("§[0-9a-fk-or]", "");
     }

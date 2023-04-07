@@ -1,5 +1,6 @@
 package rosegold.gumtuneclient.command;
 
+import cc.polyfrost.oneconfig.libs.checker.units.qual.A;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import cc.polyfrost.oneconfig.utils.commands.annotations.*;
 import com.google.common.collect.Lists;
@@ -26,9 +27,11 @@ import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Command(value = GumTuneClient.MODID, description = "Access the " + GumTuneClient.NAME + " GUI.", aliases = {"gtc"})
@@ -41,33 +44,26 @@ public class MainCommand {
 
     @SubCommand(description = "Copies all entities to clipboard")
     private void allentities() {
-        StringSelection selection = new StringSelection(GumTuneClient.mc.theWorld.loadedEntityList.toString());
-        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        clipboard.setContents(selection, selection);
+        saveToClipoard(GumTuneClient.mc.theWorld.loadedEntityList.toString());
     }
 
     @SubCommand(description = "Copies all entities in range to clipboard")
     private void entities(String arg) {
-        if (!isInteger(arg)) {
+        if (!isInteger(arg))
             ModUtils.sendMessage("Invalid range.");
-        }
         int range = Integer.parseInt(arg);
-        List<Entity> entityList = GumTuneClient.mc.theWorld.loadedEntityList.stream().filter(
+        AtomicInteger entities = new AtomicInteger(0);
+        StringBuilder stringBuilder = new StringBuilder();
+        GumTuneClient.mc.theWorld.loadedEntityList.stream().filter(
                 entity -> entity.getDistanceToEntity(GumTuneClient.mc.thePlayer) <= range
         ).sorted(
                 Comparator.comparingDouble(entity -> entity.getDistanceToEntity(GumTuneClient.mc.thePlayer))
-        ).collect(Collectors.toList());
-
-        StringBuilder stringBuilder = new StringBuilder();
-
-        for (Entity entity : entityList) {
+        ).forEach(entity -> {
             stringBuilder.append(DevUtils.getEntityData(entity));
-        }
-
-        ModUtils.sendMessage("Copied NBT date of " + entityList.size() + " Entities");
-        StringSelection selection = new StringSelection(stringBuilder.toString());
-        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        clipboard.setContents(selection, selection);
+            entities.getAndIncrement();
+        });
+        ModUtils.sendMessage("Copied NBT date of " + entities.get() + " Entities");
+        saveToClipoard(stringBuilder.toString());
     }
 
     @SubCommand(description = "Copies all armorstands to clipboard")
@@ -76,27 +72,23 @@ public class MainCommand {
             ModUtils.sendMessage("Invalid range.");
         }
         int range = Integer.parseInt(arg);
-        List<Entity> entityList = GumTuneClient.mc.theWorld.loadedEntityList.stream().filter(
+        AtomicInteger entities = new AtomicInteger(0);
+        StringBuilder stringBuilder = new StringBuilder();
+        GumTuneClient.mc.theWorld.loadedEntityList.stream().filter(
                 entity -> entity instanceof EntityArmorStand && entity.getDistanceToEntity(GumTuneClient.mc.thePlayer) <= range
         ).sorted(
                 Comparator.comparingDouble(entity -> entity.getDistanceToEntity(GumTuneClient.mc.thePlayer))
-        ).collect(Collectors.toList());
-
-        StringBuilder stringBuilder = new StringBuilder();
-
-        for (Entity entity : entityList) {
+        ).forEach(entity -> {
             stringBuilder.append(DevUtils.getEntityData(entity));
-        }
-
-        ModUtils.sendMessage("Copied NBT date of " + entityList.size() + " Entities");
-        StringSelection selection = new StringSelection(stringBuilder.toString());
-        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        clipboard.setContents(selection, selection);
+            entities.getAndIncrement();
+        });
+        ModUtils.sendMessage("Copied NBT date of " + entities.get() + " Entities");
+        saveToClipoard(stringBuilder.toString());
     }
 
     @SubCommand(description = "Rotate to <yaw, pitch>")
     private void rotate(String pitch, String yaw) {
-        if (pitch == null || !isNumeric(yaw)) {
+        if (pitch == null || !isNumeric(pitch)) {
             ModUtils.sendMessage("&cInvalid pitch: " + pitch);
             return;
         }
@@ -142,10 +134,9 @@ public class MainCommand {
             ChunkProviderClient chunkProvider = (ChunkProviderClient) GumTuneClient.mc.theWorld.getChunkProvider();
             Field chunkListingField = chunkProvider.getClass().getDeclaredField("field_73237_c");
             chunkListingField.setAccessible(true);
-            List<Chunk> chunkList = (List<Chunk>) chunkListingField.get(chunkProvider);
-            for (Chunk chunk : chunkList) {
-                WorldScanner.handleChunkLoad(chunk, WorldScanner.worlds.get(LocationUtils.serverName));
-            }
+            ((List<Chunk>) chunkListingField.get(chunkProvider)).forEach(chunk ->
+                WorldScanner.handleChunkLoad(chunk, WorldScanner.worlds.get(LocationUtils.serverName))
+            );
         } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }
@@ -207,20 +198,13 @@ public class MainCommand {
 
     @SubCommand(description = "copy")
     private void setclipboard(String args) {
-        StringBuilder stringBuilder = new StringBuilder();
-        for (String arg : args.split(";")) {
-            stringBuilder.append(arg).append(" ");
-        }
-        stringBuilder.deleteCharAt(stringBuilder.length() - 1);
-        StringSelection selection = new StringSelection(stringBuilder.toString());
-        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, selection);
+        StringBuilder stringBuilder = new StringBuilder(String.join(" ", args.split(";")));;
+        saveToClipoard(stringBuilder.deleteCharAt(stringBuilder.length() - 1).toString());
     }
 
     @SubCommand(description = "tablist")
     private void tablist() {
-        for (String entry : TabListUtils.getTabList()) {
-            ModUtils.sendMessage(entry);
-        }
+        TabListUtils.getTabList().forEach(ModUtils::sendMessage);
     }
 
     @SubCommandGroup(value = "esp")
@@ -242,9 +226,9 @@ public class MainCommand {
             if (GumTuneClientConfig.customESPForceRecheck) {
                 Object object = ReflectionUtils.field(GumTuneClient.mc.theWorld.getChunkProvider(), "field_73237_c");
                 if (object != null && object.getClass() == Lists.newArrayList().getClass()) {
-                    for (Chunk chunk : (List<Chunk>) object) {
-                        Multithreading.runAsync(() -> ESPs.handleChunkLoad(chunk));
-                    }
+                    ((List<Chunk>) object).forEach(chunk ->
+                            Multithreading.runAsync(() -> ESPs.handleChunkLoad(chunk))
+                    );
                 }
             }
         }
@@ -257,9 +241,9 @@ public class MainCommand {
                 Object object = ReflectionUtils.field(GumTuneClient.mc.theWorld.getChunkProvider(), "field_73237_c");
                 if (object != null && object.getClass() == Lists.newArrayList().getClass()) {
                     System.out.println(object);
-                    for (Chunk chunk : (List<Chunk>) object) {
-                        Multithreading.runAsync(() -> ESPs.handleChunkLoad(chunk));
-                    }
+                    ((List<Chunk>) object).forEach(chunk ->
+                            Multithreading.runAsync(() -> ESPs.handleChunkLoad(chunk))
+                    );
                 }
             }
         }
@@ -286,5 +270,11 @@ public class MainCommand {
             return false;
         }
         return true;
+    }
+
+    private void saveToClipoard(String string){
+        StringSelection selection = new StringSelection(string);
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(selection, selection);
     }
 }

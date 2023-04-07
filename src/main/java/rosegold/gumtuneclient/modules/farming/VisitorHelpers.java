@@ -10,6 +10,7 @@ import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.utils.*;
 import rosegold.gumtuneclient.utils.objects.TimedSet;
 
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -17,12 +18,17 @@ public class VisitorHelpers {
 
     private static long wasFull;
     public static String signText = "";
-    private static String cropName = "";
+    private static String cropName = "", visitorName = "";
     private static int cropAmount = -1;
-    private static String visitorName = "";
     private static Entity visitor;
     private static final TimedSet<String> servedLately = new TimedSet<>(10, TimeUnit.SECONDS, true);
     private static long timestamp = System.currentTimeMillis();
+    private static final HashMap<Integer, Character> chatType = new HashMap<Integer, Character>() {{
+        put(0, 'c');
+        put(1, 'a');
+        put(2, 'p');
+        put(3, 'g');
+    }};
 
     private enum BazaarBuyState {
         IDLE,
@@ -45,11 +51,7 @@ public class VisitorHelpers {
             FontUtils.drawScaledString("Bazaar Buy State: " + bazaarBuyState, 1, 300, 100, true);
             FontUtils.drawScaledString("Crop: " + cropName, 1, 300, 110, true);
             FontUtils.drawScaledString("Amount: " + cropAmount, 1, 300, 120, true);
-            if (visitor == null) {
-                FontUtils.drawScaledString("Visitor: null", 1, 300, 130, true);
-            } else {
-                FontUtils.drawScaledString("Visitor: " + visitor.getCustomNameTag(), 1, 300, 130, true);
-            }
+            FontUtils.drawScaledString("Visitor: " + ((visitor == null) ? "null" : visitor.getCustomNameTag()), 1, 300, 130, true);
         }
     }
 
@@ -58,25 +60,9 @@ public class VisitorHelpers {
         if (event.phase == TickEvent.Phase.START) return;
         if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
         if (GumTuneClient.mc.thePlayer == null) return;
-
         if (GumTuneClientConfig.visitorQueueFullChatMessage) {
             if (System.currentTimeMillis() - wasFull > 300000 && TabListUtils.tabListContains("Queue Full")) {
-                switch (GumTuneClientConfig.visitorQueueFullChatType) {
-                    case 0:
-                        GumTuneClient.mc.thePlayer.sendChatMessage("/cc visitor queue full");
-                        break;
-                    case 1:
-                        GumTuneClient.mc.thePlayer.sendChatMessage("/ac visitor queue full");
-                        break;
-                    case 2:
-                        GumTuneClient.mc.thePlayer.sendChatMessage("/pc visitor queue full");
-                        break;
-                    case 3:
-                        GumTuneClient.mc.thePlayer.sendChatMessage("/gc visitor queue full");
-                        break;
-
-                }
-
+                GumTuneClient.mc.thePlayer.sendChatMessage(String.format("/%cc visitor queue full", chatType.get(GumTuneClientConfig.visitorQueueFullChatType)));
                 wasFull = System.currentTimeMillis();
             }
         }
@@ -98,19 +84,17 @@ public class VisitorHelpers {
                                 GumTuneClient.mc.thePlayer.closeScreen();
                                 return;
                             }
-                            for (Slot slot : GumTuneClient.mc.thePlayer.openContainer.inventorySlots) {
-                                if (slot.getHasStack() && slot.getStack().getDisplayName().contains("Accept Offer")) {
-                                    visitorName = chestName;
-                                    ModUtils.sendMessage("Fulfilling request from visitor " + chestName);
-
-                                    String requirementString = removeFormatting(InventoryUtils.getItemLore(slot.getStack(), 1));
-                                    if (requirementString.contains("x")) {
-                                        String[] split = requirementString.split("x");
-
-                                        buyCrop(split[0].trim(), Integer.parseInt(split[1]));
-                                    }
-                                }
-                            }
+                            GumTuneClient.mc.thePlayer.openContainer.inventorySlots.stream()
+                                    .filter(slot -> slot.getHasStack() && slot.getStack().getDisplayName().contains("Accept Offer"))
+                                    .forEach(slot -> {
+                                        visitorName = chestName;
+                                        ModUtils.sendMessage("Fulfilling request from visitor " + visitorName);
+                                        String requirementString = removeFormatting(InventoryUtils.getItemLore(slot.getStack(), 1));
+                                        if (requirementString.contains("x")) {
+                                            String[] split = requirementString.split("x");
+                                            buyCrop(split[0].trim(), Integer.parseInt(split[1]));
+                                        }
+                                    });
                         }
                         break;
                     case CLICK_SEARCH:
@@ -155,31 +139,30 @@ public class VisitorHelpers {
                         }
                         break;
                     case SETUP_VISITOR_HAND_IN:
-                        Optional<Entity> optional = GumTuneClient.mc.theWorld.loadedEntityList.stream()
+                        GumTuneClient.mc.theWorld.loadedEntityList.stream()
                                 .filter(
                                         entity -> entity.hasCustomName() && removeFormatting(entity.getCustomNameTag()).equals(visitorName)
                                 ).filter(
                                         entity -> entity.getDistanceToEntity(GumTuneClient.mc.thePlayer) < 4
-                                ).findAny();
-                        if (optional.isPresent()) {
-                            visitor = optional.get();
-
-                            bazaarBuyState = BazaarBuyState.OPEN_VISITOR_GUI;
-                            GumTuneClient.mc.thePlayer.closeScreen();
-                        }
+                                ).findAny()
+                                .ifPresent(tempVisitor -> {
+                                    visitor = tempVisitor;
+                                    bazaarBuyState = BazaarBuyState.OPEN_VISITOR_GUI;
+                                    GumTuneClient.mc.thePlayer.closeScreen();
+                                });
                         break;
                     case HAND_IN_CROPS:
                         if (System.currentTimeMillis() - timestamp > 1000) {
-                            for (Slot slot : GumTuneClient.mc.thePlayer.openContainer.inventorySlots) {
-                                if (slot.getHasStack() && slot.getStack().getDisplayName().contains("Accept Offer")) {
-                                    clickSlot(slot.slotNumber, 0);
-                                    servedLately.put(visitorName);
-                                    visitorName = "";
-                                    bazaarBuyState = BazaarBuyState.IDLE;
-                                    visitor = null;
-                                    break;
-                                }
-                            }
+                            GumTuneClient.mc.thePlayer.openContainer.inventorySlots.stream()
+                                    .filter(slot -> slot.getHasStack() && slot.getStack().getDisplayName().contains("Accept Offer"))
+                                    .findFirst()
+                                    .ifPresent(slot -> {
+                                        clickSlot(slot.slotNumber, 0);
+                                        servedLately.put(visitorName);
+                                        visitorName = "";
+                                        bazaarBuyState = BazaarBuyState.IDLE;
+                                        visitor = null;
+                                    });
                         }
                         break;
                 }
