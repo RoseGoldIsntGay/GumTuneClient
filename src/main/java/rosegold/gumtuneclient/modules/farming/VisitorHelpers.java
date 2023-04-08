@@ -194,6 +194,12 @@ public class VisitorHelpers {
     public static void buyCrop(String name, int amount) {
         signText = name;
         cropName = name;
+
+        if (cropName.contains("Lantern")) {
+            ModUtils.sendMessage("Cannot fulfill request for " + cropName + " as it is not purchasable from the bazaar");
+            bazaarBuyState = BazaarBuyState.IDLE;
+            return;
+        }
         cropAmount = amount;
         GumTuneClient.mc.thePlayer.sendChatMessage("/bz");
         bazaarBuyState = BazaarBuyState.CLICK_SEARCH;
