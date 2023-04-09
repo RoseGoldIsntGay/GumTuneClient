@@ -15,3 +15,8 @@ jobs:
           distribution: 'corretto'
       - name: Build with Gradle
         run: ./gradlew build
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifact
+          path: build/libs/
