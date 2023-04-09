@@ -155,23 +155,14 @@ tasks {
         dependsOn(shadowJar)
         archiveClassifier.set("")
         enabled = false
+    }
 
-        project.gradle.addBuildListener(object : BuildListener {
-            override fun settingsEvaluated(settings: Settings) {
-                println("settings evaluated!")
+    build {
+        doLast {
+            copy {
+                from("${project.rootProject.rootDir}/versions/1.8.9-forge/build/libs/${mod_name}-${mod_version}.jar")
+                into("${project.rootProject.rootDir}/artifacts")
             }
-
-            override fun projectsLoaded(gradle: Gradle) {
-                println("loaded!")
-            }
-
-            override fun projectsEvaluated(gradle: Gradle) {
-                println("projects evaluated!")
-            }
-
-            override fun buildFinished(result: BuildResult) {
-                println(jar)
-            }
-        })
+        }
     }
 }
