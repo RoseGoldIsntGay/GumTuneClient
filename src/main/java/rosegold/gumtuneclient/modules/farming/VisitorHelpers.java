@@ -10,8 +10,11 @@ import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.utils.*;
 import rosegold.gumtuneclient.utils.objects.TimedSet;
 
+import java.util.HashMap;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 public class VisitorHelpers {
 
@@ -19,10 +22,19 @@ public class VisitorHelpers {
     public static String signText = "";
     private static String cropName = "";
     private static int cropAmount = -1;
-    private static String visitorName = "";
+    public static String visitorName = "";
     private static Entity visitor;
+    private static boolean rejectOffer = false;
     private static final TimedSet<String> servedLately = new TimedSet<>(10, TimeUnit.SECONDS, true);
     private static long timestamp = System.currentTimeMillis();
+    private static ConcurrentHashMap<String, Integer> cropsToBuy;
+    private static final Pattern pattern = Pattern.compile("^ [\\w ]+", Pattern.CASE_INSENSITIVE);
+    private static final HashMap<Integer, Character> chatType = new HashMap<Integer, Character>() {{
+        put(0, 'c');
+        put(1, 'a');
+        put(2, 'p');
+        put(3, 'g');
+    }};
 
     private enum BazaarBuyState {
         IDLE,
@@ -42,13 +54,30 @@ public class VisitorHelpers {
         if (!GumTuneClientConfig.visitorQuickBuy) return;
         if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
         if (event.type == RenderGameOverlayEvent.ElementType.ALL) {
-            FontUtils.drawScaledString("Bazaar Buy State: " + bazaarBuyState, 1, 300, 100, true);
-            FontUtils.drawScaledString("Crop: " + cropName, 1, 300, 110, true);
-            FontUtils.drawScaledString("Amount: " + cropAmount, 1, 300, 120, true);
-            if (visitor == null) {
-                FontUtils.drawScaledString("Visitor: null", 1, 300, 130, true);
+            FontUtils.drawScaledString("Bazaar Buy State: " + bazaarBuyState, 1, 300, 40, true);
+
+            StringBuilder servedVisitors = new StringBuilder();
+            for (String visitorName : servedLately) {
+                servedVisitors.append(visitorName).append(", ");
+            }
+            if (servedVisitors.length() > 2) {
+                servedVisitors.delete(servedVisitors.length() - 2, servedVisitors.length() - 1);
+            }
+
+            FontUtils.drawScaledString("Visitors served lately: " + servedVisitors, 1, 300, 50, true);
+
+            if (cropsToBuy != null) {
+                StringBuilder futureCrops = new StringBuilder();
+                for (String crop : cropsToBuy.keySet()) {
+                    futureCrops.append(cropsToBuy.get(crop)).append(" ").append(crop).append(", ");
+                }
+                if (futureCrops.length() > 2) {
+                    futureCrops.delete(futureCrops.length() - 2, futureCrops.length() - 1);
+                }
+
+                FontUtils.drawScaledString("Crops to buy: " + futureCrops, 1, 300, 60, true);
             } else {
-                FontUtils.drawScaledString("Visitor: " + visitor.getCustomNameTag(), 1, 300, 130, true);
+                FontUtils.drawScaledString("Crops to buy: ", 1, 300, 60, true);
             }
         }
     }
@@ -61,22 +90,7 @@ public class VisitorHelpers {
 
         if (GumTuneClientConfig.visitorQueueFullChatMessage) {
             if (System.currentTimeMillis() - wasFull > 300000 && TabListUtils.tabListContains("Queue Full")) {
-                switch (GumTuneClientConfig.visitorQueueFullChatType) {
-                    case 0:
-                        GumTuneClient.mc.thePlayer.sendChatMessage("/cc visitor queue full");
-                        break;
-                    case 1:
-                        GumTuneClient.mc.thePlayer.sendChatMessage("/ac visitor queue full");
-                        break;
-                    case 2:
-                        GumTuneClient.mc.thePlayer.sendChatMessage("/pc visitor queue full");
-                        break;
-                    case 3:
-                        GumTuneClient.mc.thePlayer.sendChatMessage("/gc visitor queue full");
-                        break;
-
-                }
-
+                GumTuneClient.mc.thePlayer.sendChatMessage(String.format("/%cc visitor queue full", chatType.get(GumTuneClientConfig.visitorQueueFullChatType)));
                 wasFull = System.currentTimeMillis();
             }
         }
@@ -93,22 +107,39 @@ public class VisitorHelpers {
             if (chestName != null) {
                 switch (bazaarBuyState) {
                     case IDLE:
-                        if (GumTuneClientConfig.visitorQuickBuyMode == 1) {
-                            if (servedLately.contains(chestName)) {
-                                GumTuneClient.mc.thePlayer.closeScreen();
+                        if (cropsToBuy != null && !cropsToBuy.isEmpty() && System.currentTimeMillis() - timestamp > 500) {
+                            for (String crops : cropsToBuy.keySet()) {
+                                buyCrop(crops, cropsToBuy.get(crops));
+                                cropsToBuy.remove(crops);
                                 return;
                             }
+                        }
+
+                        if (servedLately.contains(chestName)) {
+                            GumTuneClient.mc.thePlayer.closeScreen();
+                            return;
+                        }
+                        if (GumTuneClientConfig.visitorQuickBuyMode == 1) {
                             for (Slot slot : GumTuneClient.mc.thePlayer.openContainer.inventorySlots) {
                                 if (slot.getHasStack() && slot.getStack().getDisplayName().contains("Accept Offer")) {
                                     visitorName = chestName;
-                                    ModUtils.sendMessage("Fulfilling request from visitor " + chestName);
 
-                                    String requirementString = removeFormatting(InventoryUtils.getItemLore(slot.getStack(), 1));
-                                    if (requirementString.contains("x")) {
-                                        String[] split = requirementString.split("x");
+                                    ConcurrentHashMap<String, Integer> crops = new ConcurrentHashMap<>();
 
-                                        buyCrop(split[0].trim(), Integer.parseInt(split[1]));
+                                    for (int i = 1; i < 4; i++) {
+                                        String lore = removeFormatting(InventoryUtils.getItemLore(slot.getStack(), i));
+                                        if (pattern.matcher(removeFormatting(lore)).find()) {
+                                            if (lore.contains("x")) {
+                                                String[] split = lore.split("x");
+                                                crops.put(split[0].trim(), Integer.parseInt(split[1].replace(",", "")));
+                                            } else {
+                                                crops.put(lore.trim(), 1);
+                                            }
+                                        }
                                     }
+
+                                    VisitorHelpers.buyCrops(crops);
+                                    return;
                                 }
                             }
                         }
@@ -117,37 +148,49 @@ public class VisitorHelpers {
                         if (chestName.startsWith("Bazaar ➜")) {
                             clickSlot(45, 0);
                             bazaarBuyState = BazaarBuyState.CLICK_CROP;
+                            timestamp = System.currentTimeMillis();
                         }
                         break;
                     case CLICK_CROP:
-                        if (chestName.startsWith("Bazaar ➜ \"")) {
+                        if (System.currentTimeMillis() - timestamp > 750 && chestName.startsWith("Bazaar ➜ \"")) {
                             for (Slot slot : GumTuneClient.mc.thePlayer.openContainer.inventorySlots) {
                                 if (!slot.getHasStack()) continue;
                                 if (removeFormatting(slot.getStack().getDisplayName()).equals(cropName)) {
                                     clickSlot(slot.slotNumber, 0);
                                     bazaarBuyState = BazaarBuyState.CLICK_SIGN;
-                                    break;
+                                    timestamp = System.currentTimeMillis();
+                                    return;
                                 }
                             }
-                        }
-                        break;
-                    case CLICK_SIGN:
-                        if (chestName.startsWith("Bazaar ➜")) {
-                            clickSlot(10, 1);
-                            clickSlot(16, 2);
 
-                            signText = String.valueOf(cropAmount);
-                            bazaarBuyState = BazaarBuyState.CLICK_BUY;
-                        }
-                        break;
-                    case CLICK_BUY:
-                        if (chestName.equals("Confirm Instant Buy")) {
+                            // finished iterating over slots, aka no such product in bazaar
+                            timestamp = System.currentTimeMillis();
                             signText = "";
                             cropAmount = -1;
                             cropName = "";
-                            if (GumTuneClientConfig.visitorQuickBuyMode == 0) {
+                            rejectOffer = true;
+                            bazaarBuyState = BazaarBuyState.SETUP_VISITOR_HAND_IN;
+                        }
+                        break;
+                    case CLICK_SIGN:
+                        if (System.currentTimeMillis() - timestamp > 500 && chestName.contains("➜") && !chestName.contains("Bazaar")) {
+                            clickSlot(10, 0);
+                            clickSlot(16, 1);
+
+                            signText = String.valueOf(cropAmount);
+                            bazaarBuyState = BazaarBuyState.CLICK_BUY;
+                            timestamp = System.currentTimeMillis();
+                        }
+                        break;
+                    case CLICK_BUY:
+                        if (System.currentTimeMillis() - timestamp > 500 && chestName.equals("Confirm Instant Buy")) {
+                            signText = "";
+                            cropAmount = -1;
+                            cropName = "";
+                            if (!cropsToBuy.isEmpty()) {
                                 visitorName = "";
                                 bazaarBuyState = BazaarBuyState.IDLE;
+                                timestamp = System.currentTimeMillis();
                             } else {
                                 bazaarBuyState = BazaarBuyState.SETUP_VISITOR_HAND_IN;
                             }
@@ -155,29 +198,39 @@ public class VisitorHelpers {
                         }
                         break;
                     case SETUP_VISITOR_HAND_IN:
-                        Optional<Entity> optional = GumTuneClient.mc.theWorld.loadedEntityList.stream()
+                        GumTuneClient.mc.theWorld.loadedEntityList.stream()
                                 .filter(
                                         entity -> entity.hasCustomName() && removeFormatting(entity.getCustomNameTag()).equals(visitorName)
                                 ).filter(
                                         entity -> entity.getDistanceToEntity(GumTuneClient.mc.thePlayer) < 4
-                                ).findAny();
-                        if (optional.isPresent()) {
-                            visitor = optional.get();
+                                ).findAny().ifPresent(visitorEntity -> {
+                                    visitor = visitorEntity;
 
-                            bazaarBuyState = BazaarBuyState.OPEN_VISITOR_GUI;
-                            GumTuneClient.mc.thePlayer.closeScreen();
-                        }
+                                    bazaarBuyState = BazaarBuyState.OPEN_VISITOR_GUI;
+                                    GumTuneClient.mc.thePlayer.closeScreen();
+                                });
                         break;
                     case HAND_IN_CROPS:
-                        if (System.currentTimeMillis() - timestamp > 1000) {
+                        if (System.currentTimeMillis() - timestamp > 500) {
                             for (Slot slot : GumTuneClient.mc.thePlayer.openContainer.inventorySlots) {
-                                if (slot.getHasStack() && slot.getStack().getDisplayName().contains("Accept Offer")) {
-                                    clickSlot(slot.slotNumber, 0);
-                                    servedLately.put(visitorName);
-                                    visitorName = "";
-                                    bazaarBuyState = BazaarBuyState.IDLE;
-                                    visitor = null;
-                                    break;
+                                if (rejectOffer) {
+                                    if (slot.getHasStack() && slot.getStack().getDisplayName().contains("Refuse Offer")) {
+                                        clickSlot(slot.slotNumber, 0);
+                                        servedLately.put(visitorName);
+                                        visitorName = "";
+                                        bazaarBuyState = BazaarBuyState.IDLE;
+                                        visitor = null;
+                                        break;
+                                    }
+                                } else {
+                                    if (slot.getHasStack() && slot.getStack().getDisplayName().contains("Accept Offer")) {
+                                        clickSlot(slot.slotNumber, 0);
+                                        servedLately.put(visitorName);
+                                        visitorName = "";
+                                        bazaarBuyState = BazaarBuyState.IDLE;
+                                        visitor = null;
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -191,12 +244,17 @@ public class VisitorHelpers {
         return input.replaceAll("§[0-9a-fk-or]", "");
     }
 
-    public static void buyCrop(String name, int amount) {
+    private static void buyCrop(String name, int amount) {
         signText = name;
         cropName = name;
         cropAmount = amount;
         GumTuneClient.mc.thePlayer.sendChatMessage("/bz");
         bazaarBuyState = BazaarBuyState.CLICK_SEARCH;
+        timestamp = System.currentTimeMillis();
+    }
+
+    public static void buyCrops(ConcurrentHashMap<String, Integer> crops) {
+        cropsToBuy = crops;
     }
 
     private void clickSlot(int slot, int windowAdd) {

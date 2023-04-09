@@ -271,7 +271,7 @@ public class GumTuneClientConfig extends Config {
             name = "Shape",
             category = MINING,
             subcategory = NUKER,
-            options = {"Sphere", "Facing Axis", "Axis Tunnels"}
+            options = {"Sphere", "Facing Axis", "Axis Tunnels", "Triggerbot"}
     )
     public static int nukerShape = 0;
 
@@ -279,7 +279,7 @@ public class GumTuneClientConfig extends Config {
             name = "Algorithm",
             category = MINING,
             subcategory = NUKER,
-            options = {"Closest Block (Classic)", "Smallest Rotation (NEW!)"}
+            options = {"Closest Block (Classic)", "Smallest Rotation"}
     )
     public static int nukerAlgorithm = 0;
 
@@ -691,7 +691,31 @@ public class GumTuneClientConfig extends Config {
             name = "Packet Type",
             category = DEV,
             subcategory = PACKET_LOGGER,
-            options = {"S08PacketPlayerPosLook"}
+            options = {
+                    "C0APacketAnimation",
+                    "C0BPacketEntityAction",
+                    "C0CPacketInput",
+                    "C0DPacketCloseWindow",
+                    "C0EPacketClickWindow",
+                    "C0FPacketConfirmTransaction",
+                    "C00PacketKeepAlive",
+                    "C01PacketChatMessage",
+                    "C02PacketUseEntity",
+                    "C03PacketPlayer",
+                    "C07PacketPlayerDigging",
+                    "C08PacketPlayerBlockPlacement",
+                    "C09PacketHeldItemChange",
+                    "C10PacketCreativeInventoryAction",
+                    "C11PacketEnchantItem",
+                    "C12PacketUpdateSign",
+                    "C13PacketPlayerAbilities",
+                    "C14PacketTabComplete",
+                    "C15PacketClientSettings",
+                    "C16PacketClientStatus",
+                    "C17PacketCustomPayload",
+                    "C18PacketSpectate",
+                    "C19PacketResourcePackStatus"
+            }
     )
     public static int packetLoggerType = 0;
 

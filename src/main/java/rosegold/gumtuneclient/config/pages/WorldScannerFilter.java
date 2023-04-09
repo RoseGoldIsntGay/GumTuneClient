@@ -36,6 +36,12 @@ public class WorldScannerFilter {
     )
     public static boolean worldScannerCHWormFishing = false;
 
+    @Switch(
+            name = "Golden Dragon Nest",
+            description = ""
+    )
+    public static boolean worldScannerCHGoldenDragonNest = false;
+
     @Info(
             text = "Other Scanners",
             type = InfoType.INFO,

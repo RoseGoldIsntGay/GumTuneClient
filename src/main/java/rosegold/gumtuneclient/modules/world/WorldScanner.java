@@ -40,11 +40,13 @@ public class WorldScanner {
         private final ConcurrentHashMap<String, BlockPos> mobSpotWaypoints;
         private final ConcurrentHashMap<BlockPos, Integer> fairyGrottosWaypoints;
         private final ConcurrentHashMap<BlockPos, Integer> wormFishingWaypoints;
+        private final ConcurrentHashMap<BlockPos, Integer> dragonNestWaypoints;
         public World() {
             this.crystalWaypoints = new ConcurrentHashMap<>();
             this.mobSpotWaypoints = new ConcurrentHashMap<>();
             this.fairyGrottosWaypoints = new ConcurrentHashMap<>();
             this.wormFishingWaypoints = new ConcurrentHashMap<>();
+            this.dragonNestWaypoints = new ConcurrentHashMap<>();
         }
 
         public void updateCrystalWaypoints(String name, BlockPos blockPos) {
@@ -77,6 +79,14 @@ public class WorldScanner {
 
         public ConcurrentHashMap<BlockPos, Integer> getWormFishing() {
             return this.wormFishingWaypoints;
+        }
+
+        public void updateDragonNest(BlockPos blockPos) {
+            this.dragonNestWaypoints.put(blockPos, 0);
+        }
+
+        public ConcurrentHashMap<BlockPos, Integer> getDragonNest() {
+            return this.dragonNestWaypoints;
         }
     }
 
@@ -200,6 +210,16 @@ public class WorldScanner {
                     RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.ORANGE.getRGB());
                 if (GumTuneClientConfig.espWaypointText)
                     RenderUtils.renderWaypointText("§6Worm Fishing", blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
+                if (GumTuneClientConfig.espBeacon)
+                    RenderUtils.renderBeacon(blockPos, Color.ORANGE, event.partialTicks);
+            }
+        }
+        if (WorldScannerFilter.worldScannerCHGoldenDragonNest) {
+            for (BlockPos blockPos : currentWorld.getDragonNest().keySet()) {
+                if (GumTuneClientConfig.espHighlight)
+                    RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.ORANGE.getRGB());
+                if (GumTuneClientConfig.espWaypointText)
+                    RenderUtils.renderWaypointText("§6Dragon Nest", blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
                 if (GumTuneClientConfig.espBeacon)
                     RenderUtils.renderBeacon(blockPos, Color.ORANGE, event.partialTicks);
             }
@@ -373,6 +393,18 @@ public class WorldScanner {
                                 currentWorld.updateWormFishing(new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z));
                                 return;
                             }
+                        }
+                    }
+
+                    if (WorldScannerFilter.worldScannerCHGoldenDragonNest && LocationUtils.currentIsland == LocationUtils.Island.CRYSTAL_HOLLOWS) {
+                        if (chunk.getBlock(x, y, z) == Blocks.stone &&
+                                chunk.getBlock(x, y + 1, z) == Blocks.stained_hardened_clay && getBlockState(chunk, x, y + 1, z).getValue(BlockColored.COLOR) == EnumDyeColor.RED &&
+                                chunk.getBlock(x, y + 2, z) == Blocks.stained_hardened_clay && getBlockState(chunk, x, y + 1, z).getValue(BlockColored.COLOR) == EnumDyeColor.RED &&
+                                chunk.getBlock(x, y + 3, z) == Blocks.stained_hardened_clay && getBlockState(chunk, x, y + 1, z).getValue(BlockColored.COLOR) == EnumDyeColor.RED &&
+                                chunk.getBlock(x, y + 4, z) == Blocks.skull &&
+                                chunk.getBlock(x, y + 5, z) == Blocks.wool && getBlockState(chunk, x, y + 1, z).getValue(BlockColored.COLOR) == EnumDyeColor.RED) {
+                            currentWorld.updateMobSpotWaypoints("§6Goblin Campsite", new BlockPos(chunk.xPosition * 16 + x, y - 3, chunk.zPosition * 16 + z + 34));
+                            return;
                         }
                     }
                 }

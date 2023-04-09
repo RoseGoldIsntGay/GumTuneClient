@@ -19,13 +19,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+
 import com.google.common.base.Predicate;
 
 public class SlayerHandler {
     public static Entity currentSlayerBoss;
     public static EntityArmorStand currentSlayerBossBar;
     public static final HashSet<Entity> checked = new HashSet<>();
-    private static final HashMap<String, Predicate<? super Entity>> bosses = new HashMap<String, Predicate<? super Entity>>(){{
+    private static final HashMap<String, Predicate<? super Entity>> bosses = new HashMap<String, Predicate<? super Entity>>() {{
         put("Revenant Horror", o -> o instanceof EntityZombie);
         put("Tarantula Broodfather", o -> o instanceof EntitySpider);
         put("Sven Packmaster", o -> o instanceof EntityWolf);
@@ -38,45 +39,40 @@ public class SlayerHandler {
         if (GumTuneClient.mc.thePlayer == null) return;
         Entity entity = event.entity;
         if (checked.contains(entity)) return;
-        if (entity instanceof EntityArmorStand) {
-            if (entity.hasCustomName()) {
-                List<String> scoreboard = ScoreboardUtils.getScoreboard();
+        List<String> scoreboard = ScoreboardUtils.getScoreboard();
 
-                if (ScoreboardUtils.scoreboardContains("Slay the boss", scoreboard)) {
-                    if (currentSlayerBoss != null && GumTuneClient.mc.theWorld.loadedEntityList.contains(currentSlayerBoss)) {
-                        for (Map.Entry<String, Predicate<? super Entity>> boss : bosses.entrySet()) {
-                            if (ScoreboardUtils.scoreboardContains(boss.getKey(), scoreboard) && entity.getCustomNameTag().contains(boss.getKey()) && Math.abs(entity.posY - currentSlayerBoss.posY) < 1) {
-                                currentSlayerBossBar = (EntityArmorStand) entity;
-                                return;
-                            }
+        if (ScoreboardUtils.scoreboardContains("Slay the boss", scoreboard)) {
+            if (entity instanceof EntityArmorStand && entity.hasCustomName()) {
+                if (currentSlayerBoss != null && GumTuneClient.mc.theWorld.loadedEntityList.contains(currentSlayerBoss)) {
+                    for (Map.Entry<String, Predicate<? super Entity>> boss : bosses.entrySet()) {
+                        if (ScoreboardUtils.scoreboardContains(boss.getKey(), scoreboard) && entity.getCustomNameTag().contains(boss.getKey()) && entity.getDistanceToEntity(currentSlayerBoss) < 4) {
+                            currentSlayerBossBar = (EntityArmorStand) entity;
+                            return;
                         }
                     }
+                }
 
-                    if (removeFormatting(entity.getCustomNameTag()).equals("Spawned by: " + GumTuneClient.mc.thePlayer.getName())) {
-                        List<Entity> possibleSlayerBosses = entity.getEntityWorld().getEntitiesInAABBexcluding(entity, entity.getEntityBoundingBox().expand(0, 2, 0), e -> (!(e instanceof EntityArmorStand) && !(e instanceof EntityPlayer)));
-
-                        for (Map.Entry<String, Predicate<? super Entity>> boss : bosses.entrySet()) {
-                            if (ScoreboardUtils.scoreboardContains(boss.getKey(), scoreboard)) {
-                                possibleSlayerBosses = entity.getEntityWorld().getEntitiesInAABBexcluding(entity, entity.getEntityBoundingBox().expand(0, 2, 0), boss.getValue());
+                if (removeFormatting(entity.getCustomNameTag()).equals("Spawned by: " + GumTuneClient.mc.thePlayer.getName())) {
+                    for (Map.Entry<String, Predicate<? super Entity>> boss : bosses.entrySet()) {
+                        if (ScoreboardUtils.scoreboardContains(boss.getKey(), scoreboard)) {
+                            List<Entity> possibleSlayerBosses = entity.getEntityWorld().getEntitiesInAABBexcluding(entity, entity.getEntityBoundingBox().expand(0, 2, 0), boss.getValue());
+                            if (!possibleSlayerBosses.isEmpty()) {
+                                currentSlayerBoss = possibleSlayerBosses.get(0);
+                                checked.add(currentSlayerBoss);
                             }
-                        }
-
-                        if (!possibleSlayerBosses.isEmpty()) {
-                            currentSlayerBoss = possibleSlayerBosses.get(0);
-                            checked.add(currentSlayerBoss);
                         }
                     }
                 }
             }
-        }
 
-        checked.add(entity);
+            checked.add(entity);
+        }
     }
 
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
         if (GumTuneClient.mc.thePlayer == null) return;
-        if (GumTuneClient.mc.thePlayer.ticksExisted % 40 == 0) {
+        if (GumTuneClient.mc.thePlayer.ticksExisted % 20 == 0) {
             checked.clear();
         }
     }

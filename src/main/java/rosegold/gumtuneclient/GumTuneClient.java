@@ -39,11 +39,13 @@ import rosegold.gumtuneclient.utils.BlockUtils;
 import rosegold.gumtuneclient.utils.LocationUtils;
 import rosegold.gumtuneclient.utils.RenderUtils;
 import rosegold.gumtuneclient.utils.RotationUtils;
+import rosegold.gumtuneclient.utils.objects.ModuleArrayList;
 
 import java.awt.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -60,34 +62,36 @@ public class GumTuneClient {
     public GumTuneClientConfig config;
     public static Minecraft mc = Minecraft.getMinecraft();
 
-    private final List<Object> modules = new ArrayList<>();
+    private final ModuleArrayList<Object> modules = new ModuleArrayList<>();
     private boolean login = false;
     public static boolean debug = false;
 
     public GumTuneClient() {
-        modules.add(new PowderChestSolver());
-        modules.add(new AutoHarp());
-        modules.add(new ESPs());
-        modules.add(new CropPlacer());
-        modules.add(new Nuker());
-        modules.add(new LocationUtils());
-        modules.add(new RotationUtils());
-        modules.add(new MobMacro());
-        modules.add(new WorldScanner());
-        modules.add(new PathFinding());
-        modules.add(new AspectOfTheVoid());
-        modules.add(new MetalDetectorSolver());
-        modules.add(new AvoidBreakingCrops());
-        modules.add(new AutoSell());
-        modules.add(new FairySoulAura());
-        modules.add(new AutoMaddox());
-        modules.add(new PacketLogger());
-        modules.add(new PreventRenderingCrops());
-        modules.add(new RevealHiddenMobs());
-        modules.add(new CopyNBTData());
-        modules.add(new SlayerHandler());
-        modules.add(new HighlightSlayerBoss());
-        modules.add(new VisitorHelpers());
+        modules.addAll(
+                new PowderChestSolver(),
+                new AutoHarp(),
+                new ESPs(),
+                new CropPlacer(),
+                new Nuker(),
+                new LocationUtils(),
+                new RotationUtils(),
+                new MobMacro(),
+                new WorldScanner(),
+                new PathFinding(),
+                new AspectOfTheVoid(),
+                new MetalDetectorSolver(),
+                new AvoidBreakingCrops(),
+                new AutoSell(),
+                new FairySoulAura(),
+                new AutoMaddox(),
+                new PacketLogger(),
+                new PreventRenderingCrops(),
+                new RevealHiddenMobs(),
+                new CopyNBTData(),
+                new SlayerHandler(),
+                new HighlightSlayerBoss(),
+                new VisitorHelpers()
+        );
     }
 
     @Mod.EventHandler

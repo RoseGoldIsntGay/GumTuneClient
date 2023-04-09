@@ -122,11 +122,7 @@ public class Nuker {
 
         if (event.timestamp - lastBroken > 1000f / GumTuneClientConfig.nukerSpeed) {
             lastBroken = event.timestamp;
-            if (GumTuneClientConfig.nukerShape == 1) {
-                if (broken.size() > 6) broken.clear();
-            } else {
-                if (broken.size() > GumTuneClientConfig.nukerPinglessCutoff) broken.clear();
-            }
+            if (broken.size() > GumTuneClientConfig.nukerPinglessCutoff) broken.clear();
 
             if (GumTuneClientConfig.mineBlocksInFront) {
                 blockPos = blockInFront();
@@ -240,6 +236,20 @@ public class Nuker {
         return (GumTuneClientConfig.powderChestPauseNukerMode != 1 || PowderChestSolver.particle == null) && enabled && GumTuneClientConfig.nuker && GumTuneClient.mc.thePlayer != null && GumTuneClient.mc.theWorld != null;
     }
 
+    private boolean isLookingAtBlock(BlockPos blockPos) {
+        AxisAlignedBB aabb = AxisAlignedBB.fromBounds(blockPos.getX(), blockPos.getY(), blockPos.getZ(), blockPos.getX() + 1, blockPos.getY() + 1, blockPos.getZ() + 1);
+        Vec3 position = GumTuneClient.mc.thePlayer.getPositionEyes(1f);
+        Vec3 look = VectorUtils.scaleVec(GumTuneClient.mc.thePlayer.getLook(1f), 0.2f);
+        for (int i = 0; i < 25; i++) {
+            if (aabb.minX <= position.xCoord && aabb.maxX >= position.xCoord && aabb.minY <= position.yCoord && aabb.maxY >= position.yCoord && aabb.minZ <= position.zCoord && aabb.maxZ >= position.zCoord) {
+                return true;
+            }
+            position = position.add(look);
+        }
+
+        return false;
+    }
+
     private BlockPos blockInFront() {
         EntityPlayerSP player = GumTuneClient.mc.thePlayer;
         BlockPos playerPos = new BlockPos((int) Math.floor(player.posX), (int) Math.floor(player.posY), (int) Math.floor(player.posZ));
@@ -308,6 +318,8 @@ public class Nuker {
                     }
 
                     return false;
+                case 3:
+                    return isLookingAtBlock(blockPos);
             }
 
             return true;

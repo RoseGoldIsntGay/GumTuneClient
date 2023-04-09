@@ -41,9 +41,7 @@ public class MainCommand {
 
     @SubCommand(description = "Copies all entities to clipboard")
     private void allentities() {
-        StringSelection selection = new StringSelection(GumTuneClient.mc.theWorld.loadedEntityList.toString());
-        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        clipboard.setContents(selection, selection);
+        saveToClipoard(GumTuneClient.mc.theWorld.loadedEntityList.toString());
     }
 
     @SubCommand(description = "Copies all entities in range to clipboard")
@@ -65,9 +63,7 @@ public class MainCommand {
         }
 
         ModUtils.sendMessage("Copied NBT date of " + entityList.size() + " Entities");
-        StringSelection selection = new StringSelection(stringBuilder.toString());
-        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        clipboard.setContents(selection, selection);
+        saveToClipoard(stringBuilder.toString());
     }
 
     @SubCommand(description = "Copies all armorstands to clipboard")
@@ -89,9 +85,7 @@ public class MainCommand {
         }
 
         ModUtils.sendMessage("Copied NBT date of " + entityList.size() + " Entities");
-        StringSelection selection = new StringSelection(stringBuilder.toString());
-        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        clipboard.setContents(selection, selection);
+        saveToClipoard(stringBuilder.toString());
     }
 
     @SubCommand(description = "Rotate to <yaw, pitch>")
@@ -212,8 +206,7 @@ public class MainCommand {
             stringBuilder.append(arg).append(" ");
         }
         stringBuilder.deleteCharAt(stringBuilder.length() - 1);
-        StringSelection selection = new StringSelection(stringBuilder.toString());
-        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, selection);
+        saveToClipoard(stringBuilder.toString());
     }
 
     @SubCommand(description = "tablist")
@@ -268,6 +261,12 @@ public class MainCommand {
         private void reset() {
             ESPs.blockEsp.clear();
         }
+    }
+
+    private void saveToClipoard(String string){
+        StringSelection selection = new StringSelection(string);
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(selection, selection);
     }
 
     private boolean isNumeric(String str) {
