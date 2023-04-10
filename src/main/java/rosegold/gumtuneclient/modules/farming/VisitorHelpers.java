@@ -159,6 +159,7 @@ public class VisitorHelpers {
                                     clickSlot(slot.slotNumber, 0);
                                     bazaarBuyState = BazaarBuyState.CLICK_SIGN;
                                     timestamp = System.currentTimeMillis();
+                                    rejectOffer = false;
                                     return;
                                 }
                             }

@@ -127,12 +127,6 @@ public class WorldScanner {
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) throws IllegalAccessException {
         if (GumTuneClient.mc.theWorld == null || GumTuneClient.mc.thePlayer == null) return;
-        if (!lastBoolean) {
-            lastBoolean = GumTuneClientConfig.worldScanner;
-            if (lastBoolean) {
-                ModUtils.sendMessage("&cNote that bal can only be found after the temple is found!");
-            }
-        }
         if (!GumTuneClientConfig.worldScanner) return;
         if (event.phase == TickEvent.Phase.START) return;
         if (cooldown > 0) {
@@ -292,7 +286,7 @@ public class WorldScanner {
                             return;
                         }
                         // balls
-                        if (y < 80 && chunk.getBlock(x, y, z) == Blocks.barrier &&
+                        if (y < 80 && chunk.getBlock(x, y, z) == Blocks.lava &&
                                 chunk.getBlock(x, y + 1, z) == Blocks.barrier &&
                                 chunk.getBlock(x, y + 2, z) == Blocks.barrier &&
                                 chunk.getBlock(x, y + 3, z) == Blocks.barrier &&
@@ -302,9 +296,7 @@ public class WorldScanner {
                                 chunk.getBlock(x, y + 7, z) == Blocks.barrier &&
                                 chunk.getBlock(x, y + 8, z) == Blocks.barrier &&
                                 chunk.getBlock(x, y + 9, z) == Blocks.barrier &&
-                                chunk.getBlock(x, y + 10, z) == Blocks.barrier &&
-                                currentWorld.getCrystalWaypoints().containsKey("§5Temple Crystal") &&
-                                distance(new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z), currentWorld.getCrystalWaypoints().get("§5Temple Crystal")) > 25) {
+                                chunk.getBlock(x, y + 10, z) == Blocks.barrier) {
                             sendCoordsMessage("§6Bal", chunk.xPosition * 16 + x + 1, y - 1, chunk.zPosition * 16 + z + 2);
                             addToSkytilsMap("§6Bal", chunk.xPosition * 16 + x + 1, y - 1, chunk.zPosition * 16 + z + 2);
                             currentWorld.updateCrystalWaypoints("§6Bal", new BlockPos(chunk.xPosition * 16 + x + 1, y - 1, chunk.zPosition * 16 + z + 2));
