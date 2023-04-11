@@ -189,12 +189,11 @@ public class VisitorHelpers {
                             cropAmount = -1;
                             cropName = "";
                             if (!cropsToBuy.isEmpty()) {
-                                visitorName = "";
                                 bazaarBuyState = BazaarBuyState.IDLE;
-                                timestamp = System.currentTimeMillis();
                             } else {
                                 bazaarBuyState = BazaarBuyState.SETUP_VISITOR_HAND_IN;
                             }
+                            timestamp = System.currentTimeMillis();
                             clickSlot(13, 0);
                         }
                         break;
@@ -210,6 +209,11 @@ public class VisitorHelpers {
                                     bazaarBuyState = BazaarBuyState.OPEN_VISITOR_GUI;
                                     GumTuneClient.mc.thePlayer.closeScreen();
                                 });
+                        if (System.currentTimeMillis() - timestamp > 3000) {
+                            ModUtils.sendMessage("Took longer than 3 seconds to find the visitor entity, did you move too far away from it?");
+                            visitorName = "";
+                            bazaarBuyState = BazaarBuyState.IDLE;
+                        }
                         break;
                     case HAND_IN_CROPS:
                         if (System.currentTimeMillis() - timestamp > 500) {
