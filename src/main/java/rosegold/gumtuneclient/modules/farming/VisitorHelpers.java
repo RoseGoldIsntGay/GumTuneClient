@@ -54,7 +54,7 @@ public class VisitorHelpers {
         if (!GumTuneClientConfig.visitorQuickBuy) return;
         if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
         if (event.type == RenderGameOverlayEvent.ElementType.ALL) {
-            FontUtils.drawScaledString("Bazaar Buy State: " + bazaarBuyState, 1, 300, 40, true);
+            FontUtils.drawScaledString("Bazaar Buy State: " + bazaarBuyState, 1, 40, 40, true);
 
             StringBuilder servedVisitors = new StringBuilder();
             for (String visitorName : servedLately) {
@@ -64,7 +64,7 @@ public class VisitorHelpers {
                 servedVisitors.delete(servedVisitors.length() - 2, servedVisitors.length() - 1);
             }
 
-            FontUtils.drawScaledString("Visitors served lately: " + servedVisitors, 1, 300, 50, true);
+            FontUtils.drawScaledString("Visitors served lately: " + servedVisitors, 1, 40, 50, true);
 
             if (cropsToBuy != null) {
                 StringBuilder futureCrops = new StringBuilder();
@@ -75,9 +75,9 @@ public class VisitorHelpers {
                     futureCrops.delete(futureCrops.length() - 2, futureCrops.length() - 1);
                 }
 
-                FontUtils.drawScaledString("Crops to buy: " + futureCrops, 1, 300, 60, true);
+                FontUtils.drawScaledString("Crops to buy: " + futureCrops, 1, 40, 60, true);
             } else {
-                FontUtils.drawScaledString("Crops to buy: ", 1, 300, 60, true);
+                FontUtils.drawScaledString("Crops to buy: ", 1, 40, 60, true);
             }
         }
     }
@@ -129,11 +129,12 @@ public class VisitorHelpers {
                                     for (int i = 1; i < 4; i++) {
                                         String lore = InventoryUtils.getItemLore(slot.getStack(), i);
                                         if (lore != null && pattern.matcher(removeFormatting(lore)).find()) {
-                                            if (lore.contains("x")) {
-                                                String[] split = lore.split("x");
+                                            String cleanLore = removeFormatting(lore);
+                                            if (cleanLore.contains("x")) {
+                                                String[] split = cleanLore.split("x");
                                                 crops.put(split[0].trim(), Integer.parseInt(split[1].replace(",", "")));
                                             } else {
-                                                crops.put(lore.trim(), 1);
+                                                crops.put(cleanLore.trim(), 1);
                                             }
                                         }
                                     }

@@ -31,11 +31,12 @@ public class MixinGuiContainer {
             for (int i = 1; i < 5; i++) {
                 String lore = InventoryUtils.getItemLore(slotIn.getStack(), i);
                 if (lore != null && pattern.matcher(removeFormatting(lore)).find()) {
-                    if (lore.contains("x")) {
-                        String[] split = lore.split("x");
+                    String cleanLore = removeFormatting(lore);
+                    if (cleanLore.contains("x")) {
+                        String[] split = cleanLore.split("x");
                         crops.put(split[0].trim(), Integer.parseInt(split[1].replace(",", "")));
                     } else {
-                        crops.put(lore.trim(), 1);
+                        crops.put(cleanLore.trim(), 1);
                     }
                 }
             }

@@ -38,16 +38,6 @@ public class AutoSell {
     private boolean soldSomething = false;
 
     @SubscribeEvent
-    public void onOverlayRender(RenderGameOverlayEvent.Post event) {
-        if (GumTuneClient.mc.thePlayer == null) return;
-        if (!GumTuneClientConfig.autoSell) return;
-        if (!LocationUtils.onSkyblock) return;
-        if (event.type == RenderGameOverlayEvent.ElementType.ALL) {
-            FontUtils.drawScaledString("Auto Sell State: " + autoSellState, 1, 40, 40, true);
-        }
-    }
-
-    @SubscribeEvent
     public void onSecond(SecondEvent event) {
         if (GumTuneClient.mc.thePlayer == null) return;
         if (!GumTuneClientConfig.autoSell) return;
