@@ -15,7 +15,7 @@ public class MobxDrill {
         if (currentItemHittingBlock != null && itemstack != null) {
             if (GumTuneClientConfig.cancelClientItemUpdates && itemstack.getTagCompound() != null) {
                 String lore = InventoryUtils.getItemLore(itemstack);
-                if (lore.contains("GAUNTLET") || lore.contains("DRILL") || lore.contains("PICKAXE")) {
+                if (lore != null && (lore.contains("GAUNTLET") || lore.contains("DRILL") || lore.contains("PICKAXE"))) {
                     return blockPos.equals(currentBlock) &&
                             itemstack.getItem() == currentItemHittingBlock.getItem();
                 }

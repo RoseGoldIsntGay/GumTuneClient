@@ -127,8 +127,8 @@ public class VisitorHelpers {
                                     ConcurrentHashMap<String, Integer> crops = new ConcurrentHashMap<>();
 
                                     for (int i = 1; i < 4; i++) {
-                                        String lore = removeFormatting(InventoryUtils.getItemLore(slot.getStack(), i));
-                                        if (pattern.matcher(removeFormatting(lore)).find()) {
+                                        String lore = InventoryUtils.getItemLore(slot.getStack(), i);
+                                        if (lore != null && pattern.matcher(removeFormatting(lore)).find()) {
                                             if (lore.contains("x")) {
                                                 String[] split = lore.split("x");
                                                 crops.put(split[0].trim(), Integer.parseInt(split[1].replace(",", "")));

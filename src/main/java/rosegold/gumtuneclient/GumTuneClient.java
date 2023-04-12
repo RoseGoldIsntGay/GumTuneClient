@@ -35,13 +35,11 @@ import rosegold.gumtuneclient.modules.slayer.HighlightSlayerBoss;
 import rosegold.gumtuneclient.modules.slayer.SlayerHandler;
 import rosegold.gumtuneclient.modules.world.CropPlacer;
 import rosegold.gumtuneclient.modules.world.WorldScanner;
-import rosegold.gumtuneclient.utils.BlockUtils;
-import rosegold.gumtuneclient.utils.LocationUtils;
-import rosegold.gumtuneclient.utils.RenderUtils;
-import rosegold.gumtuneclient.utils.RotationUtils;
+import rosegold.gumtuneclient.utils.*;
 import rosegold.gumtuneclient.utils.objects.ModuleArrayList;
 
 import java.awt.*;
+import java.io.File;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -65,6 +63,7 @@ public class GumTuneClient {
     private final ModuleArrayList<Object> modules = new ModuleArrayList<>();
     private boolean login = false;
     public static boolean debug = false;
+    private boolean failedCreatingConfig = false;
 
     public GumTuneClient() {
         modules.addAll(
@@ -96,6 +95,12 @@ public class GumTuneClient {
 
     @Mod.EventHandler
     public void preFMLInitialization(FMLPreInitializationEvent event) {
+        File configDirectory = new File(event.getModConfigurationDirectory(), MODID);
+        if (!configDirectory.exists() && !configDirectory.mkdir()) {
+            failedCreatingConfig = true;
+        }
+
+        AutoSell.loadConfig();
     }
 
     @Mod.EventHandler
@@ -132,6 +137,9 @@ public class GumTuneClient {
     }
 
     private void initialize() {
+        if (failedCreatingConfig) {
+            ModUtils.sendMessage("Failed creating a config directory, some configuration options will not persist!");
+        }
     }
 
     private void registerModule(Object obj) {

@@ -2,6 +2,8 @@ package rosegold.gumtuneclient.utils;
 
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.common.util.Constants;
 import rosegold.gumtuneclient.GumTuneClient;
 
 public class InventoryUtils {
@@ -19,10 +21,31 @@ public class InventoryUtils {
     }
 
     public static String getItemLore(ItemStack itemStack) {
-        return itemStack.getTagCompound().getCompoundTag("display").getTagList("Lore", 8).toString();
+        if (itemStack.hasTagCompound()) {
+            return itemStack.getTagCompound().getCompoundTag("display").getTagList("Lore", 8).toString();
+        }
+        return null;
     }
 
     public static String getItemLore(ItemStack itemStack, int index) {
-        return itemStack.getTagCompound().getCompoundTag("display").getTagList("Lore", 8).getStringTagAt(index);
+        if (itemStack.hasTagCompound()) {
+            return itemStack.getTagCompound().getCompoundTag("display").getTagList("Lore", 8).getStringTagAt(index);
+        }
+        return null;
+    }
+
+    public static String getSkyBlockItemId(ItemStack itemStack) {
+        NBTTagCompound extraAttributes = getExtraAttributes(itemStack);
+        if (extraAttributes != null && extraAttributes.hasKey("id", 8)) {
+            return extraAttributes.getString("id");
+        }
+        return null;
+    }
+
+    public static NBTTagCompound getExtraAttributes(ItemStack itemStack) {
+        if (itemStack.hasTagCompound()) {
+            return itemStack.getTagCompound().getCompoundTag("ExtraAttributes");
+        }
+        return null;
     }
 }

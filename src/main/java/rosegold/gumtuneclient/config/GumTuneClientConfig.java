@@ -12,6 +12,7 @@ import cc.polyfrost.oneconfig.libs.universal.UKeyboard;
 import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.config.pages.*;
 import rosegold.gumtuneclient.huds.SlayerHud;
+import rosegold.gumtuneclient.modules.player.AutoSell;
 
 public class GumTuneClientConfig extends Config {
 
@@ -609,12 +610,76 @@ public class GumTuneClientConfig extends Config {
     public static boolean autoSell = false;
 
     @Slider(
-            name = "Auto Open Trades At Inventory Filled %",
+            name = "Auto Sell At Inventory Filled %",
             category = PLAYER,
             subcategory = AUTO_SELL,
             min = 0, max = 100
     )
-    public static int autoSellOpenTradesInventoryFull = 100;
+    public static int autoSellInventoryFullness = 100;
+
+    @KeyBind(
+            name = "Execute Auto Sell",
+            category = PLAYER,
+            subcategory = AUTO_SELL,
+            size = 2
+    )
+    public static OneKeyBind executeAutoSellKeybind = new OneKeyBind(UKeyboard.KEY_NONE);
+
+    @Dropdown(
+            name = "Auto Sell Mode",
+            category = PLAYER,
+            subcategory = AUTO_SELL,
+            options = {"Bazaar Only", "Trades Only", "Bazaar Then Trades"}
+    )
+    public static int autoSellMode = 0;
+
+    @Text(
+            name = "Item Filter",
+            placeholder = "SkyBlock Item IDs, separated by a - \", \"",
+            category = PLAYER,
+            subcategory = AUTO_SELL,
+            multiline = true
+    )
+    public static String autoSellItemFilter = "";
+
+    @Slider(
+            name = "Sell Delay",
+            category = PLAYER,
+            subcategory = AUTO_SELL,
+            min = 0, max = 1000
+    )
+    public static int autoSellClickDelay = 200;
+
+    @KeyBind(
+            name = "Add Item To Filter Keybind",
+            category = PLAYER,
+            subcategory = AUTO_SELL,
+            size = 2
+    )
+    public static OneKeyBind addItemToAutoSellFilter = new OneKeyBind(UKeyboard.KEY_NONE);
+
+    @Info(
+            text = "Passive Mode will disable opening the bazaar / trades menu, instead it will sell in trades menu when you open it manually",
+            category = PLAYER,
+            subcategory = AUTO_SELL,
+            type = InfoType.INFO,
+            size = 2
+    )
+    public static boolean passiveModeInfoIgnored;
+
+    @Switch(
+            name = "Passive Mode",
+            category = PLAYER,
+            subcategory = AUTO_SELL
+    )
+    public static boolean autoSellPassiveMode = false;
+
+    @Switch(
+            name = "Passive Mode Close Trades",
+            category = PLAYER,
+            subcategory = AUTO_SELL
+    )
+    public static boolean autoSellPassiveModeCloseTrades = false;
 
     @Switch(
             name = "Fairy Soul Aura",
@@ -802,6 +867,10 @@ public class GumTuneClientConfig extends Config {
         registerKeyBind(nukerKeyBind, () -> {});
         registerKeyBind(mobMacroKeyBind, () -> {});
         registerKeyBind(copyNBTDataKeyBind, () -> {});
+        registerKeyBind(addItemToAutoSellFilter, () -> {});
+        registerKeyBind(executeAutoSellKeybind, () -> {
+            AutoSell.autoSell();
+        });
         initialize();
     }
 }

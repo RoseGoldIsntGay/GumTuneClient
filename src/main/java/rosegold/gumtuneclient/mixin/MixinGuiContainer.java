@@ -29,8 +29,8 @@ public class MixinGuiContainer {
             ConcurrentHashMap<String, Integer> crops = new ConcurrentHashMap<>();
 
             for (int i = 1; i < 5; i++) {
-                String lore = removeFormatting(InventoryUtils.getItemLore(slotIn.getStack(), i));
-                if (pattern.matcher(removeFormatting(lore)).find()) {
+                String lore = InventoryUtils.getItemLore(slotIn.getStack(), i);
+                if (lore != null && pattern.matcher(removeFormatting(lore)).find()) {
                     if (lore.contains("x")) {
                         String[] split = lore.split("x");
                         crops.put(split[0].trim(), Integer.parseInt(split[1].replace(",", "")));
