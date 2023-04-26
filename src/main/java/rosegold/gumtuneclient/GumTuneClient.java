@@ -107,7 +107,7 @@ public class GumTuneClient {
 
     @Mod.EventHandler
     public void onFMLInitialization(FMLInitializationEvent event) {
-        CommunistScanners.INSTANCE.init(new StructureCallBack() {
+        CommunistScanners.init(new StructureCallBack() {
             @Override
             public void newStructure(@NotNull String server, @NotNull String name, @NotNull BlockPos blockPos) {
                 WorldScanner.World world = WorldScanner.worlds.get(server);

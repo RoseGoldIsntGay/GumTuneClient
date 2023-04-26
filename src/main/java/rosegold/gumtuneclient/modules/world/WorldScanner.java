@@ -70,7 +70,7 @@ public class WorldScanner {
         }
 
         public void updateCrystalWaypoints(String name, BlockPos blockPos) {
-            CommunistScanners.INSTANCE.addStructure(serverName, name, blockPos, GumTuneClient.mc.theWorld.getWorldTime());
+            CommunistScanners.addStructure(serverName, name, blockPos, GumTuneClient.mc.theWorld.getWorldTime());
             this.crystalWaypoints.put(name, blockPos);
         }
 
@@ -79,7 +79,7 @@ public class WorldScanner {
         }
 
         public void updateMobSpotWaypoints(String name, BlockPos blockPos) {
-            CommunistScanners.INSTANCE.addStructure(serverName, "GTC Mob " + name, blockPos, GumTuneClient.mc.theWorld.getWorldTime());
+            CommunistScanners.addStructure(serverName, "GTC Mob " + name, blockPos, GumTuneClient.mc.theWorld.getWorldTime());
             this.mobSpotWaypoints.put(name, blockPos);
         }
 
@@ -88,7 +88,7 @@ public class WorldScanner {
         }
 
         public void updateFairyGrottos(BlockPos blockPos) {
-            CommunistScanners.INSTANCE.addStructure(serverName, "GTC Fairy Grotto", blockPos, GumTuneClient.mc.theWorld.getWorldTime());
+            CommunistScanners.addStructure(serverName, "GTC Fairy Grotto", blockPos, GumTuneClient.mc.theWorld.getWorldTime());
             this.fairyGrottosWaypoints.put(blockPos, 0);
         }
 
@@ -97,7 +97,7 @@ public class WorldScanner {
         }
 
         public void updateWormFishing(BlockPos blockPos) {
-            CommunistScanners.INSTANCE.addStructure(serverName, "GTC Worm Fishing", blockPos, GumTuneClient.mc.theWorld.getWorldTime());
+            CommunistScanners.addStructure(serverName, "GTC Worm Fishing", blockPos, GumTuneClient.mc.theWorld.getWorldTime());
             this.wormFishingWaypoints.put(blockPos, 0);
         }
 
@@ -106,7 +106,7 @@ public class WorldScanner {
         }
 
         public void updateDragonNest(BlockPos blockPos) {
-            CommunistScanners.INSTANCE.addStructure(serverName, "GTC Dragon Nest", blockPos, GumTuneClient.mc.theWorld.getWorldTime());
+            CommunistScanners.addStructure(serverName, "GTC Dragon Nest", blockPos, GumTuneClient.mc.theWorld.getWorldTime());
             this.dragonNestWaypoints.put(blockPos, 0);
         }
 
