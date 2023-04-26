@@ -2,9 +2,12 @@ package rosegold.gumtuneclient.modules.world;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.google.common.collect.Lists;
-import net.minecraft.block.*;
+import me.cephetir.communistscanner.CommunistScanners;
+import net.minecraft.block.BlockColored;
+import net.minecraft.block.BlockPlanks;
+import net.minecraft.block.BlockSlab;
+import net.minecraft.block.BlockStone;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.command.ICommandSender;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
@@ -15,7 +18,6 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
-import net.minecraftforge.client.model.ForgeBlockStateV1;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -23,25 +25,30 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.config.pages.WorldScannerFilter;
-import rosegold.gumtuneclient.utils.*;
+import rosegold.gumtuneclient.utils.LocationUtils;
+import rosegold.gumtuneclient.utils.ReflectionUtils;
+import rosegold.gumtuneclient.utils.RenderUtils;
 
 import java.awt.*;
-import java.util.*;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class WorldScanner {
 
     public static class World {
+        private final String serverName;
         private final ConcurrentHashMap<String, BlockPos> crystalWaypoints;
         private final ConcurrentHashMap<String, BlockPos> mobSpotWaypoints;
         private final ConcurrentHashMap<BlockPos, Integer> fairyGrottosWaypoints;
         private final ConcurrentHashMap<BlockPos, Integer> wormFishingWaypoints;
         private final ConcurrentHashMap<BlockPos, Integer> dragonNestWaypoints;
-        public World() {
+        public World(String serverName) {
+            this.serverName = serverName;
             this.crystalWaypoints = new ConcurrentHashMap<>();
             this.mobSpotWaypoints = new ConcurrentHashMap<>();
             this.fairyGrottosWaypoints = new ConcurrentHashMap<>();
@@ -49,7 +56,21 @@ public class WorldScanner {
             this.dragonNestWaypoints = new ConcurrentHashMap<>();
         }
 
+        public void addWaypoint(String name, BlockPos blockPos) {
+            if (name.startsWith("GTC ")) {
+                if (name.contains(" Mob "))
+                    mobSpotWaypoints.put(name, blockPos);
+                else if (name.contains("Fairy Grotto"))
+                    fairyGrottosWaypoints.put(blockPos, 0);
+                else if (name.contains("Worm Fishing"))
+                    wormFishingWaypoints.put(blockPos, 0);
+                else if (name.contains("Dragon Nest"))
+                    dragonNestWaypoints.put(blockPos, 0);
+            } else crystalWaypoints.put(name, blockPos);
+        }
+
         public void updateCrystalWaypoints(String name, BlockPos blockPos) {
+            CommunistScanners.INSTANCE.addStructure(serverName, name, blockPos, GumTuneClient.mc.theWorld.getWorldTime());
             this.crystalWaypoints.put(name, blockPos);
         }
 
@@ -58,6 +79,7 @@ public class WorldScanner {
         }
 
         public void updateMobSpotWaypoints(String name, BlockPos blockPos) {
+            CommunistScanners.INSTANCE.addStructure(serverName, "GTC Mob " + name, blockPos, GumTuneClient.mc.theWorld.getWorldTime());
             this.mobSpotWaypoints.put(name, blockPos);
         }
 
@@ -66,6 +88,7 @@ public class WorldScanner {
         }
 
         public void updateFairyGrottos(BlockPos blockPos) {
+            CommunistScanners.INSTANCE.addStructure(serverName, "GTC Fairy Grotto", blockPos, GumTuneClient.mc.theWorld.getWorldTime());
             this.fairyGrottosWaypoints.put(blockPos, 0);
         }
 
@@ -74,6 +97,7 @@ public class WorldScanner {
         }
 
         public void updateWormFishing(BlockPos blockPos) {
+            CommunistScanners.INSTANCE.addStructure(serverName, "GTC Worm Fishing", blockPos, GumTuneClient.mc.theWorld.getWorldTime());
             this.wormFishingWaypoints.put(blockPos, 0);
         }
 
@@ -82,6 +106,7 @@ public class WorldScanner {
         }
 
         public void updateDragonNest(BlockPos blockPos) {
+            CommunistScanners.INSTANCE.addStructure(serverName, "GTC Dragon Nest", blockPos, GumTuneClient.mc.theWorld.getWorldTime());
             this.dragonNestWaypoints.put(blockPos, 0);
         }
 
@@ -133,7 +158,7 @@ public class WorldScanner {
             cooldown--;
         }
         if (cooldown == 1 && !worlds.containsKey(LocationUtils.serverName)) {
-            worlds.put(LocationUtils.serverName, new World());
+            worlds.put(LocationUtils.serverName, new World(LocationUtils.serverName));
         }
         if (cooldown == 0) {
             if (GumTuneClientConfig.worldScannerScanMode == 0 && initialScan) return;
