@@ -294,6 +294,8 @@ public class GumTuneClientConfig extends Config {
     )
     public static int nukerFieldOfView = 180;
 
+
+
     @Switch(
             name = "Preview",
             description = "Show which blocks are going to be mined",
