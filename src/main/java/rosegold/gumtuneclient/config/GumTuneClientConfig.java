@@ -340,6 +340,14 @@ public class GumTuneClientConfig extends Config {
             size = 2
     )
     public static boolean powderChestSolver = false;
+    @Switch(
+            name = "Only when looking at chests?",
+            category = MINING,
+            subcategory = POWDER_CHEST_SOLVER,
+            size = 2
+    )
+    public static boolean powderChestOnLook = true;
+
 
     @Slider(
             name = "Rotation time (ms)",

@@ -7,6 +7,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.util.*;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -84,6 +85,18 @@ public class Nuker {
         if (!isEnabled()) return;
         if (event.type == RenderGameOverlayEvent.ElementType.ALL) {
             FontUtils.drawScaledString("Stuck timer: " + (System.currentTimeMillis() - stuckTimestamp), 1, 300, 100, true);
+        }
+    }
+
+    @SubscribeEvent
+    public void onChat(ClientChatReceivedEvent event) {
+        if(!isEnabled())
+            return;
+        String message = event.message.getUnformattedText();
+        if (!message.contains(":") && message.contains("Sending to server")) {
+            enabled = false;
+            ModUtils.sendMessage("Disabled Nuker");
+
         }
     }
 
