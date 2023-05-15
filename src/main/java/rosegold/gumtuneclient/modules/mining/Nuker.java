@@ -444,8 +444,7 @@ public class Nuker {
                 block == Blocks.gold_block || block == Blocks.stained_glass_pane || block == Blocks.stained_glass ||
                 block == Blocks.glowstone || block == Blocks.chest ||
                 (block == Blocks.stone && blockState.getValue(BlockStone.VARIANT) == BlockStone.EnumType.DIORITE_SMOOTH) ||
-                block == Blocks.obsidian || block == Blocks.redstone_ore || block == Blocks.lit_redstone_ore ||
-                (LocationUtils.currentIsland == LocationUtils.Island.THE_RIFT && block == Blocks.lapis_ore);
+                block == Blocks.obsidian || (LocationUtils.currentIsland == LocationUtils.Island.THE_RIFT && block == Blocks.lapis_ore);
     }
 
     private IBlockState getBlockState(BlockPos blockPos) {
