@@ -4,17 +4,12 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.events.PlayerMoveEvent;
 
-import java.awt.*;
-
 import static rosegold.gumtuneclient.GumTuneClient.mc;
-import static rosegold.gumtuneclient.utils.RaytracingUtils.getVectorForRotation;
 
 public class RotationUtils {
 
@@ -109,8 +104,8 @@ public class RotationUtils {
         return getRotation(new Vec3(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ));
     }
 
-    public static Rotation getRotation(Entity entity, float offset) {
-        return getRotation(new Vec3(entity.posX, entity.posY + offset, entity.posZ));
+    public static Rotation getRotation(Entity entity, Vec3 offset) {
+        return getRotation(new Vec3(entity.posX + offset.xCoord, entity.posY + offset.yCoord, entity.posZ + offset.zCoord));
     }
 
     public static Rotation getNeededChange(Rotation startRot, Rotation endRot) {
@@ -142,8 +137,8 @@ public class RotationUtils {
         return getNeededChange(new Rotation(mc.thePlayer.rotationPitch, mc.thePlayer.rotationYaw), endRot);
     }
 
-    public static Rotation getServerNeededChange(Rotation endRot) {
-        return getNeededChange(new Rotation(serverPitch, serverYaw), endRot);
+    public static Rotation getServerNeededChange(Rotation endRotation) {
+        return endRot == null ? getNeededChange(endRotation) : getNeededChange(endRot, endRotation);
     }
 
     private static float interpolate(float start, float end) {
@@ -192,7 +187,7 @@ public class RotationUtils {
         endTime = System.currentTimeMillis() + time;
     }
 
-    public static void updateServerLook() {
+    public static void updateServerLookResetting() {
         if (System.currentTimeMillis() <= endTime) {
             mc.thePlayer.rotationYaw = interpolate(startRot.getYaw(), endRot.getYaw());
             mc.thePlayer.rotationPitch = interpolate(startRot.getPitch(), endRot.getPitch());
@@ -207,9 +202,25 @@ public class RotationUtils {
                 currentFakeYaw = mc.thePlayer.rotationYaw;
                 currentFakePitch = mc.thePlayer.rotationPitch;
 
-//                if (System.currentTimeMillis() >= endTime + 250) {
-//                    reset();
-//                }
+                reset();
+            }
+        }
+    }
+
+    public static void updateServerLook() {
+        if (System.currentTimeMillis() <= endTime) {
+            mc.thePlayer.rotationYaw = interpolate(startRot.getYaw(), endRot.getYaw());
+            mc.thePlayer.rotationPitch = interpolate(startRot.getPitch(), endRot.getPitch());
+
+            currentFakeYaw = mc.thePlayer.rotationYaw;
+            currentFakePitch = mc.thePlayer.rotationPitch;
+        } else {
+            if (!done) {
+                mc.thePlayer.rotationYaw = endRot.getYaw();
+                mc.thePlayer.rotationPitch = endRot.getPitch();
+
+                currentFakeYaw = mc.thePlayer.rotationYaw;
+                currentFakePitch = mc.thePlayer.rotationPitch;
             }
         }
     }

@@ -12,7 +12,6 @@ import cc.polyfrost.oneconfig.libs.universal.UKeyboard;
 import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.config.pages.*;
 import rosegold.gumtuneclient.huds.SlayerHud;
-import rosegold.gumtuneclient.modules.player.AutoSell;
 
 public class GumTuneClientConfig extends Config {
 
@@ -23,6 +22,7 @@ public class GumTuneClientConfig extends Config {
     private transient static final String CONFIG = "Config";
     private transient static final String MINING = "Mining";
     private transient static final String QOL = "QoL";
+    private transient static final String COMBAT = "Combat";
 
     private transient static final String AVOID_BREAKING_CROPS = "Avoid Breaking Crops";
     private transient static final String ESPS = "ESPs";
@@ -56,10 +56,15 @@ public class GumTuneClientConfig extends Config {
     private transient static final String COPY_NBT_DATA = "Copy NBT Data";
     private transient static final String HIGHLIGHT_SLAYER_BOSS = "Highlight Slayer Boss";
     private transient static final String VISITOR_HELPERS = "Visitor Helpers";
+    private transient static final String GEMSTONE_MACRO = "Gemstone Macro";
+    private transient static final String ALCHEMY_HELPER = "Alchemy Helper";
+    private transient static final String HYPIXEL_API_KEY = "Hypixel API Key";
+    private transient static final String AUTO_CRAFT = "Auto Craft";
+    private transient static final String RIFT = "Rift";
 
     @Switch(
             name = "Enabled",
-            category = WORLD,
+            category = FARMING,
             subcategory = CROP_PLACER,
             size = 2
     )
@@ -67,7 +72,7 @@ public class GumTuneClientConfig extends Config {
 
     @Slider(
             name = "Blocks Per Second",
-            category = WORLD,
+            category = FARMING,
             subcategory = CROP_PLACER,
             min = 10, max = 80,
             step = 10
@@ -76,15 +81,15 @@ public class GumTuneClientConfig extends Config {
 
     @Dropdown(
             name = "Crop Type",
-            category = WORLD,
+            category = FARMING,
             subcategory = CROP_PLACER,
-            options = {"Sugar Cane", "Cactus", "Cocoa Beans"}
+            options = {"Sugar Cane", "Cactus", "Cocoa Beans", "Potato", "Carrot", "Wheat", "Pumpkin", "Melon", "Nether Wart", "Mushroom"}
     )
     public static int cropPlacerCropType = 0;
 
     @Dropdown(
             name = "Finding Algorithm",
-            category = WORLD,
+            category = FARMING,
             subcategory = CROP_PLACER,
             options = {"Closest first", "Furthest first"}
     )
@@ -146,14 +151,6 @@ public class GumTuneClientConfig extends Config {
             size = 2
     )
     public static int worldScannerChatMode = 0;
-
-    @Switch(
-            name = "Block Hitbox Modifier",
-            category = WORLD,
-            subcategory = BLOCK_HITBOXES,
-            size = 2
-    )
-    public static boolean blockHitboxesModifier = false;
 
     @Switch(
             name = "Enabled",
@@ -341,6 +338,20 @@ public class GumTuneClientConfig extends Config {
     )
     public static boolean powderChestSolver = false;
 
+    @Switch(
+            name = "Legit Mode",
+            category = MINING,
+            subcategory = POWDER_CHEST_SOLVER
+    )
+    public static boolean powderChestSolverLegitMode = false;
+
+    @Switch(
+            name = "Smooth Rotations",
+            category = MINING,
+            subcategory = POWDER_CHEST_SOLVER
+    )
+    public static boolean powderChestSolverSmoothRotations = false;
+
     @Slider(
             name = "Rotation time (ms)",
             description = "How many milliseconds to complete a rotation",
@@ -394,6 +405,82 @@ public class GumTuneClientConfig extends Config {
     public static boolean cancelClientItemUpdates = false;
 
     @Switch(
+            name = "AOTV Gemstone Macro",
+            category = MACRO,
+            subcategory = GEMSTONE_MACRO,
+            description = "AOTVs around in a set path, mines gemstones around you",
+            size = 2
+    )
+    public static boolean aotvGemstoneMacro = false;
+
+    @Page(
+            name = "Gemstone Macro Filters",
+            description = "Filter out gemstone types",
+            category = MACRO,
+            subcategory = GEMSTONE_MACRO,
+            location = PageLocation.BOTTOM
+    )
+    public GemstoneTypeFilter gemstoneTypeFilter = new GemstoneTypeFilter();
+
+    @Page(
+            name = "Gemstone Macro Routes",
+            description = "Create and edit AOTV routes",
+            category = MACRO,
+            subcategory = GEMSTONE_MACRO,
+            location = PageLocation.BOTTOM
+    )
+    public GemstoneMacroAOTVRoutes gemstoneMacroAOTVRoutes = new GemstoneMacroAOTVRoutes();
+
+    @Slider(
+            name = "Rotation Speed",
+            description = "Rotation time in ms",
+            category = MINING,
+            subcategory = NUKER,
+            min = 50, max = 500
+    )
+    public static int aotvGemstoneMacroRotationSpeed = 250;
+
+    @Switch(
+            name = "Reset State on Toggle",
+            category = MACRO,
+            subcategory = GEMSTONE_MACRO,
+            description = "Resets gemstone macro state when toggled"
+    )
+    public static boolean aotvGemstoneMacroResetStateOnToggle = false;
+
+    @Dropdown(
+            name = "Mining Mode",
+            category = MACRO,
+            subcategory = GEMSTONE_MACRO,
+            options = {"Legit", "Nuker"}
+    )
+    public static int aotvGemstoneMacroMiningMode = 0;
+
+    @KeyBind(
+            name = "Toggle Keybind",
+            category = MACRO,
+            subcategory = GEMSTONE_MACRO,
+            size = 2
+    )
+    public static OneKeyBind gemstoneMacroToggleKeyBind = new OneKeyBind(UKeyboard.KEY_NONE);
+
+    @KeyBind(
+            name = "Add Block To AOTV Path",
+            category = MACRO,
+            subcategory = GEMSTONE_MACRO,
+            size = 2
+    )
+    public static OneKeyBind gemstoneMacroAddToPathKeyBind = new OneKeyBind(UKeyboard.KEY_NONE);
+
+    @Switch(
+            name = "Show Blocks Blocking Path",
+            category = MACRO,
+            subcategory = GEMSTONE_MACRO,
+            description = "Highlight blocks that might prevent AOTV from working"
+    )
+    public static boolean aotvGemstoneShowBlocksBlockingPath = false;
+
+    @Switch(
             name = "Avoid Breaking Stems",
             category = FARMING,
             subcategory = AVOID_BREAKING_CROPS,
@@ -440,7 +527,7 @@ public class GumTuneClientConfig extends Config {
             category = RENDER,
             subcategory = ESPS,
             description = "Required for all of the ESPs below",
-            size = 4
+            size = 2
     )
     public static boolean ESPs = false;
 
@@ -448,17 +535,24 @@ public class GumTuneClientConfig extends Config {
             name = "Custom Block ESP",
             category = RENDER,
             subcategory = ESPS,
-            description = "use /gtc esp",
-            size = 2
+            description = "use /gtc esp"
     )
     public static boolean customBlockESP = false;
+
+    @Slider(
+            name = "Custom Block ESP Range (0 = infinite)",
+            description = "Might cause a bit of lag tbh idk",
+            category = RENDER,
+            subcategory = ESPS,
+            min = 0, max = 60
+    )
+    public static int customBlockESPRange = 0;
 
     @Switch(
             name = "Force Recheck",
             category = RENDER,
             subcategory = ESPS,
-            description = "force recheck all blocks when /gtc esp is executed",
-            size = 2
+            description = "force recheck all blocks when /gtc esp is executed"
     )
     public static boolean customESPForceRecheck = false;
 
@@ -488,6 +582,45 @@ public class GumTuneClientConfig extends Config {
             subcategory = ESPS
     )
     public static boolean fairySoulESP = false;
+
+    @Switch(
+            name = "Crystal Hollows Mob ESP",
+            category = RENDER,
+            subcategory = ESPS
+    )
+    public static boolean crystalHollowsMobESP = false;
+
+    @Page(
+            name = "Rift ESPs",
+            description = "Special ESPs dedicated to the rift",
+            category = RENDER,
+            subcategory = ESPS,
+            location = PageLocation.BOTTOM
+    )
+    public RiftESPs riftESPs = new RiftESPs();
+
+    @Info(
+            text = "Configuration Options For ESP",
+            category = RENDER,
+            subcategory = ESPS,
+            type = InfoType.INFO,
+            size = 2
+    )
+    public static boolean configurationOptionsForESPIgnored;
+
+    @Switch(
+            name = "Entity - Render Waypoint",
+            category = RENDER,
+            subcategory = ESPS
+    )
+    public static boolean entityRenderWaypoint = false;
+
+    @Switch(
+            name = "Custom Block ESP - Render Tracer",
+            category = RENDER,
+            subcategory = ESPS
+    )
+    public static boolean customBlockESPRenderTracer = false;
 
     @Page(
             name = "Frozen Treasure Filters",
@@ -682,6 +815,49 @@ public class GumTuneClientConfig extends Config {
     public static boolean autoSellPassiveModeCloseTrades = false;
 
     @Switch(
+            name = "Auto Craft",
+            category = PLAYER,
+            subcategory = AUTO_CRAFT,
+            size = 2,
+            description = "Main toggle"
+    )
+    public static boolean autoCraft = false;
+
+    @Slider(
+            name = "Auto Craft At Inventory Filled %",
+            category = PLAYER,
+            subcategory = AUTO_CRAFT,
+            min = 0, max = 100
+    )
+    public static int autoCraftInventoryFullness = 100;
+
+    @Text(
+            name = "Item Filter",
+            placeholder = "SkyBlock Item IDs, separated by a - \", \"",
+            category = PLAYER,
+            subcategory = AUTO_CRAFT,
+            multiline = true
+    )
+    public static String autoCraftItemFilter = "";
+
+    @Slider(
+            name = "Craft Delay",
+            category = PLAYER,
+            subcategory = AUTO_CRAFT,
+            min = 0, max = 1000
+    )
+    public static int autoCraftClickDelay = 200;
+
+    @KeyBind(
+            name = "Add Item To Filter Keybind",
+            category = PLAYER,
+            subcategory = AUTO_CRAFT,
+            size = 2
+    )
+    public static OneKeyBind addItemToAutoCraftFilter = new OneKeyBind(UKeyboard.KEY_NONE);
+
+
+    @Switch(
             name = "Fairy Soul Aura",
             category = PLAYER,
             subcategory = FAIRY_SOUL_AURA,
@@ -715,48 +891,34 @@ public class GumTuneClientConfig extends Config {
 
     @Switch(
             name = "Always show server rotations",
-            category = CONFIG,
+            category = RENDER,
             subcategory = SERVER_SIDE_ROTATIONS
     )
     public static boolean alwaysShowServerRotations = false;
 
-    @Switch(
-            name = "Show Waypoint Text",
+    @HypixelKey
+    @Text(
+            name = "Hypixel API Key",
+            placeholder = "Run /api new",
             category = CONFIG,
-            subcategory = ESP_SETTINGS,
-            size = 2
+            subcategory = HYPIXEL_API_KEY
     )
-    public static boolean espWaypointText = true;
+    public static String hypixelApiKey = "";
 
     @Switch(
-            name = "Show Highlight",
-            category = CONFIG,
-            subcategory = ESP_SETTINGS,
-            size = 2
-    )
-    public static boolean espHighlight = true;
-
-    @Switch(
-            name = "Show Beacon",
-            category = CONFIG,
-            subcategory = ESP_SETTINGS,
-            size = 2
-    )
-    public static boolean espBeacon = false;
-
-    @Switch(
-            name = "Packet Logger",
+            name = "Client Packet Logger",
             category = DEV,
             subcategory = PACKET_LOGGER,
             size = 2
     )
-    public static boolean packetLogger = false;
+    public static boolean clientPacketLogger = false;
 
     @Dropdown(
-            name = "Packet Type",
+            name = "Client Packet Type 1",
             category = DEV,
             subcategory = PACKET_LOGGER,
             options = {
+                    "None",
                     "C0APacketAnimation",
                     "C0BPacketEntityAction",
                     "C0CPacketInput",
@@ -768,6 +930,16 @@ public class GumTuneClientConfig extends Config {
                     "C02PacketUseEntity",
                     "C03PacketPlayer",
                     "C07PacketPlayerDigging",
+            }
+    )
+    public static int packetLoggerClientType1 = 0;
+
+    @Dropdown(
+            name = "Client Packet Type 2",
+            category = DEV,
+            subcategory = PACKET_LOGGER,
+            options = {
+                    "None",
                     "C08PacketPlayerBlockPlacement",
                     "C09PacketHeldItemChange",
                     "C10PacketCreativeInventoryAction",
@@ -782,7 +954,146 @@ public class GumTuneClientConfig extends Config {
                     "C19PacketResourcePackStatus"
             }
     )
-    public static int packetLoggerType = 0;
+    public static int packetLoggerClientType2 = 0;
+
+    @Switch(
+            name = "Server Packet Logger",
+            category = DEV,
+            subcategory = PACKET_LOGGER,
+            size = 2
+    )
+    public static boolean serverPacketLogger = false;
+
+    @Dropdown(
+            name = "Server Packet Type 1",
+            category = DEV,
+            subcategory = PACKET_LOGGER,
+            options = {
+                    "None",
+                    "S0APacketUseBed",
+                    "S0BPacketAnimation",
+                    "S0CPacketSpawnPlayer",
+                    "S0DPacketCollectItem",
+                    "S0EPacketSpawnObject",
+                    "S0FPacketSpawnMob",
+                    "S00PacketKeepAlive",
+                    "S1BPacketEntityAttach",
+                    "S1CPacketEntityMetadata",
+                    "S1DPacketEntityEffect",
+                    "S1EPacketRemoveEntityEffect",
+            }
+    )
+    public static int packetLoggerServerType1 = 0;
+
+    @Dropdown(
+            name = "Server Packet Type 2",
+            category = DEV,
+            subcategory = PACKET_LOGGER,
+            options = {
+                    "None",
+                    "S1FPacketSetExperience",
+                    "S01PacketJoinGame",
+                    "S2APacketParticles",
+                    "S2BPacketChangeGameState",
+                    "S2CPacketSpawnGlobalEntity",
+                    "S2DPacketOpenWindow",
+                    "S2EPacketCloseWindow",
+                    "S2FPacketSetSlot",
+                    "S02PacketChat",
+                    "S3APacketTabComplete",
+                    "S3BPacketScoreboardObjective",
+                    "S3CPacketUpdateScore",
+            }
+    )
+    public static int packetLoggerServerType2 = 0;
+
+    @Dropdown(
+            name = "Server Packet Type 3",
+            category = DEV,
+            subcategory = PACKET_LOGGER,
+            options = {
+                    "None",
+                    "S3DPacketDisplayScoreboard",
+                    "S3EPacketTeams",
+                    "S3FPacketCustomPayload",
+                    "S03PacketTimeUpdate",
+                    "S04PacketEntityEquipment",
+                    "S05PacketSpawnPosition",
+                    "S06PacketUpdateHealth",
+                    "S07PacketRespawn",
+                    "S08PacketPlayerPosLook",
+                    "S09PacketHeldItemChange",
+                    "S10PacketSpawnPainting",
+                    "S11PacketSpawnExperienceOrb",
+            }
+    )
+    public static int packetLoggerServerType3 = 0;
+
+    @Dropdown(
+            name = "Server Packet Type 4",
+            category = DEV,
+            subcategory = PACKET_LOGGER,
+            options = {
+                    "None",
+                    "S12PacketEntityVelocity",
+                    "S13PacketDestroyEntities",
+                    "S14PacketEntity",
+                    "S18PacketEntityTeleport",
+                    "S19PacketEntityHeadLook",
+                    "S19PacketEntityStatus",
+                    "S20PacketEntityProperties",
+                    "S21PacketChunkData",
+                    "S22PacketMultiBlockChange",
+                    "S23PacketBlockChange",
+                    "S24PacketBlockAction",
+                    "S25PacketBlockBreakAnim",
+            }
+    )
+    public static int packetLoggerServerType4 = 0;
+
+    @Dropdown(
+            name = "Server Packet Type 5",
+            category = DEV,
+            subcategory = PACKET_LOGGER,
+            options = {
+                    "None",
+                    "S26PacketMapChunkBulk",
+                    "S27PacketExplosion",
+                    "S28PacketEffect",
+                    "S29PacketSoundEffect",
+                    "S30PacketWindowItems",
+                    "S31PacketWindowProperty",
+                    "S32PacketConfirmTransaction",
+                    "S33PacketUpdateSign",
+                    "S34PacketMaps",
+                    "S35PacketUpdateTileEntity",
+                    "S36PacketSignEditorOpen",
+                    "S37PacketStatistics",
+            }
+    )
+    public static int packetLoggerServerType5 = 0;
+
+    @Dropdown(
+            name = "Server Packet Type 6",
+            category = DEV,
+            subcategory = PACKET_LOGGER,
+            options = {
+                    "None",
+                    "S38PacketPlayerListItem",
+                    "S39PacketPlayerAbilities",
+                    "S40PacketDisconnect",
+                    "S41PacketServerDifficulty",
+                    "S42PacketCombatEvent",
+                    "S43PacketCamera",
+                    "S44PacketWorldBorder",
+                    "S45PacketTitle",
+                    "S46PacketSetCompressionLevel",
+                    "S47PacketPlayerListHeaderFooter",
+                    "S48PacketResourcePackSend",
+                    "S49PacketUpdateEntityNBT"
+            }
+    )
+    public static int packetLoggerServerType6 = 0;
 
     @Switch(
             name = "Copy NBT Data",
@@ -846,6 +1157,104 @@ public class GumTuneClientConfig extends Config {
     )
     public static int visitorQuickBuyMode = 0;
 
+    @Switch(
+            name = "Visitor Quick Buy Debug",
+            category = FARMING,
+            subcategory = VISITOR_HELPERS
+    )
+    public static boolean visitorQuickBuyDebug = false;
+
+    @Switch(
+            name = "Agaricus Cap Helper",
+            category = FARMING,
+            subcategory = RIFT
+    )
+    public static boolean agaricusCapHelper = false;
+
+    @Switch(
+            name = "Alchemy Helper",
+            category = PLAYER,
+            subcategory = ALCHEMY_HELPER,
+            size = 2
+    )
+    public static boolean alchemyHelper = false;
+
+    @Switch(
+            name = "Auto Nether Wart",
+            category = PLAYER,
+            subcategory = ALCHEMY_HELPER
+    )
+    public static boolean alchemyHelperAutoNetherWart = false;
+
+    @Switch(
+            name = "Auto Extract Potions",
+            category = PLAYER,
+            subcategory = ALCHEMY_HELPER
+    )
+    public static boolean alchemyHelperAutoExtractPotions = false;
+
+    @Switch(
+            name = "Auto Main Ingredient",
+            category = PLAYER,
+            subcategory = ALCHEMY_HELPER
+    )
+    public static boolean alchemyHelperAutoMainIngredient = false;
+
+    @Text(
+            name = "Main Ingredient Skyblock ID",
+            placeholder = "You can use NEU middle click to find the skyblock id of an item",
+            category = PLAYER,
+            subcategory = ALCHEMY_HELPER
+    )
+    public static String alchemyHelperMainIngredientId = "";
+
+    @Switch(
+            name = "Auto Glowstone",
+            category = PLAYER,
+            subcategory = ALCHEMY_HELPER
+    )
+    public static boolean alchemyHelperAutoGlowstone = false;
+
+    @Text(
+            name = "Base Potion Level",
+            placeholder = "Potion level (in roman numerals) before glowstone is added",
+            category = PLAYER,
+            subcategory = ALCHEMY_HELPER
+    )
+    public static String alchemyHelperBasePotionLevel = "";
+
+    @Slider(
+            name = "Action Delay",
+            category = PLAYER,
+            subcategory = ALCHEMY_HELPER,
+            min = 100, max = 500
+    )
+    public static int alchemyHelperActionDelay = 300;
+
+    @Switch(
+            name = "Close Brewer",
+            category = PLAYER,
+            subcategory = ALCHEMY_HELPER
+    )
+    public static boolean alchemyHelperCloseBrewer = false;
+
+    @Switch(
+            name = "Mirrorverse Helpers",
+            category = PLAYER,
+            subcategory = RIFT
+    )
+    public static boolean mirrorverseHelpers = false;
+
+    @Switch(
+            name = "Anti Shy",
+            category = COMBAT,
+            subcategory = RIFT,
+            description = "Look away from Shys when they become angry"
+    )
+    public static boolean antiShy = false;
+
+
+
 //    @Switch(
 //            name = "Skill Tracker",
 //            category = TRACKERS,
@@ -868,9 +1277,10 @@ public class GumTuneClientConfig extends Config {
         registerKeyBind(mobMacroKeyBind, () -> {});
         registerKeyBind(copyNBTDataKeyBind, () -> {});
         registerKeyBind(addItemToAutoSellFilter, () -> {});
-        registerKeyBind(executeAutoSellKeybind, () -> {
-            AutoSell.autoSell();
-        });
+        registerKeyBind(addItemToAutoCraftFilter, () -> {});
+        registerKeyBind(executeAutoSellKeybind, () -> {});
+        registerKeyBind(gemstoneMacroToggleKeyBind, () -> {});
+        registerKeyBind(gemstoneMacroAddToPathKeyBind, () -> {});
         initialize();
     }
 }

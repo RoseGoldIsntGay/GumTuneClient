@@ -3,10 +3,7 @@ package rosegold.gumtuneclient.utils;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderGlobal;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.*;
@@ -22,6 +19,28 @@ import static rosegold.gumtuneclient.GumTuneClient.mc;
 public class RenderUtils {
 
     private static final ResourceLocation beaconBeam = new ResourceLocation("textures/entity/beacon_beam.png");
+
+    public static void renderEntityModel(Entity entity, Vec3 vec, float partialTicks, float opacity) {
+        RenderManagerAccessor rm = (RenderManagerAccessor) mc.getRenderManager();
+
+        double x = vec.xCoord - rm.getRenderPosX();
+        double y = vec.yCoord - rm.getRenderPosY();
+        double z = vec.zCoord - rm.getRenderPosZ();
+
+        float yaw = entity.prevRotationYaw + (entity.rotationYaw - entity.prevRotationYaw) * partialTicks;
+
+        int i = entity.getBrightnessForRender(partialTicks);
+        if (entity.isBurning()) {
+            i = 0xF000F0;
+        }
+        int j = i % 65536;
+        int k = i / 65536;
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) j, (float) k);
+
+        GlStateManager.color(1, 1, 1, 1 * opacity);
+
+        mc.getRenderManager().doRenderEntity(entity, x, y, z, yaw, partialTicks, false);
+    }
 
     public static void renderTracer(double posX, double posY, double posZ, double height, Color color, float partialTicks) {
         Entity render = mc.getRenderViewEntity();
@@ -50,11 +69,6 @@ public class RenderUtils {
         worldRenderer.pos(posX, posY, posZ).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()).endVertex();
 
         Tessellator.getInstance().draw();
-
-//        GL11.glVertex3d(eyeVector.xCoord, mc.thePlayer.eyeHeight + eyeVector.yCoord, eyeVector.zCoord);
-//        GL11.glVertex3d(x, y, z);
-//        GL11.glVertex3d(x, y, z);
-//        GL11.glVertex3d(x, y + height, z);
 
         GlStateManager.translate(realX, realY, realZ);
         GlStateManager.disableBlend();
@@ -263,10 +277,14 @@ public class RenderUtils {
     }
 
     public static void renderBoundingBox(Entity entity, float partialTicks, int color) {
-        renderBoundingBox(entity, partialTicks, color, 0.5f);
+        renderBoundingBox(entity, partialTicks, color, 0.5f, new Vec3(0, 0, 0));
     }
 
-    public static void renderBoundingBox(Entity entity, float partialTicks, int color, float opacity) {
+    public static void renderBoundingBox(Entity entity, float partialTicks, int color, Vec3 offset) {
+        renderBoundingBox(entity, partialTicks, color, 0.5f, offset);
+    }
+
+    public static void renderBoundingBox(Entity entity, float partialTicks, int color, float opacity, Vec3 offset) {
         RenderManagerAccessor rm = (RenderManagerAccessor) mc.getRenderManager();
 
         double renderPosX = rm.getRenderPosX();
@@ -278,16 +296,74 @@ public class RenderUtils {
         double z = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks - renderPosZ;
 
         AxisAlignedBB bbox = entity.getEntityBoundingBox();
+        if (bbox.maxX - bbox.minX == 0 && bbox.maxY - bbox.minY == 0 && bbox.maxZ - bbox.minZ == 0) {
+            bbox = new AxisAlignedBB(entity.posX - 0.3, entity.posY, entity.posZ - 0.3, entity.posX + 0.3, entity.posY + 1.62, entity.posZ + 0.3);
+        }
         AxisAlignedBB aabb = new AxisAlignedBB(
-                bbox.minX - entity.posX + x,
-                bbox.minY - entity.posY + y,
-                bbox.minZ - entity.posZ + z,
-                bbox.maxX - entity.posX + x,
-                bbox.maxY - entity.posY + y,
-                bbox.maxZ - entity.posZ + z
+                bbox.minX - entity.posX + x + offset.xCoord,
+                bbox.minY - entity.posY + y + offset.yCoord,
+                bbox.minZ - entity.posZ + z + offset.zCoord,
+                bbox.maxX - entity.posX + x + offset.xCoord,
+                bbox.maxY - entity.posY + y + offset.yCoord,
+                bbox.maxZ - entity.posZ + z + + offset.zCoord
         );
 
         drawFilledBoundingBox(aabb, color, opacity);
+    }
+
+    public static void renderBoundingBox(AxisAlignedBB axisAlignedBB, int color, float opacity) {
+        RenderManagerAccessor rm = (RenderManagerAccessor) mc.getRenderManager();
+
+        double renderPosX = rm.getRenderPosX();
+        double renderPosY = rm.getRenderPosY();
+        double renderPosZ = rm.getRenderPosZ();
+
+        AxisAlignedBB aabb = new AxisAlignedBB(
+                axisAlignedBB.minX - renderPosX,
+                axisAlignedBB.minY - renderPosY,
+                axisAlignedBB.minZ - renderPosZ,
+                axisAlignedBB.maxX - renderPosX,
+                axisAlignedBB.maxY - renderPosY,
+                axisAlignedBB.maxZ - renderPosZ
+        );
+
+        drawFilledBoundingBox(aabb, color, opacity);
+    }
+
+    public static void drawLine(Vec3 from, Vec3 to, final float thickness, final float partialTicks) {
+        final Entity render = mc.getRenderViewEntity();
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer bufferBuilder = tessellator.getWorldRenderer();
+        final double realX = render.lastTickPosX + (render.posX - render.lastTickPosX) * partialTicks;
+        final double realY = render.lastTickPosY + (render.posY - render.lastTickPosY) * partialTicks;
+        final double realZ = render.lastTickPosZ + (render.posZ - render.lastTickPosZ) * partialTicks;
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(-realX, -realY, -realZ);
+        GlStateManager.disableTexture2D();
+        GlStateManager.disableLighting();
+        GL11.glDisable(3553);
+        GlStateManager.enableBlend();
+        GlStateManager.disableAlpha();
+        GL11.glLineWidth(thickness);
+        GlStateManager.disableDepth();
+        GlStateManager.depthMask(false);
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
+        bufferBuilder.begin(3, DefaultVertexFormats.POSITION_COLOR);
+
+        final int i = ColorUtils.getChroma(1000, 0);
+        bufferBuilder.pos(from.xCoord, from.yCoord, from.zCoord).color((i >> 16 & 0xFF) / 255.0f, (i >> 8 & 0xFF) / 255.0f, (i & 0xFF) / 255.0f, (i >> 24 & 0xFF) / 255.0f).endVertex();
+        bufferBuilder.pos(to.xCoord, to.yCoord, to.zCoord).color((i >> 16 & 0xFF) / 255.0f, (i >> 8 & 0xFF) / 255.0f, (i & 0xFF) / 255.0f, (i >> 24 & 0xFF) / 255.0f).endVertex();
+
+        Tessellator.getInstance().draw();
+        GlStateManager.translate(realX, realY, realZ);
+        GlStateManager.disableBlend();
+        GlStateManager.enableAlpha();
+        GlStateManager.enableTexture2D();
+        GlStateManager.enableDepth();
+        GlStateManager.depthMask(true);
+        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
+        GlStateManager.popMatrix();
     }
 
     public static void drawLines(ArrayList<Vec3> poses, final float thickness, final float partialTicks) {

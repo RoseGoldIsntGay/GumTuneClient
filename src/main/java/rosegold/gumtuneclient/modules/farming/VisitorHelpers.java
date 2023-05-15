@@ -53,6 +53,7 @@ public class VisitorHelpers {
     public void onOverlayRender(RenderGameOverlayEvent.Post event) {
         if (!GumTuneClientConfig.visitorQuickBuy) return;
         if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
+        if (!GumTuneClientConfig.visitorQuickBuyDebug) return;
         if (event.type == RenderGameOverlayEvent.ElementType.ALL) {
             FontUtils.drawScaledString("Bazaar Buy State: " + bazaarBuyState, 1, 40, 40, true);
 
@@ -87,6 +88,7 @@ public class VisitorHelpers {
         if (event.phase == TickEvent.Phase.START) return;
         if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
         if (GumTuneClient.mc.thePlayer == null) return;
+        servedLately.iterator();
 
         if (GumTuneClientConfig.visitorQueueFullChatMessage) {
             if (System.currentTimeMillis() - wasFull > 300000 && TabListUtils.tabListContains("Queue Full")) {
@@ -128,8 +130,8 @@ public class VisitorHelpers {
 
                                     for (int i = 1; i < 4; i++) {
                                         String lore = InventoryUtils.getItemLore(slot.getStack(), i);
-                                        if (lore != null && pattern.matcher(removeFormatting(lore)).find()) {
-                                            String cleanLore = removeFormatting(lore);
+                                        if (lore != null && pattern.matcher(StringUtils.removeFormatting(lore)).find()) {
+                                            String cleanLore = StringUtils.removeFormatting(lore);
                                             if (cleanLore.contains("x")) {
                                                 String[] split = cleanLore.split("x");
                                                 crops.put(split[0].trim(), Integer.parseInt(split[1].replace(",", "")));
@@ -156,7 +158,7 @@ public class VisitorHelpers {
                         if (System.currentTimeMillis() - timestamp > 750 && chestName.startsWith("Bazaar ➜ \"")) {
                             for (Slot slot : GumTuneClient.mc.thePlayer.openContainer.inventorySlots) {
                                 if (!slot.getHasStack()) continue;
-                                if (removeFormatting(slot.getStack().getDisplayName()).equals(cropName)) {
+                                if (StringUtils.removeFormatting(slot.getStack().getDisplayName()).equals(cropName)) {
                                     clickSlot(slot.slotNumber, 0);
                                     bazaarBuyState = BazaarBuyState.CLICK_SIGN;
                                     timestamp = System.currentTimeMillis();
@@ -201,7 +203,7 @@ public class VisitorHelpers {
                     case SETUP_VISITOR_HAND_IN:
                         GumTuneClient.mc.theWorld.loadedEntityList.stream()
                                 .filter(
-                                        entity -> entity.hasCustomName() && removeFormatting(entity.getCustomNameTag()).equals(visitorName)
+                                        entity -> entity.hasCustomName() && StringUtils.removeFormatting(entity.getCustomNameTag()).equals(visitorName)
                                 ).filter(
                                         entity -> entity.getDistanceToEntity(GumTuneClient.mc.thePlayer) < 4
                                 ).findAny().ifPresent(visitorEntity -> {
@@ -246,16 +248,12 @@ public class VisitorHelpers {
         }
     }
 
-    private String removeFormatting(String input) {
-        return input.replaceAll("§[0-9a-fk-or]", "");
-    }
-
     private static void buyCrop(String name, int amount) {
         signText = name;
         cropName = name;
         cropAmount = amount;
-        GumTuneClient.mc.thePlayer.sendChatMessage("/bz");
-        bazaarBuyState = BazaarBuyState.CLICK_SEARCH;
+        GumTuneClient.mc.thePlayer.sendChatMessage("/bz " + cropName);
+        bazaarBuyState = BazaarBuyState.CLICK_CROP;
         timestamp = System.currentTimeMillis();
     }
 

@@ -3,7 +3,6 @@ package rosegold.gumtuneclient.utils;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.common.util.Constants;
 import rosegold.gumtuneclient.GumTuneClient;
 
 public class InventoryUtils {
@@ -13,6 +12,20 @@ public class InventoryUtils {
             ItemStack curStack = inv.getStackInSlot(i);
             if (curStack != null) {
                 if (curStack.getDisplayName().contains(name)) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    public static int findItemInHotbarSkyblockId(String id) {
+        InventoryPlayer inv = GumTuneClient.mc.thePlayer.inventory;
+        for (int i = 0; i < 9; i++) {
+            ItemStack curStack = inv.getStackInSlot(i);
+            if (curStack != null) {
+                String skyblockId = getSkyBlockItemId(curStack);
+                if (skyblockId != null && skyblockId.equals(id)) {
                     return i;
                 }
             }
@@ -47,5 +60,15 @@ public class InventoryUtils {
             return itemStack.getTagCompound().getCompoundTag("ExtraAttributes");
         }
         return null;
+    }
+
+    public static int getFilledSlotCount() {
+        int count = 0;
+        for (ItemStack itemStack : GumTuneClient.mc.thePlayer.inventory.mainInventory) {
+            if (itemStack != null) {
+                count++;
+            }
+        }
+        return count;
     }
 }

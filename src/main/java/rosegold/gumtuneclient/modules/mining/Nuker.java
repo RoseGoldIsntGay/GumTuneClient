@@ -35,7 +35,6 @@ public class Nuker {
     private long stuckTimestamp = 0;
     private BlockPos current;
     private final ArrayList<BlockPos> blocksInRange = new ArrayList<>();
-    private final HashSet<BlockPos> badBlocks = new HashSet<>();
 
     @SubscribeEvent
     public void onKey(InputEvent.KeyInputEvent event) {
@@ -109,7 +108,7 @@ public class Nuker {
             current = null;
         }
 
-        if (current != null) PlayerUtils.swingHand(null);
+        if (current != null) GumTuneClient.mc.thePlayer.swingItem();
     }
 
     @SubscribeEvent
@@ -155,7 +154,7 @@ public class Nuker {
             }
 
             if (blockPos != null) {
-                if (current != null && current.compareTo(blockPos) != 0) {
+                if (current != null && (current.compareTo(blockPos) != 0 || getBlockState(current).getBlock() != getBlockState(blockPos).getBlock())) {
                     current = null;
                 }
                 if (isSlow(getBlockState(blockPos))) {
@@ -201,22 +200,26 @@ public class Nuker {
     }
 
     private void mineBlock(BlockPos blockPos) {
-        RotationUtils.serverSmoothLook(RotationUtils.getRotation(blockPos), GumTuneClientConfig.nukerRotationSpeed);
+        if (PowderChestSolver.particle == null) {
+            RotationUtils.serverSmoothLook(RotationUtils.getRotation(blockPos), GumTuneClientConfig.nukerRotationSpeed);
+        }
         breakBlock(blockPos);
         stuckTimestamp = System.currentTimeMillis();
         current = blockPos;
     }
 
     private void pinglessMineBlock(BlockPos blockPos) {
-        RotationUtils.serverSmoothLook(RotationUtils.getRotation(blockPos), GumTuneClientConfig.nukerRotationSpeed);
-        PlayerUtils.swingHand(null);
+        if (PowderChestSolver.particle == null) {
+            RotationUtils.serverSmoothLook(RotationUtils.getRotation(blockPos), GumTuneClientConfig.nukerRotationSpeed);
+        }
+        GumTuneClient.mc.thePlayer.swingItem();
         stuckTimestamp = System.currentTimeMillis();
         breakBlock(blockPos);
         broken.add(blockPos);
     }
 
     private void breakBlock(BlockPos blockPos) {
-        EnumFacing enumFacing = calculateEnumfacing(new Vec3(blockPos).add(RandomUtils.randomVec()));
+        EnumFacing enumFacing = BlockUtils.calculateEnumfacing(new Vec3(blockPos).add(RandomUtils.randomVec()));
         if (enumFacing != null) {
             GumTuneClient.mc.thePlayer.sendQueue.addToSendQueue(new C07PacketPlayerDigging(
                     C07PacketPlayerDigging.Action.START_DESTROY_BLOCK,
@@ -348,10 +351,13 @@ public class Nuker {
                         ) || (LocationUtils.currentIsland == LocationUtils.Island.DWARVEN_MINES &&
                                 (block == Blocks.prismarine ||
                                 block == Blocks.wool ||
-                                block == Blocks.stained_hardened_clay ||
-                                (block == Blocks.stone && blockState.getValue(BlockStone.VARIANT) == BlockStone.EnumType.DIORITE_SMOOTH))
+                                block == Blocks.stained_hardened_clay)
                         )
                 )
+        ) return true;
+
+        if (NukerBlockFilter.nukerBlockFilterTitanium &&
+                LocationUtils.currentIsland == LocationUtils.Island.DWARVEN_MINES && block == Blocks.stone && blockState.getValue(BlockStone.VARIANT) == BlockStone.EnumType.DIORITE_SMOOTH
         ) return true;
 
         if (LocationUtils.currentIsland == LocationUtils.Island.CRIMSON_ISLE &&
@@ -383,7 +389,7 @@ public class Nuker {
         if (NukerBlockFilter.nukerBlockFilterCrops &&
                 ((block == Blocks.carrots && blockState.getValue(BlockCrops.AGE) == 7) ||
                 (block == Blocks.potatoes && blockState.getValue(BlockCrops.AGE) == 7) ||
-                (block == Blocks.reeds && getBlockState(bp.add(0, -1, 0)).getBlock() == Blocks.reeds) ||
+                (block == Blocks.reeds && getBlockState(bp.add(0, -1, 0)).getBlock() == Blocks.reeds && getBlockState(bp.add(0, 1, 0)).getBlock() == Blocks.reeds) ||
                 (block == Blocks.cocoa && blockState.getValue(BlockCocoa.AGE) == 2) ||
                 block == Blocks.melon_block ||
                 block == Blocks.pumpkin ||
@@ -407,7 +413,7 @@ public class Nuker {
                 block == Blocks.log2)) return true;
 
         if (NukerBlockFilter.nukerBlockFilterSand &&
-                block == Blocks.sand) return true;
+                (block == Blocks.sand || block == Blocks.gravel)) return true;
 
         if (NukerBlockFilter.nukerBlockFilterDirt &&
                 (block == Blocks.dirt ||
@@ -432,27 +438,14 @@ public class Nuker {
                 block == Blocks.netherrack;
     }
 
-    public static EnumFacing calculateEnumfacing(Vec3 vec) {
-        int x = MathHelper.floor_double(vec.xCoord);
-        int y = MathHelper.floor_double(vec.yCoord);
-        int z = MathHelper.floor_double(vec.zCoord);
-        MovingObjectPosition position = calculateIntercept(new AxisAlignedBB(x, y, z, x + 1, y + 1, z + 1), vec, 50.0f);
-        return (position != null) ? position.sideHit : null;
-    }
-
-    public static MovingObjectPosition calculateIntercept(AxisAlignedBB aabb, Vec3 vec, float range) {
-        Vec3 playerPositionEyes = GumTuneClient.mc.thePlayer.getPositionEyes(1f);
-        Vec3 blockVector = RotationUtils.getLook(vec);
-        return aabb.calculateIntercept(playerPositionEyes, playerPositionEyes.addVector(blockVector.xCoord * range, blockVector.yCoord * range, blockVector.zCoord * range));
-    }
-
     private boolean isSlow(IBlockState blockState) {
         Block block = blockState.getBlock();
         return block == Blocks.prismarine || block == Blocks.wool || block == Blocks.stained_hardened_clay ||
                 block == Blocks.gold_block || block == Blocks.stained_glass_pane || block == Blocks.stained_glass ||
                 block == Blocks.glowstone || block == Blocks.chest ||
                 (block == Blocks.stone && blockState.getValue(BlockStone.VARIANT) == BlockStone.EnumType.DIORITE_SMOOTH) ||
-                block == Blocks.obsidian;
+                block == Blocks.obsidian || block == Blocks.redstone_ore || block == Blocks.lit_redstone_ore ||
+                (LocationUtils.currentIsland == LocationUtils.Island.THE_RIFT && block == Blocks.lapis_ore);
     }
 
     private IBlockState getBlockState(BlockPos blockPos) {

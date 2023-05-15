@@ -167,7 +167,7 @@ public class MainCommand {
     }
 
     @SubCommand(description = "raytrace")
-    private void raytrace(String x, String y, String z) {
+    private void raytrace(String x, String y, String z, String fullBlocks) {
         if (x == null || !isNumeric(x)) {
             ModUtils.sendMessage("Invalid x coordinate: " + x);
             return;
@@ -180,8 +180,14 @@ public class MainCommand {
             ModUtils.sendMessage("Invalid z coordinate: " + z);
             return;
         }
+        if (fullBlocks == null || !isBooleanic(fullBlocks)) {
+            ModUtils.sendMessage("Invalid boolean fullBlocks: " + fullBlocks);
+            return;
+        }
 
         BlockUtils.blockPosConcurrentLinkedQueue.clear();
+        BlockUtils.source = GumTuneClient.mc.thePlayer.getPositionEyes(1f);
+        BlockUtils.destination = new Vec3(Double.parseDouble(x), Double.parseDouble(y), Double.parseDouble(z));
         BlockUtils.rayTraceBlocks(
                 GumTuneClient.mc.thePlayer.getPositionEyes(1f),
                 new Vec3(Double.parseDouble(x), Double.parseDouble(y), Double.parseDouble(z)),
@@ -189,7 +195,8 @@ public class MainCommand {
                 true,
                 false,
                 block -> block == Blocks.cocoa,
-                true
+                true,
+                Boolean.parseBoolean(fullBlocks)
         );
     }
 
@@ -263,10 +270,19 @@ public class MainCommand {
         }
     }
 
+    @SubCommand(description = "apikey")
+    private void apikey() {
+        ModUtils.sendMessage(GumTuneClientConfig.hypixelApiKey);
+    }
+
     private void saveToClipoard(String string){
         StringSelection selection = new StringSelection(string);
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         clipboard.setContents(selection, selection);
+    }
+
+    private boolean isBooleanic(String str) {
+        return str.equals("true") || str.equals("false");
     }
 
     private boolean isNumeric(String str) {

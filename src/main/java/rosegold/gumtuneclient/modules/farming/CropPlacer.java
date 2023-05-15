@@ -1,4 +1,4 @@
-package rosegold.gumtuneclient.modules.world;
+package rosegold.gumtuneclient.modules.farming;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockPlanks;
@@ -34,6 +34,7 @@ public class CropPlacer {
         if (event.timestamp - lastPlanted > 1000f / GumTuneClientConfig.cropPlacerSpeed) {
             lastPlanted = event.timestamp;
             point = null;
+            enumFacing = null;
             EntityPlayerSP player = GumTuneClient.mc.thePlayer;
             blockPos = GumTuneClientConfig.cropPlacerFindingAlgorithm == 0 ?
                     BlockUtils.getClosestBlock(5, GumTuneClientConfig.cropPlacerCropType == 2 ? 5 : 0, 4, this::canPlantOnBlock) :
@@ -47,14 +48,6 @@ public class CropPlacer {
                             enumFacing = EnumFacing.UP;
                             player.inventory.currentItem = slot;
                             point = new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.99, blockPos.getZ() + 0.5);
-                            GumTuneClient.mc.playerController.onPlayerRightClick(
-                                    player,
-                                    GumTuneClient.mc.theWorld,
-                                    player.inventory.getCurrentItem(),
-                                    blockPos,
-                                    enumFacing,
-                                    point
-                            );
                         }
                         break;
                     case 1:
@@ -63,14 +56,6 @@ public class CropPlacer {
                             enumFacing = EnumFacing.UP;
                             player.inventory.currentItem = slot;
                             point = new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.99, blockPos.getZ() + 0.5);
-                            GumTuneClient.mc.playerController.onPlayerRightClick(
-                                    player,
-                                    GumTuneClient.mc.theWorld,
-                                    player.inventory.getCurrentItem(),
-                                    blockPos,
-                                    enumFacing,
-                                    point
-                            );
                         }
                         break;
                     case 2:
@@ -79,16 +64,75 @@ public class CropPlacer {
                         if (slot != -1 && enumFacing != null) {
                             player.inventory.currentItem = slot;
                             point = new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5).add(VectorUtils.scaleVec(enumFacing.getDirectionVec(),0.49f));
-                            GumTuneClient.mc.playerController.onPlayerRightClick(
-                                    player,
-                                    GumTuneClient.mc.theWorld,
-                                    player.inventory.getCurrentItem(),
-                                    blockPos,
-                                    enumFacing,
-                                    point
-                            );
                         }
                         break;
+                    case 3:
+                        slot = InventoryUtils.findItemInHotbar("Potato");
+                        if (slot != -1) {
+                            enumFacing = EnumFacing.UP;
+                            player.inventory.currentItem = slot;
+                            point = new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.99, blockPos.getZ() + 0.5);
+                        }
+                        break;
+                    case 4:
+                        slot = InventoryUtils.findItemInHotbar("Carrot");
+                        if (slot != -1) {
+                            enumFacing = EnumFacing.UP;
+                            player.inventory.currentItem = slot;
+                            point = new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.99, blockPos.getZ() + 0.5);
+                        }
+                        break;
+                    case 5:
+                        slot = InventoryUtils.findItemInHotbar("Seeds");
+                        if (slot != -1) {
+                            enumFacing = EnumFacing.UP;
+                            player.inventory.currentItem = slot;
+                            point = new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.99, blockPos.getZ() + 0.5);
+                        }
+                        break;
+                    case 6:
+                        slot = InventoryUtils.findItemInHotbar("Pumpkin Seeds");
+                        if (slot != -1) {
+                            enumFacing = EnumFacing.UP;
+                            player.inventory.currentItem = slot;
+                            point = new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.99, blockPos.getZ() + 0.5);
+                        }
+                        break;
+                    case 7:
+                        slot = InventoryUtils.findItemInHotbar("Melon Seeds");
+                        if (slot != -1) {
+                            enumFacing = EnumFacing.UP;
+                            player.inventory.currentItem = slot;
+                            point = new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.99, blockPos.getZ() + 0.5);
+                        }
+                        break;
+                    case 8:
+                        slot = InventoryUtils.findItemInHotbar("Nether Wart");
+                        if (slot != -1) {
+                            enumFacing = EnumFacing.UP;
+                            player.inventory.currentItem = slot;
+                            point = new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.99, blockPos.getZ() + 0.5);
+                        }
+                        break;
+                    case 9:
+                        slot = InventoryUtils.findItemInHotbar("Mushroom");
+                        if (slot != -1) {
+                            enumFacing = EnumFacing.UP;
+                            player.inventory.currentItem = slot;
+                            point = new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.99, blockPos.getZ() + 0.5);
+                        }
+                        break;
+                }
+
+                if (enumFacing != null && point != null) {
+                    GumTuneClient.mc.playerController.onPlayerRightClick(
+                            player,
+                            GumTuneClient.mc.theWorld,
+                            player.inventory.getCurrentItem(),
+                            blockPos,
+                            enumFacing,
+                            point
+                    );
                 }
             } else {
                 enumFacing = null;
@@ -136,6 +180,16 @@ public class CropPlacer {
                 return enumFacing != null && getBlock(blockPos) == Blocks.log &&
                         getBlockState(blockPos).getValue(BlockPlanks.VARIANT) == BlockPlanks.EnumType.JUNGLE &&
                         getBlock(blockPos.add(enumFacing.getDirectionVec())) == Blocks.air;
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+                return getBlock(blockPos) == Blocks.farmland && getBlock(blockPos.add(0, 1, 0)) == Blocks.air;
+            case 8:
+                return getBlock(blockPos) == Blocks.soul_sand && getBlock(blockPos.add(0, 1, 0)) == Blocks.air;
+            case 9:
+                return getBlock(blockPos) == Blocks.mycelium && getBlock(blockPos.add(0, 1, 0)) == Blocks.air;
         }
         return false;
     }

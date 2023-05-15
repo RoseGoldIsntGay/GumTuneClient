@@ -1,10 +1,31 @@
 package rosegold.gumtuneclient.utils;
 
-import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.MovingObjectPosition;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
+import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import rosegold.gumtuneclient.GumTuneClient;
 
 public class PlayerUtils {
+    public static boolean pickaxeAbilityReady = false;
+
+    @SubscribeEvent(receiveCanceled = true)
+    public void onChat(ClientChatReceivedEvent event) {
+        String message = StringUtils.removeFormatting(event.message.getUnformattedText());
+        if (message.contains(":") || message.contains(">")) return;
+        if(message.startsWith("You used your Mining Speed Boost Pickaxe Ability!")) {
+            ModUtils.sendMessage("Detected used mining speed boost");
+            pickaxeAbilityReady = false;
+        } else if(message.equals("Mining Speed Boost is now available!")) {
+            ModUtils.sendMessage("Detected mining speed boost available");
+            pickaxeAbilityReady = true;
+        }
+    }
+
+    @SubscribeEvent
+    public void onWorldChange(WorldEvent.Unload event) {
+        pickaxeAbilityReady = false;
+    }
 
     public static void swingHand(MovingObjectPosition objectMouseOver) {
         if (objectMouseOver == null) {
@@ -31,33 +52,5 @@ public class PlayerUtils {
         if(!ReflectionUtils.invoke(GumTuneClient.mc, "func_147112_ai")) {
             ReflectionUtils.invoke(GumTuneClient.mc, "middleClickMouse");
         }
-    }
-
-    public static void updateKeys(boolean forward, boolean back, boolean right, boolean left, boolean attack) {
-        updateKeys(forward, back, right, left, attack, false, false);
-    }
-
-    public static void updateKeys(boolean forward, boolean back, boolean right, boolean left, boolean attack, boolean crouch, boolean space) {
-        if (GumTuneClient.mc.currentScreen != null) {
-            stopMovement();
-            return;
-        }
-        KeyBinding.setKeyBindState(GumTuneClient.mc.gameSettings.keyBindForward.getKeyCode(), forward);
-        KeyBinding.setKeyBindState(GumTuneClient.mc.gameSettings.keyBindBack.getKeyCode(), back);
-        KeyBinding.setKeyBindState(GumTuneClient.mc.gameSettings.keyBindRight.getKeyCode(), right);
-        KeyBinding.setKeyBindState(GumTuneClient.mc.gameSettings.keyBindLeft.getKeyCode(), left);
-        KeyBinding.setKeyBindState(GumTuneClient.mc.gameSettings.keyBindAttack.getKeyCode(), attack);
-        KeyBinding.setKeyBindState(GumTuneClient.mc.gameSettings.keyBindSneak.getKeyCode(), crouch);
-        KeyBinding.setKeyBindState(GumTuneClient.mc.gameSettings.keyBindJump.getKeyCode(), space);
-    }
-
-    public static void stopMovement() {
-        KeyBinding.setKeyBindState(GumTuneClient.mc.gameSettings.keyBindForward.getKeyCode(), false);
-        KeyBinding.setKeyBindState(GumTuneClient.mc.gameSettings.keyBindBack.getKeyCode(), false);
-        KeyBinding.setKeyBindState(GumTuneClient.mc.gameSettings.keyBindRight.getKeyCode(), false);
-        KeyBinding.setKeyBindState(GumTuneClient.mc.gameSettings.keyBindLeft.getKeyCode(), false);
-        KeyBinding.setKeyBindState(GumTuneClient.mc.gameSettings.keyBindAttack.getKeyCode(), false);
-        KeyBinding.setKeyBindState(GumTuneClient.mc.gameSettings.keyBindSneak.getKeyCode(), false);
-        KeyBinding.setKeyBindState(GumTuneClient.mc.gameSettings.keyBindJump.getKeyCode(), false);
     }
 }

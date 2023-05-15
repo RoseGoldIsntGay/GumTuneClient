@@ -1,7 +1,6 @@
 package rosegold.gumtuneclient.utils;
 
 import net.minecraft.client.network.NetworkPlayerInfo;
-import net.minecraft.util.StringUtils;
 import rosegold.gumtuneclient.GumTuneClient;
 
 import java.util.ArrayList;
@@ -15,7 +14,7 @@ public class TabListUtils {
     }
 
     public static boolean tabListContains(String string, List<String> tabList) {
-        return tabList.stream().map(line -> removeFormatting(cleanSB(line))).anyMatch(line -> line.contains(string));
+        return tabList.stream().map(line -> StringUtils.removeFormatting(cleanSB(line))).anyMatch(line -> line.contains(string));
     }
 
     public static List<String> getTabList() {
@@ -28,12 +27,8 @@ public class TabListUtils {
         }
     }
 
-    public static String removeFormatting(String input) {
-        return input.replaceAll("§[0-9a-fk-or]", "");
-    }
-
     public static String cleanSB(String scoreboard) {
-        char[] nvString = StringUtils.stripControlCodes(scoreboard).toCharArray();
+        char[] nvString = StringUtils.removeFormatting(scoreboard).toCharArray();
         StringBuilder cleaned = new StringBuilder();
 
         for (char c : nvString) {

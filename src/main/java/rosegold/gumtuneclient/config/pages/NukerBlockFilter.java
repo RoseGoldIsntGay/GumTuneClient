@@ -23,6 +23,12 @@ public class NukerBlockFilter {
     public static boolean nukerBlockFilterMithril = false;
 
     @Switch(
+            name = "Titanium",
+            description = "Smooth Diorite in the Dwarven Mines"
+    )
+    public static boolean nukerBlockFilterTitanium = false;
+
+    @Switch(
             name = "Crimson Isle Excavatables",
             description = "Mycelium and red sand in Crimson Isle"
     )
@@ -71,7 +77,7 @@ public class NukerBlockFilter {
     public static boolean nukerBlockFilterWood = false;
 
     @Switch(
-            name = "Sand",
+            name = "Sand and Gravel",
             description = "Sand and red sand"
     )
     public static boolean nukerBlockFilterSand = false;

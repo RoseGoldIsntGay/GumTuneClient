@@ -80,9 +80,9 @@ public class MobMacro {
                         break;
                     case 2:
                         if (lookAt.posY > mc.thePlayer.posY) {
-                            RotationUtils.smoothLook(RotationUtils.getRotation(lookAt, 0.1f), 200);
+                            RotationUtils.smoothLook(RotationUtils.getRotation(lookAt, new Vec3(0, 0.1, 0)), 200);
                         } else {
-                            RotationUtils.smoothLook(RotationUtils.getRotation(lookAt, mc.thePlayer.getEyeHeight()), 200);
+                            RotationUtils.smoothLook(RotationUtils.getRotation(lookAt, new Vec3(0, mc.thePlayer.getEyeHeight(), 0)), 200);
                         }
                         break;
                 }
