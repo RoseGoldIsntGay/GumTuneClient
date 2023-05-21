@@ -11,7 +11,8 @@ import cc.polyfrost.oneconfig.config.data.PageLocation;
 import cc.polyfrost.oneconfig.libs.universal.UKeyboard;
 import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.config.pages.*;
-import rosegold.gumtuneclient.huds.SlayerHud;
+import rosegold.gumtuneclient.hud.SlayerHud;
+import rosegold.gumtuneclient.hud.TrackersHud;
 
 public class GumTuneClientConfig extends Config {
 
@@ -40,7 +41,6 @@ public class GumTuneClientConfig extends Config {
     private transient static final String TRACKERS = "Trackers";
     private transient static final String MOB_MACRO = "Mob Macro";
     private transient static final String SERVER_SIDE_ROTATIONS = "Server Side Rotations";
-    private transient static final String ROTATION_CONFIG = "Rotations Config";
     private transient static final String CAMERA = "Camera";
     private transient static final String WORLD_SCANNER = "World Scanner";
     private transient static final String METAL_DETECTOR_SOLVER = "Metal Detector Solver";
@@ -61,6 +61,7 @@ public class GumTuneClientConfig extends Config {
     private transient static final String HYPIXEL_API_KEY = "Hypixel API Key";
     private transient static final String AUTO_CRAFT = "Auto Craft";
     private transient static final String RIFT = "Rift";
+    private transient static final String POWDER_CHEST_TRACKER = "Powder Chest Tracker";
 
     @Switch(
             name = "Enabled",
@@ -186,7 +187,7 @@ public class GumTuneClientConfig extends Config {
     public static boolean nuker = false;
 
     @KeyBind(
-            name = "Keybind",
+            name = "Toggle Keybind",
             category = MINING,
             subcategory = NUKER,
             size = 2
@@ -201,6 +202,24 @@ public class GumTuneClientConfig extends Config {
             location = PageLocation.TOP
     )
     public NukerBlockFilter nukerBlockFilter = new NukerBlockFilter();
+
+    @Page(
+            name = "Nuker Switches",
+            description = "Toggles for specific nuker configurations",
+            category = MINING,
+            subcategory = NUKER,
+            location = PageLocation.BOTTOM
+    )
+    public NukerBooleanOptions nukerBooleanOptions = new NukerBooleanOptions();
+
+    @Page(
+            name = "Nuker Sliders",
+            description = "Sliders for specific nuker configurations",
+            category = MINING,
+            subcategory = NUKER,
+            location = PageLocation.BOTTOM
+    )
+    public NukerSliderOptions nukerSliderOptions = new NukerSliderOptions();
 
     @Dropdown(
             name = "Rotation Type",
@@ -219,57 +238,11 @@ public class GumTuneClientConfig extends Config {
     )
     public static int nukerRotationSpeed = 250;
 
-    @Switch(
-            name = "Mine ALL Blocks In Front",
-            description = "Mine all blocks in the way of the player",
-            category = MINING,
-            subcategory = NUKER,
-            size = 2
-    )
-    public static boolean mineBlocksInFront = false;
-
-    @Slider(
-            name = "Speed",
-            description = "Blocks per second",
-            category = MINING,
-            subcategory = NUKER,
-            min = 0, max = 80
-    )
-    public static int nukerSpeed = 20;
-
-    @Slider(
-            name = "Range",
-            description = "Range in blocks",
-            category = MINING,
-            subcategory = NUKER,
-            min = 1, max = 5,
-            step = 1
-    )
-    public static int nukerRange = 5;
-
-    @Slider(
-            name = "Height",
-            description = "Blocks above your head",
-            category = MINING,
-            subcategory = NUKER,
-            min = 0, max = 5
-    )
-    public static int nukerHeight = 0;
-
-    @Slider(
-            name = "Depth",
-            description = "Blocks below your head",
-            category = MINING,
-            subcategory = NUKER,
-            min = 0, max = 4
-    )
-    public static int nukerDepth = 1;
-
     @Dropdown(
             name = "Shape",
             category = MINING,
             subcategory = NUKER,
-            options = {"Sphere", "Facing Axis", "Axis Tunnels", "Triggerbot"}
+            options = {"Sphere", "Facing Axis", "Axis Tunnels", "Triggerbot", "Route Nuker"}
     )
     public static int nukerShape = 0;
 
@@ -280,55 +253,6 @@ public class GumTuneClientConfig extends Config {
             options = {"Closest Block (Classic)", "Smallest Rotation"}
     )
     public static int nukerAlgorithm = 0;
-
-    @Slider(
-            name = "Field of View",
-            description = "Change fov of sphere shape nuker",
-            category = MINING,
-            subcategory = NUKER,
-            min = 0, max = 361, // bruh moment
-            step = 20
-    )
-    public static int nukerFieldOfView = 180;
-
-    @Switch(
-            name = "Preview",
-            description = "Show which blocks are going to be mined",
-            category = MINING,
-            subcategory = NUKER,
-            size = 2
-    )
-    public static boolean nukerPreview = false;
-
-    @Slider(
-            name = "Sideways Offset",
-            description = "For facing axis mode (positive - offset to the right)",
-            category = MINING,
-            subcategory = NUKER,
-            min = -4, max = 4,
-            step = 1
-    )
-    public static int nukerSidewaysOffset = 0;
-
-    @Slider(
-            name = "Forwards-Backwards Offset",
-            description = "For facing axis mode (positive - forwards)",
-            category = MINING,
-            subcategory = NUKER,
-            min = -4, max = 4,
-            step = 1
-    )
-    public static int nukerForwardsOffset = 0;
-
-    @Slider(
-            name = "Pingless reset cutoff",
-            description = "Mess with this slider and see if it makes nuker faster",
-            category = MINING,
-            subcategory = NUKER,
-            min = 0f, max = 20,
-            step = 1
-    )
-    public static int nukerPinglessCutoff = 10;
 
     @Switch(
             name = "Powder Chest Solver",
@@ -434,8 +358,8 @@ public class GumTuneClientConfig extends Config {
     @Slider(
             name = "Rotation Speed",
             description = "Rotation time in ms",
-            category = MINING,
-            subcategory = NUKER,
+            category = MACRO,
+            subcategory = GEMSTONE_MACRO,
             min = 50, max = 500
     )
     public static int aotvGemstoneMacroRotationSpeed = 250;
@@ -452,7 +376,7 @@ public class GumTuneClientConfig extends Config {
             name = "Mining Mode",
             category = MACRO,
             subcategory = GEMSTONE_MACRO,
-            options = {"Legit", "Nuker"}
+            options = {"Legit", "Nuker", "Armadillo"}
     )
     public static int aotvGemstoneMacroMiningMode = 0;
 
@@ -479,6 +403,14 @@ public class GumTuneClientConfig extends Config {
             description = "Highlight blocks that might prevent AOTV from working"
     )
     public static boolean aotvGemstoneShowBlocksBlockingPath = false;
+
+    @Switch(
+            name = "Mine Panes",
+            category = MACRO,
+            subcategory = GEMSTONE_MACRO,
+            description = "Mine gemstone panes along with full blocks"
+    )
+    public static boolean aotvGemstoneMinePanes = false;
 
     @Switch(
             name = "Avoid Breaking Stems",
@@ -655,6 +587,14 @@ public class GumTuneClientConfig extends Config {
     )
     public static boolean phaseCameraThroughBlocks = false;
 
+    @Info(
+            text = "Remember to toggle both Mob Macro and it's keybind!",
+            type = InfoType.INFO,
+            category = MACRO,
+            subcategory = MOB_MACRO
+    )
+    public static boolean mobMacroReminderIgnored;
+
     @Switch(
             name = "Mob Macro",
             category = MACRO,
@@ -664,7 +604,7 @@ public class GumTuneClientConfig extends Config {
     public static boolean mobMacro = false;
 
     @KeyBind(
-            name = "Keybind",
+            name = "Toggle Keybind",
             category = MACRO,
             subcategory = MOB_MACRO,
             size = 2
@@ -1253,22 +1193,25 @@ public class GumTuneClientConfig extends Config {
     )
     public static boolean antiShy = false;
 
+    @Switch(
+            name = "Trackers",
+            category = TRACKERS,
+            size = 2
+    )
+    public static boolean trackers = false;
 
+    @HUD(
+            name = "Trackers Hud",
+            category = TRACKERS
+    )
+    public TrackersHud trackersHud = new TrackersHud();
 
-//    @Switch(
-//            name = "Skill Tracker",
-//            category = TRACKERS,
-//            subcategory = SKILL_TRACKER,
-//            size = 2
-//    )
-//    public static boolean skillTracker = false;
-//
-//    @Dropdown(
-//            name = "Skill Type",
-//            category = TRACKERS,
-//            subcategory = SKILL_TRACKER,
-//            options = {"Combat", "Mining", }
-//    )
+    @Switch(
+            name = "Powder Chest Tracker",
+            category = TRACKERS,
+            subcategory = POWDER_CHEST_TRACKER
+    )
+    public static boolean powderChestTracker = false;
 
 
     public GumTuneClientConfig() {

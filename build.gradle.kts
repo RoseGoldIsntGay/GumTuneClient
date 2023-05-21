@@ -60,7 +60,6 @@ sourceSets {
 
 repositories {
     maven("https://repo.polyfrost.cc/releases")
-    maven("https://maven.ilarea.ru/releases")
 }
 
 dependencies {
@@ -69,11 +68,6 @@ dependencies {
     if (platform.isLegacyForge) {
         compileOnly("org.spongepowered:mixin:0.7.11-SNAPSHOT")
         shade("cc.polyfrost:oneconfig-wrapper-launchwrapper:1.0.0-beta+")
-        shade("me.cephetir:communist-scanner:1.1.3") {
-            exclude(module = "bladecore-1.8.9-forge")
-            exclude(group = "gg.essential")
-            exclude(group = "org.jetbrains.kotlin")
-        }
     }
 }
 

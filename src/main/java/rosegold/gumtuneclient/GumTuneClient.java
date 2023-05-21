@@ -28,6 +28,7 @@ import rosegold.gumtuneclient.modules.mining.MetalDetectorSolver;
 import rosegold.gumtuneclient.modules.mining.Nuker;
 import rosegold.gumtuneclient.modules.mining.PowderChestSolver;
 import rosegold.gumtuneclient.modules.player.*;
+import rosegold.gumtuneclient.modules.qol.Trackers;
 import rosegold.gumtuneclient.modules.render.ESPs;
 import rosegold.gumtuneclient.modules.render.RevealHiddenMobs;
 import rosegold.gumtuneclient.modules.singleplayer.skyblockitems.AspectOfTheVoid;
@@ -36,12 +37,13 @@ import rosegold.gumtuneclient.modules.slayer.HighlightSlayerBoss;
 import rosegold.gumtuneclient.modules.slayer.SlayerHandler;
 import rosegold.gumtuneclient.modules.world.WorldScanner;
 import rosegold.gumtuneclient.utils.*;
-import rosegold.gumtuneclient.utils.objects.ModuleArrayList;
 
 import java.awt.*;
 import java.io.File;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -57,13 +59,14 @@ public class GumTuneClient {
     public GumTuneClientConfig config;
     public static Minecraft mc = Minecraft.getMinecraft();
 
-    private final ModuleArrayList<Object> modules = new ModuleArrayList<>();
+    private final ArrayList<Object> modules = new ArrayList<>();
     private boolean login = false;
     public static boolean debug = false;
     private boolean failedCreatingConfig = false;
 
     public GumTuneClient() {
-        modules.addAll(
+        Collections.addAll(modules,
+                new Trackers(),
                 new PowderChestSolver(),
                 new AutoHarp(),
                 new ESPs(),

@@ -138,7 +138,7 @@ public class ESPs {
                     highlightEntity(event.entity, "§fLarvae", new Color(255, 255, 255).getRGB());
                 }
                 if (RiftESPs.odonataESP && matchHeldItemTexture((EntityArmorStand) event.entity, ODONATA_TEXTURE)) {
-                    highlightEntity(event.entity, "§bOdonata", new Color(8,176,156).getRGB());
+                    highlightEntity(event.entity, "§bOdonata", new Color(8, 176, 156).getRGB());
                 }
                 if (RiftESPs.montezumaESP && matchSkullTexture((EntityArmorStand) event.entity, MONTEZUMA_TEXTURE)) {
                     highlightEntity(event.entity, "§fMontezuma", Color.WHITE.getRGB());
@@ -185,21 +185,23 @@ public class ESPs {
             }
             if (highlightedEntityBlocks.containsKey(entity)) {
                 BlockPos blockPos = highlightedEntityBlocks.get(entity).getBlockPos();
-                RenderUtils.renderEspBox(blockPos, event.partialTicks, highlightedEntities.get(entity).getColor());
-                RenderUtils.renderWaypointText(highlightedEntityBlocks.get(entity).getName(), blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
+                if (blockPos != null) {
+                    RenderUtils.renderEspBox(blockPos, event.partialTicks, highlightedEntities.get(entity).getColor());
+                    RenderUtils.renderWaypointText(highlightedEntityBlocks.get(entity).getName(), blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
+                }
             }
         });
         if (GumTuneClientConfig.customBlockESP) {
-                highlightedBlocks.forEach((blockPos, color) -> {
-                    if ((PowderChestSolver.closestChest == null || !PowderChestSolver.closestChest.equals(blockPos)) && !PowderChestSolver.solved.contains(blockPos)) {
-                        if (GumTuneClientConfig.customBlockESPRange == 0 || GumTuneClient.mc.thePlayer.getDistance(blockPos.getX(), blockPos.getY(), blockPos.getZ()) < GumTuneClientConfig.customBlockESPRange) {
-                            RenderUtils.renderEspBox(blockPos, event.partialTicks, color.getRGB());
-                            if (GumTuneClientConfig.customBlockESPRenderTracer) {
-                                RenderUtils.drawLine(GumTuneClient.mc.thePlayer.getPositionEyes(event.partialTicks), new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5), 1, event.partialTicks);
-                            }
+            highlightedBlocks.forEach((blockPos, color) -> {
+                if ((PowderChestSolver.closestChest == null || !PowderChestSolver.closestChest.equals(blockPos)) && !PowderChestSolver.solved.contains(blockPos)) {
+                    if (GumTuneClientConfig.customBlockESPRange == 0 || GumTuneClient.mc.thePlayer.getDistance(blockPos.getX(), blockPos.getY(), blockPos.getZ()) < GumTuneClientConfig.customBlockESPRange) {
+                        RenderUtils.renderEspBox(blockPos, event.partialTicks, color.getRGB());
+                        if (GumTuneClientConfig.customBlockESPRenderTracer) {
+                            RenderUtils.drawLine(GumTuneClient.mc.thePlayer.getPositionEyes(event.partialTicks), new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5), 1, event.partialTicks);
                         }
                     }
-                });
+                }
+            });
         }
     }
 

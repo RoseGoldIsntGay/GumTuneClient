@@ -17,10 +17,13 @@ import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.events.SecondEvent;
 import rosegold.gumtuneclient.utils.*;
+import rosegold.gumtuneclient.utils.objects.WaypointList;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -228,8 +231,11 @@ public class AutoSell {
 
     public static void loadConfig() {
         try {
-            itemsToSell = new Gson().fromJson(new String(Files.readAllBytes(Paths.get("./config/" + GumTuneClient.MODID + "/autoSellFilters.json"))), new TypeToken<HashSet<String>>() {
-            }.getType());
+            Path path = Paths.get("./config/" + GumTuneClient.MODID + "/autoSellFilters.json");
+            if (new File(path.toUri()).exists()) {
+                itemsToSell = new Gson().fromJson(new String(Files.readAllBytes(path)), new TypeToken<HashSet<String>>() {
+                }.getType());
+            }
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }

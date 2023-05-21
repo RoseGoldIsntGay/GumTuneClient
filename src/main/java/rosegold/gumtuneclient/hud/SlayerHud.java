@@ -1,4 +1,4 @@
-package rosegold.gumtuneclient.huds;
+package rosegold.gumtuneclient.hud;
 
 import cc.polyfrost.oneconfig.hud.TextHud;
 import rosegold.gumtuneclient.GumTuneClient;

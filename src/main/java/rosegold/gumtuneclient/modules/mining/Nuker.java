@@ -17,9 +17,12 @@ import org.lwjgl.input.Keyboard;
 import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.config.pages.NukerBlockFilter;
+import rosegold.gumtuneclient.config.pages.NukerBooleanOptions;
+import rosegold.gumtuneclient.config.pages.NukerSliderOptions;
 import rosegold.gumtuneclient.events.MillisecondEvent;
 import rosegold.gumtuneclient.events.PlayerMoveEvent;
 import rosegold.gumtuneclient.events.SecondEvent;
+import rosegold.gumtuneclient.modules.macro.GemstoneMacro;
 import rosegold.gumtuneclient.modules.render.ESPs;
 import rosegold.gumtuneclient.utils.*;
 
@@ -94,12 +97,12 @@ public class Nuker {
         blocksInRange.clear();
         EntityPlayerSP player =  GumTuneClient.mc.thePlayer;
         BlockPos playerPos = new BlockPos((int) Math.floor(player.posX), (int) Math.floor(player.posY) + 1, (int) Math.floor(player.posZ));
-        Vec3i vec3Top = new Vec3i(GumTuneClientConfig.nukerRange, GumTuneClientConfig.nukerHeight, GumTuneClientConfig.nukerRange);
-        Vec3i vec3Bottom = new Vec3i(GumTuneClientConfig.nukerRange, GumTuneClientConfig.nukerDepth, GumTuneClientConfig.nukerRange);
+        Vec3i vec3Top = new Vec3i(NukerSliderOptions.nukerRange, NukerSliderOptions.nukerHeight, NukerSliderOptions.nukerRange);
+        Vec3i vec3Bottom = new Vec3i(NukerSliderOptions.nukerRange, NukerSliderOptions.nukerDepth, NukerSliderOptions.nukerRange);
 
         for (BlockPos blockPos : BlockPos.getAllInBox(playerPos.subtract(vec3Bottom), playerPos.add(vec3Top))) {
             Vec3 target = new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5);
-            if (Math.abs(RotationUtils.wrapAngleTo180(RotationUtils.fovToVec3(target) - RotationUtils.wrapAngleTo180(GumTuneClient.mc.thePlayer.rotationYaw))) < (float) GumTuneClientConfig.nukerFieldOfView / 2) blocksInRange.add(blockPos);
+            if (Math.abs(RotationUtils.wrapAngleTo180(RotationUtils.fovToVec3(target) - RotationUtils.wrapAngleTo180(GumTuneClient.mc.thePlayer.rotationYaw))) < (float) NukerSliderOptions.nukerFieldOfView / 2) blocksInRange.add(blockPos);
         }
 
         if (System.currentTimeMillis() - stuckTimestamp > 3000) {
@@ -119,11 +122,13 @@ public class Nuker {
             return;
         }
 
-        if (event.timestamp - lastBroken > 1000f / GumTuneClientConfig.nukerSpeed) {
-            lastBroken = event.timestamp;
-            if (broken.size() > GumTuneClientConfig.nukerPinglessCutoff) broken.clear();
+        if (NukerBooleanOptions.onGroundOnly && !GumTuneClient.mc.thePlayer.onGround) return;
 
-            if (GumTuneClientConfig.mineBlocksInFront) {
+        if (event.timestamp - lastBroken > 1000f / NukerSliderOptions.nukerSpeed) {
+            lastBroken = event.timestamp;
+            if (broken.size() > NukerSliderOptions.nukerPinglessCutoff) broken.clear();
+
+            if (NukerBooleanOptions.mineBlocksInFront) {
                 blockPos = blockInFront();
 
                 if (blockPos != null) {
@@ -145,10 +150,10 @@ public class Nuker {
             if (current == null) {
                 switch (GumTuneClientConfig.nukerAlgorithm) {
                     case 0:
-                        blockPos = BlockUtils.getClosestBlock(GumTuneClientConfig.nukerRange, GumTuneClientConfig.nukerHeight, GumTuneClientConfig.nukerDepth, this::canMine);
+                        blockPos = BlockUtils.getClosestBlock(NukerSliderOptions.nukerRange, NukerSliderOptions.nukerHeight, NukerSliderOptions.nukerDepth, this::canMine);
                         break;
                     case 1:
-                        blockPos = BlockUtils.getEasiestBlock(GumTuneClientConfig.nukerRange, GumTuneClientConfig.nukerHeight, GumTuneClientConfig.nukerDepth, this::canMine);
+                        blockPos = BlockUtils.getEasiestBlock(NukerSliderOptions.nukerRange, NukerSliderOptions.nukerHeight, NukerSliderOptions.nukerDepth, this::canMine);
                         break;
                 }
             }
@@ -176,7 +181,7 @@ public class Nuker {
         if (!isEnabled()) return;
         RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.GRAY.getRGB());
         RenderUtils.renderEspBox(current, event.partialTicks, Color.BLUE.getRGB());
-        if (GumTuneClientConfig.nukerPreview) blocksInRange.forEach(bp -> RenderUtils.renderEspBox(bp, event.partialTicks, Color.CYAN.getRGB(), 0.1f));
+        if (NukerBooleanOptions.preview) blocksInRange.forEach(bp -> RenderUtils.renderEspBox(bp, event.partialTicks, Color.CYAN.getRGB(), 0.1f));
     }
 
     @SubscribeEvent(priority = EventPriority.NORMAL)
@@ -282,7 +287,7 @@ public class Nuker {
             EntityPlayerSP player = GumTuneClient.mc.thePlayer;
             EnumFacing axis = player.getHorizontalFacing();
 
-            Vec3i ray = VectorUtils.addVector(VectorUtils.addVector(new Vec3i((int) Math.floor(player.posX), 0, (int) Math.floor(player.posZ)), VectorUtils.scaleVec(axis.getDirectionVec(), GumTuneClientConfig.nukerForwardsOffset)), VectorUtils.scaleVec(axis.rotateY().getDirectionVec(), GumTuneClientConfig.nukerSidewaysOffset));
+            Vec3i ray = VectorUtils.addVector(VectorUtils.addVector(new Vec3i((int) Math.floor(player.posX), 0, (int) Math.floor(player.posZ)), VectorUtils.scaleVec(axis.getDirectionVec(), NukerSliderOptions.nukerForwardsOffset)), VectorUtils.scaleVec(axis.rotateY().getDirectionVec(), NukerSliderOptions.nukerSidewaysOffset));
 
             switch (GumTuneClientConfig.nukerShape) {
                 case 1:
@@ -323,6 +328,8 @@ public class Nuker {
                     return false;
                 case 3:
                     return isLookingAtBlock(blockPos);
+                case 4:
+                    return GemstoneMacro.extraBlocksInTheWay.contains(blockPos);
             }
 
             return true;

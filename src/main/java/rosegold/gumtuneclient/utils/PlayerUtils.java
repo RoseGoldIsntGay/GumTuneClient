@@ -13,11 +13,9 @@ public class PlayerUtils {
     public void onChat(ClientChatReceivedEvent event) {
         String message = StringUtils.removeFormatting(event.message.getUnformattedText());
         if (message.contains(":") || message.contains(">")) return;
-        if(message.startsWith("You used your Mining Speed Boost Pickaxe Ability!")) {
-            ModUtils.sendMessage("Detected used mining speed boost");
+        if (message.startsWith("You used your Mining Speed Boost Pickaxe Ability!")) {
             pickaxeAbilityReady = false;
-        } else if(message.equals("Mining Speed Boost is now available!")) {
-            ModUtils.sendMessage("Detected mining speed boost available");
+        } else if (message.equals("Mining Speed Boost is now available!")) {
             pickaxeAbilityReady = true;
         }
     }
@@ -37,19 +35,19 @@ public class PlayerUtils {
     }
 
     public static void rightClick() {
-        if(!ReflectionUtils.invoke(GumTuneClient.mc, "func_147121_ag")) {
+        if (!ReflectionUtils.invoke(GumTuneClient.mc, "func_147121_ag")) {
             ReflectionUtils.invoke(GumTuneClient.mc, "rightClickMouse");
         }
     }
 
     public static void leftClick() {
-        if(!ReflectionUtils.invoke(GumTuneClient.mc, "func_147116_af")) {
+        if (!ReflectionUtils.invoke(GumTuneClient.mc, "func_147116_af")) {
             ReflectionUtils.invoke(GumTuneClient.mc, "clickMouse");
         }
     }
 
     public static void middleClick() {
-        if(!ReflectionUtils.invoke(GumTuneClient.mc, "func_147112_ai")) {
+        if (!ReflectionUtils.invoke(GumTuneClient.mc, "func_147112_ai")) {
             ReflectionUtils.invoke(GumTuneClient.mc, "middleClickMouse");
         }
     }

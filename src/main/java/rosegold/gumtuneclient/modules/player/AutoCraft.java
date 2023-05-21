@@ -18,9 +18,11 @@ import rosegold.gumtuneclient.utils.InventoryUtils;
 import rosegold.gumtuneclient.utils.LocationUtils;
 import rosegold.gumtuneclient.utils.ModUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -176,8 +178,10 @@ public class AutoCraft {
 
     public static void loadConfig() {
         try {
-            itemsToCraft = new Gson().fromJson(new String(Files.readAllBytes(Paths.get("./config/" + GumTuneClient.MODID + "/autoCraftFilters.json"))), new TypeToken<HashSet<String>>() {
-            }.getType());
+            Path path = Paths.get("./config/" + GumTuneClient.MODID + "/autoCraftFilters.json");
+            if (new File(path.toUri()).exists()) {
+                itemsToCraft = new Gson().fromJson(new String(Files.readAllBytes(path)), new TypeToken<HashSet<String>>() {}.getType());
+            }
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }

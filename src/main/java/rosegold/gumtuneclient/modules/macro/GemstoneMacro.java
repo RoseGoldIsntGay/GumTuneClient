@@ -6,8 +6,10 @@ import net.minecraft.block.BlockColored;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.EnumDyeColor;
+import net.minecraft.network.play.client.C02PacketUseEntity;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
@@ -50,7 +52,11 @@ public class GemstoneMacro {
         AOTV_TELEPORT,
         SETUP_ROTATE_TO_BLOCK,
         ROTATE_TO_BLOCK,
-        MINING
+        MINING,
+        SPAWN_ARMADILLO,
+        MOUNT_ARMADILLO,
+        ROTATE_ARMADILLO,
+        DISMOUNT_ARMADILLO
     }
 
     private static GemMacroState gemMacroState = GemMacroState.AOTV_SETUP;
@@ -61,6 +67,7 @@ public class GemstoneMacro {
     private static long startTimestamp = System.currentTimeMillis();
     private static int currentIndex = -1;
     public static HashSet<BlockPos> blocksInTheWay = new HashSet<>();
+    public static HashSet<BlockPos> extraBlocksInTheWay = new HashSet<>();
 
     @SubscribeEvent
     public void onOverlayRender(RenderGameOverlayEvent.Post event) {
@@ -152,7 +159,9 @@ public class GemstoneMacro {
             }
         });
 
-        blocksInTheWay.forEach(blockPos -> RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.RED.getRGB(), 0.2f));
+        if (GumTuneClientConfig.aotvGemstoneShowBlocksBlockingPath) {
+            blocksInTheWay.forEach(blockPos -> RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.RED.getRGB(), 0.2f));
+        }
     }
 
     @SubscribeEvent
@@ -164,8 +173,9 @@ public class GemstoneMacro {
         if (activeList == null) return;
 
         blocksInTheWay.clear();
+        extraBlocksInTheWay.clear();
 
-        if (GumTuneClientConfig.aotvGemstoneShowBlocksBlockingPath) {
+        if (GumTuneClientConfig.aotvGemstoneShowBlocksBlockingPath || GumTuneClientConfig.nukerShape == 4) {
             activeList.waypoints.forEach((integer, waypoint) -> {
                 int nextIndex = activeList.getNextIndex(integer);
 
@@ -176,12 +186,18 @@ public class GemstoneMacro {
                             true,
                             true,
                             false,
-                            x -> false,
+                            x -> x == Blocks.chest,
                             false,
                             true
                     );
                     if (movingObjectPosition != null && movingObjectPosition.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && !movingObjectPosition.getBlockPos().equals(new BlockPos(activeList.waypoints.get(nextIndex).x + 0.5, activeList.waypoints.get(nextIndex).y + 0.5, activeList.waypoints.get(nextIndex).z + 0.5))) {
                         blocksInTheWay.add(movingObjectPosition.getBlockPos());
+                        extraBlocksInTheWay.add(movingObjectPosition.getBlockPos());
+                        extraBlocksInTheWay.add(movingObjectPosition.getBlockPos().add(0, -1, 0));
+                        for (EnumFacing enumFacing : EnumFacing.HORIZONTALS) {
+                            extraBlocksInTheWay.add(movingObjectPosition.getBlockPos().add(enumFacing.getDirectionVec()));
+                            extraBlocksInTheWay.add(movingObjectPosition.getBlockPos().add(enumFacing.getDirectionVec()).add(0, -1, 0));
+                        }
                     }
                 }
             });
@@ -238,7 +254,7 @@ public class GemstoneMacro {
                     }
 
                     timestamp = System.currentTimeMillis();
-                    gemMacroState = GemMacroState.SETUP_ROTATE_TO_BLOCK;
+                    gemMacroState = GumTuneClientConfig.aotvGemstoneMacroMiningMode == 2 ? GemMacroState.SPAWN_ARMADILLO : GemMacroState.SETUP_ROTATE_TO_BLOCK;
                 }
                 break;
             case SETUP_ROTATE_TO_BLOCK:
@@ -308,6 +324,29 @@ public class GemstoneMacro {
                     }
                 }
                 break;
+            case SPAWN_ARMADILLO:
+                int rodSlot = InventoryUtils.findItemInHotbar("Rod");
+                if (rodSlot != -1) {
+                    GumTuneClient.mc.thePlayer.inventory.currentItem = rodSlot;
+                }
+
+                Entity armadillo = GumTuneClient.mc.theWorld.loadedEntityList.stream().filter(
+                        Entity::hasCustomName
+                ).filter(
+                        entity -> StringUtils.removeFormatting(entity.getCustomNameTag()).endsWith(GumTuneClient.mc.thePlayer.getName() + " 's Armadillo")
+                ).findAny().orElse(null);
+
+                if (armadillo != null) {
+
+                }
+                break;
+            case MOUNT_ARMADILLO:
+
+                break;
+            case ROTATE_ARMADILLO:
+                break;
+            case DISMOUNT_ARMADILLO:
+                break;
         }
     }
 
@@ -360,14 +399,15 @@ public class GemstoneMacro {
     private boolean canMine(BlockPos blockPos) {
         IBlockState blockState = getBlockState(blockPos);
 
-        if (blockState.getBlock() == Blocks.stained_glass &&
+        if (((GumTuneClientConfig.aotvGemstoneMinePanes && blockState.getBlock() == Blocks.stained_glass_pane) || blockState.getBlock() == Blocks.stained_glass) &&
                 (GemstoneTypeFilter.amber && getBlockState(blockPos).getValue(BlockColored.COLOR) == EnumDyeColor.ORANGE ||
                         GemstoneTypeFilter.jade && getBlockState(blockPos).getValue(BlockColored.COLOR) == EnumDyeColor.LIME ||
                         GemstoneTypeFilter.ruby && getBlockState(blockPos).getValue(BlockColored.COLOR) == EnumDyeColor.RED ||
                         GemstoneTypeFilter.topaz && getBlockState(blockPos).getValue(BlockColored.COLOR) == EnumDyeColor.YELLOW ||
                         GemstoneTypeFilter.sapphire && getBlockState(blockPos).getValue(BlockColored.COLOR) == EnumDyeColor.LIGHT_BLUE ||
                         GemstoneTypeFilter.amethyst && getBlockState(blockPos).getValue(BlockColored.COLOR) == EnumDyeColor.PURPLE ||
-                        GemstoneTypeFilter.jasper && getBlockState(blockPos).getValue(BlockColored.COLOR) == EnumDyeColor.PINK)
+                        GemstoneTypeFilter.jasper && getBlockState(blockPos).getValue(BlockColored.COLOR) == EnumDyeColor.PINK
+                )
         ) {
             return GumTuneClient.mc.thePlayer.getPositionEyes(1f).distanceTo(new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5)) < GumTuneClient.mc.playerController.getBlockReachDistance();
         }

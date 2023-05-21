@@ -19,9 +19,6 @@ public class MirrorverseRoom {
                 (roomBoundingBox.maxY - roomBoundingBox.minY) * mirrorEnumFacing.getDirectionVec().getY(),
                 (roomBoundingBox.maxZ - roomBoundingBox.minZ) * mirrorEnumFacing.getDirectionVec().getZ()
         );
-
-        System.out.println(this.roomBoundingBox);
-        System.out.println(this.mirroredRoomBoundingBox);
     }
 
     public int getIndex() {

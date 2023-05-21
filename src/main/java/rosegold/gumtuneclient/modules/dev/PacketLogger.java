@@ -1,5 +1,6 @@
 package rosegold.gumtuneclient.modules.dev;
 
+import net.minecraft.entity.Entity;
 import net.minecraft.network.handshake.client.C00Handshake;
 import net.minecraft.network.play.client.*;
 import net.minecraft.network.play.server.*;
@@ -116,46 +117,18 @@ public class PacketLogger {
     }};
 
     @SubscribeEvent
-    public void onTick(TickEvent.ClientTickEvent event) {
-        if (GumTuneClient.mc.thePlayer == null) return;
-        if (GumTuneClient.mc.thePlayer.ticksExisted % 20 != 0) return;
-        if (GumTuneClientConfig.serverPacketLogger) {
-            if (GumTuneClientConfig.packetLoggerServerType1 != 0) {
-                ModUtils.sendMessage(GumTuneClientConfig.packetLoggerServerType1 - 1);
-            }
-            if (GumTuneClientConfig.packetLoggerServerType2 != 0) {
-                ModUtils.sendMessage(GumTuneClientConfig.packetLoggerServerType2 + 10);
-            }
-            if (GumTuneClientConfig.packetLoggerServerType3 != 0) {
-                ModUtils.sendMessage(GumTuneClientConfig.packetLoggerServerType3 + 22);
-            }
-            if (GumTuneClientConfig.packetLoggerServerType4 != 0) {
-                ModUtils.sendMessage(GumTuneClientConfig.packetLoggerServerType4 + 34);
-            }
-            if (GumTuneClientConfig.packetLoggerServerType5 != 0) {
-                ModUtils.sendMessage(GumTuneClientConfig.packetLoggerServerType5 + 46);
-            }
-            if (GumTuneClientConfig.packetLoggerServerType6 != 0) {
-                ModUtils.sendMessage(GumTuneClientConfig.packetLoggerServerType6 + 58);
-            }
-        }
-        if (GumTuneClientConfig.clientPacketLogger) {
-            if (GumTuneClientConfig.packetLoggerClientType1 != 0) {
-                ModUtils.sendMessage(GumTuneClientConfig.packetLoggerClientType1 - 1);
-            }
-            if (GumTuneClientConfig.packetLoggerClientType2 != 0) {
-                ModUtils.sendMessage(GumTuneClientConfig.packetLoggerClientType2 + 10);
-            }
-        }
-    }
-
-    @SubscribeEvent
     public void onPacketSent(PacketSentEvent event) {
         if (!GumTuneClientConfig.clientPacketLogger) return;
         if (GumTuneClient.mc.thePlayer == null) return;
         if (GumTuneClientConfig.packetLoggerClientType1 != 0 && event.packet.getClass().equals(clientPackets.get(GumTuneClientConfig.packetLoggerClientType1 - 1)) ||
                 GumTuneClientConfig.packetLoggerClientType2 != 0 &&event.packet.getClass().equals(clientPackets.get(GumTuneClientConfig.packetLoggerClientType2 + 10))) {
-            ModUtils.sendMessage(event.packet);
+            if (event.packet instanceof C02PacketUseEntity) {
+                C02PacketUseEntity packetUseEntity = (C02PacketUseEntity) event.packet;
+                Entity entity = packetUseEntity.getEntityFromWorld(GumTuneClient.mc.theWorld);
+                ModUtils.sendMessage(packetUseEntity.getAction() + " " + entity.getClass().getSimpleName() + " [" + entity.getName() + "] " + packetUseEntity.getHitVec());
+            } else {
+                ModUtils.sendMessage(event.packet);
+            }
         }
     }
 
