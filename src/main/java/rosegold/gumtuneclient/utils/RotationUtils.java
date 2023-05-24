@@ -14,7 +14,6 @@ import static rosegold.gumtuneclient.GumTuneClient.mc;
 public class RotationUtils {
 
     public static Rotation startRot;
-    public static Rotation neededChange;
     public static Rotation endRot;
     private static long startTime;
     private static long endTime;
@@ -149,12 +148,24 @@ public class RotationUtils {
         return (float) Math.max(0, Math.min(1, 1 - Math.pow(1 - number, 3)));
     }
 
+    public static void smoothLookRelative(Rotation rotation, long time) {
+        rotationType = RotationType.NORMAL;
+        done = false;
+
+        startRot = new Rotation(mc.thePlayer.rotationPitch, mc.thePlayer.rotationYaw);
+
+        endRot = new Rotation(startRot.pitch + rotation.pitch, startRot.yaw + rotation.yaw);
+
+        startTime = System.currentTimeMillis();
+        endTime = System.currentTimeMillis() + time;
+    }
+
     public static void smoothLook(Rotation rotation, long time) {
         rotationType = RotationType.NORMAL;
         done = false;
         startRot = new Rotation(mc.thePlayer.rotationPitch, mc.thePlayer.rotationYaw);
 
-        neededChange = getNeededChange(startRot, rotation);
+        Rotation neededChange = getNeededChange(startRot, rotation);
 
         endRot = new Rotation(startRot.pitch + neededChange.pitch, startRot.yaw + neededChange.yaw);
 
@@ -170,6 +181,21 @@ public class RotationUtils {
         smoothLook(rotation, (int) (rotationDifference / 180 * msPer180));
     }
 
+    public static void serverSmoothLookRelative(Rotation rotation, long time) {
+        rotationType = RotationType.SERVER;
+        done = false;
+
+        if (currentFakePitch == 0) currentFakePitch = mc.thePlayer.rotationPitch;
+        if (currentFakeYaw == 0) currentFakeYaw = mc.thePlayer.rotationYaw;
+
+        startRot = new Rotation(currentFakePitch, currentFakeYaw);
+
+        endRot = new Rotation(startRot.pitch + rotation.pitch, startRot.yaw + rotation.yaw);
+
+        startTime = System.currentTimeMillis();
+        endTime = System.currentTimeMillis() + time;
+    }
+
     public static void serverSmoothLook(Rotation rotation, long time) {
         rotationType = RotationType.SERVER;
         done = false;
@@ -179,7 +205,7 @@ public class RotationUtils {
 
         startRot = new Rotation(currentFakePitch, currentFakeYaw);
 
-        neededChange = getNeededChange(startRot, rotation);
+        Rotation neededChange = getNeededChange(startRot, rotation);
 
         endRot = new Rotation(startRot.pitch + neededChange.pitch, startRot.yaw + neededChange.yaw);
 
@@ -233,7 +259,6 @@ public class RotationUtils {
     public static void reset() {
         done = true;
         startRot = null;
-        neededChange = null;
         endRot = null;
         startTime = 0;
         endTime = 0;

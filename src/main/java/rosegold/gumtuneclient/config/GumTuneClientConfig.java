@@ -412,6 +412,15 @@ public class GumTuneClientConfig extends Config {
     )
     public static boolean aotvGemstoneMinePanes = false;
 
+    @Slider(
+            name = "Waypoint Render Distance",
+            description = "Set a maximum amount of waypoints to render at a time, to reduce lag",
+            category = MACRO,
+            subcategory = GEMSTONE_MACRO,
+            min = 0, max = 200
+    )
+    public static int aotvGemstoneMacroWaypointRenderDistance = 0;
+
     @Switch(
             name = "Avoid Breaking Stems",
             category = FARMING,

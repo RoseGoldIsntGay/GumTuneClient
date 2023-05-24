@@ -382,6 +382,7 @@ public class BlockUtils {
     }
 
     private static IBlockState getBlockState(BlockPos blockPos) {
+        if (GumTuneClient.mc.theWorld == null) return null;
         return GumTuneClient.mc.theWorld.getBlockState(blockPos);
     }
 }

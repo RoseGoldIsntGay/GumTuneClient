@@ -52,6 +52,8 @@ public class MainCommand {
         int range = Integer.parseInt(arg);
         List<Entity> entityList = GumTuneClient.mc.theWorld.loadedEntityList.stream().filter(
                 entity -> entity.getDistanceToEntity(GumTuneClient.mc.thePlayer) <= range
+        ).filter(
+                entity -> entity != GumTuneClient.mc.thePlayer
         ).sorted(
                 Comparator.comparingDouble(entity -> entity.getDistanceToEntity(GumTuneClient.mc.thePlayer))
         ).collect(Collectors.toList());
@@ -62,7 +64,7 @@ public class MainCommand {
             stringBuilder.append(DevUtils.getEntityData(entity));
         }
 
-        ModUtils.sendMessage("Copied NBT date of " + entityList.size() + " Entities");
+        ModUtils.sendMessage("Copied NBT data of " + entityList.size() + " Entities");
         saveToClipoard(stringBuilder.toString());
     }
 
@@ -84,7 +86,7 @@ public class MainCommand {
             stringBuilder.append(DevUtils.getEntityData(entity));
         }
 
-        ModUtils.sendMessage("Copied NBT date of " + entityList.size() + " Entities");
+        ModUtils.sendMessage("Copied NBT data of " + entityList.size() + " Entities");
         saveToClipoard(stringBuilder.toString());
     }
 
