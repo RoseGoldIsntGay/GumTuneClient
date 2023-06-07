@@ -37,4 +37,9 @@ public class GemstoneTypeFilter {
             name = "Ruby"
     )
     public static boolean ruby = true;
+
+    @Switch(
+            name = "Mithril"
+    )
+    public static boolean mithril = false;
 }

@@ -10,6 +10,7 @@ import net.minecraft.util.*;
 import org.lwjgl.opengl.GL11;
 import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.mixin.accessors.RenderManagerAccessor;
+import rosegold.gumtuneclient.utils.objects.BlockPosition;
 
 import java.awt.*;
 import java.util.ArrayList;

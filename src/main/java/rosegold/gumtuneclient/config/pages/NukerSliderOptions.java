@@ -57,10 +57,17 @@ public class NukerSliderOptions {
     public static int nukerForwardsOffset = 0;
 
     @Slider(
-            name = "Pingless reset cutoff",
+            name = "Pingless Reset Cutoff",
             description = "Mess with this slider and see if it makes nuker faster",
             min = 0f, max = 20,
             step = 1
     )
     public static int nukerPinglessCutoff = 10;
+
+    @Slider(
+            name = "Stuck Timer",
+            description = "Maximum amount of time to spend mining a block",
+            min = 0f, max = 10000
+    )
+    public static int nukerStuckTimer = 4000;
 }

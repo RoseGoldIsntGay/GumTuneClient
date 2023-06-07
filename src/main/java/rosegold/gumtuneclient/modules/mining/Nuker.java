@@ -28,7 +28,6 @@ import rosegold.gumtuneclient.utils.*;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.HashSet;
 
 public class Nuker {
     public static boolean enabled;
@@ -36,6 +35,7 @@ public class Nuker {
     public static BlockPos blockPos;
     private long lastBroken = 0;
     private long stuckTimestamp = 0;
+    private long abilityTimestamp = 0;
     private BlockPos current;
     private final ArrayList<BlockPos> blocksInRange = new ArrayList<>();
 
@@ -105,7 +105,7 @@ public class Nuker {
             if (Math.abs(RotationUtils.wrapAngleTo180(RotationUtils.fovToVec3(target) - RotationUtils.wrapAngleTo180(GumTuneClient.mc.thePlayer.rotationYaw))) < (float) NukerSliderOptions.nukerFieldOfView / 2) blocksInRange.add(blockPos);
         }
 
-        if (System.currentTimeMillis() - stuckTimestamp > 3000) {
+        if (System.currentTimeMillis() - stuckTimestamp > NukerSliderOptions.nukerStuckTimer) {
             stuckTimestamp = System.currentTimeMillis();
             blockPos = null;
             current = null;
@@ -123,6 +123,17 @@ public class Nuker {
         }
 
         if (NukerBooleanOptions.onGroundOnly && !GumTuneClient.mc.thePlayer.onGround) return;
+
+        if (NukerBooleanOptions.pickaxeAbility && PlayerUtils.pickaxeAbilityReady && System.currentTimeMillis() - abilityTimestamp > 1000) {
+            abilityTimestamp = System.currentTimeMillis();
+            GumTuneClient.mc.playerController.sendUseItem(
+                    GumTuneClient.mc.thePlayer,
+                    GumTuneClient.mc.theWorld,
+                    GumTuneClient.mc.thePlayer.getHeldItem()
+            );
+
+            return;
+        }
 
         if (event.timestamp - lastBroken > 1000f / NukerSliderOptions.nukerSpeed) {
             lastBroken = event.timestamp;

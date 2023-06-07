@@ -2,6 +2,7 @@ package rosegold.gumtuneclient.modules.render;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
@@ -13,9 +14,14 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemSkull;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.network.play.server.S2APacketParticles;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.event.world.ChunkEvent;
@@ -27,16 +33,20 @@ import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.config.pages.FrozenTreasureFilter;
 import rosegold.gumtuneclient.config.pages.RiftESPs;
 import rosegold.gumtuneclient.events.BlockChangeEvent;
+import rosegold.gumtuneclient.events.PacketReceivedEvent;
 import rosegold.gumtuneclient.events.RenderLivingEntityEvent;
 import rosegold.gumtuneclient.modules.mining.PowderChestSolver;
+import rosegold.gumtuneclient.utils.FontUtils;
 import rosegold.gumtuneclient.utils.LocationUtils;
 import rosegold.gumtuneclient.utils.RenderUtils;
+import rosegold.gumtuneclient.utils.StringUtils;
+import rosegold.gumtuneclient.utils.objects.BlockPosition;
 import rosegold.gumtuneclient.utils.objects.HighlightBlock;
 import rosegold.gumtuneclient.utils.objects.HighlightEntity;
 
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ESPs {
@@ -47,6 +57,7 @@ public class ESPs {
     public static final ArrayList<BlockPos> frozenTreasures = new ArrayList<>();
     public static final HashSet<Entity> checked = new HashSet<>();
     public static final ConcurrentHashMap<Block, Color> blockEsp = new ConcurrentHashMap<>();
+    public static final ConcurrentHashMap<BlockPosition, Long> enderNodes = new ConcurrentHashMap<>();
     private static final String FAIRY_SOUL_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjk2OTIzYWQyNDczMTAwMDdmNmFlNWQzMjZkODQ3YWQ1Mzg2NGNmMTZjMzU2NWExODFkYzhlNmIyMGJlMjM4NyJ9fX0=";
     private static final String[] SHY_TEXTURES = {
             "ewogICJ0aW1lc3RhbXAiIDogMTY0NzU5MzA4NzU3OCwKICAicHJvZmlsZUlkIiA6ICI4N2RlZmVhMTQwMWQ0MzYxODFhNmNhOWI3ZGQ2ODg0MyIsCiAgInByb2ZpbGVOYW1lIiA6ICJCdm5ueUJ2biIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS84Mjc3MWQ2ZWM0N2EyM2Y4MTZlNzhjNzgxMzBkYTVmNGZhYzQ1ZjlhODM0YTk4YzU1MWUzZGRiNDVkMzcyMWY2IiwKICAgICAgIm1ldGFkYXRhIiA6IHsKICAgICAgICAibW9kZWwiIDogInNsaW0iCiAgICAgIH0KICAgIH0KICB9Cn0=",
@@ -66,6 +77,59 @@ public class ESPs {
 
         if (blockEsp.containsKey(event.update.getBlock())) {
             highlightedBlocks.put(event.pos, blockEsp.get(event.update.getBlock()));
+        }
+    }
+
+    @SubscribeEvent(receiveCanceled = true)
+    public void onChat(ClientChatReceivedEvent event) {
+        if (LocationUtils.currentIsland != LocationUtils.Island.THE_END) return;
+        if (!GumTuneClientConfig.ESPs) return;
+        if (!GumTuneClientConfig.enderNodeESP) return;
+        String message = StringUtils.removeFormatting(event.message.getUnformattedText());
+
+        if (message.startsWith("ENDER NODE!") && GumTuneClient.mc.objectMouseOver != null && GumTuneClient.mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            enderNodes.remove(new BlockPosition(GumTuneClient.mc.objectMouseOver.getBlockPos()));
+        }
+    }
+
+    @SubscribeEvent(receiveCanceled = true)
+    public void onParticle(PacketReceivedEvent event) {
+        if (LocationUtils.currentIsland != LocationUtils.Island.THE_END) return;
+        if (!GumTuneClientConfig.ESPs) return;
+        if (!GumTuneClientConfig.enderNodeESP) return;
+        if (event.packet instanceof S2APacketParticles) {
+            S2APacketParticles packet = (S2APacketParticles) event.packet;
+            if (packet.getParticleType().equals(EnumParticleTypes.PORTAL)) {
+                double x = packet.getXCoordinate();
+                double y = packet.getYCoordinate();
+                double z = packet.getZCoordinate();
+
+
+                if (x % 1 == 0.25) {
+                    x += 1;
+                } else if (x % 1 == 0.75) {
+                    x -= 1;
+                }
+
+                if (y % 1 == 0.25) {
+                    y -= 1;
+                } else if (y % 1 == 0.75) {
+                    y += 1;
+                }
+
+                if (z % 1 == 0.25) {
+                    z += 1;
+                } else if (z % 1 == 0.75) {
+                    z -= 1;
+                }
+
+                BlockPosition blockPosition = new BlockPosition((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
+
+                IBlockState blockState = GumTuneClient.mc.theWorld.getBlockState(blockPosition.toBlockPos());
+                if (blockState.getBlock() != Blocks.air && blockState.getBlock() != Blocks.bedrock) {
+                    enderNodes.put(blockPosition, System.currentTimeMillis());
+                }
+            }
         }
     }
 
@@ -203,6 +267,23 @@ public class ESPs {
                 }
             });
         }
+
+        if (LocationUtils.currentIsland == LocationUtils.Island.THE_END) {
+            HashSet<BlockPosition> toRemove = new HashSet<>();
+
+            enderNodes.forEach((blockPosition, timestamp) -> {
+                if (System.currentTimeMillis() - timestamp > 2000) {
+                    toRemove.add(blockPosition);
+                }
+            });
+
+            toRemove.forEach(enderNodes::remove);
+
+            for (BlockPosition blockPosition : enderNodes.keySet()) {
+                RenderUtils.renderEspBox(blockPosition.toBlockPos(), event.partialTicks, new Color(170, 0, 170).getRGB());
+                RenderUtils.drawLine(GumTuneClient.mc.thePlayer.getPositionEyes(event.partialTicks), new Vec3(blockPosition.x + 0.5, blockPosition.y + 0.5, blockPosition.z + 0.5), 1, event.partialTicks);
+            }
+        }
     }
 
     @SubscribeEvent
@@ -220,6 +301,7 @@ public class ESPs {
         highlightedEntityBlocks.clear();
         frozenTreasures.clear();
         checked.clear();
+        enderNodes.clear();
     }
 
     public static void handleChunkLoad(Chunk chunk) {

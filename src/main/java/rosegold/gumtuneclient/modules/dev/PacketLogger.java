@@ -1,11 +1,9 @@
 package rosegold.gumtuneclient.modules.dev;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.network.handshake.client.C00Handshake;
 import net.minecraft.network.play.client.*;
 import net.minecraft.network.play.server.*;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
 import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.events.PacketReceivedEvent;
@@ -121,7 +119,7 @@ public class PacketLogger {
         if (!GumTuneClientConfig.clientPacketLogger) return;
         if (GumTuneClient.mc.thePlayer == null) return;
         if (GumTuneClientConfig.packetLoggerClientType1 != 0 && event.packet.getClass().equals(clientPackets.get(GumTuneClientConfig.packetLoggerClientType1 - 1)) ||
-                GumTuneClientConfig.packetLoggerClientType2 != 0 &&event.packet.getClass().equals(clientPackets.get(GumTuneClientConfig.packetLoggerClientType2 + 10))) {
+                GumTuneClientConfig.packetLoggerClientType2 != 0 && event.packet.getClass().equals(clientPackets.get(GumTuneClientConfig.packetLoggerClientType2 + 10))) {
             if (event.packet instanceof C02PacketUseEntity) {
                 C02PacketUseEntity packetUseEntity = (C02PacketUseEntity) event.packet;
                 Entity entity = packetUseEntity.getEntityFromWorld(GumTuneClient.mc.theWorld);
@@ -145,12 +143,15 @@ public class PacketLogger {
             if (event.packet instanceof S2APacketParticles) {
                 S2APacketParticles packetParticles = (S2APacketParticles) event.packet;
                 ModUtils.sendMessage(packetParticles.getParticleType() + " " + packetParticles.getXCoordinate() + " " + packetParticles.getYCoordinate() + " " + packetParticles.getZCoordinate());
-            } else if(event.packet instanceof S02PacketChat) {
+            } else if (event.packet instanceof S02PacketChat) {
                 S02PacketChat packetChat = (S02PacketChat) event.packet;
                 ModUtils.sendMessage(packetChat.getChatComponent() + " type: " + packetChat.getType());
-            } else if(event.packet instanceof S45PacketTitle) {
+            } else if (event.packet instanceof S45PacketTitle) {
                 S45PacketTitle packetTitle = (S45PacketTitle) event.packet;
                 ModUtils.sendMessage(packetTitle.getMessage() + " time: " + packetTitle.getDisplayTime());
+            } else if (event.packet instanceof S25PacketBlockBreakAnim) {
+                S25PacketBlockBreakAnim blockBreakAnim = (S25PacketBlockBreakAnim) event.packet;
+                ModUtils.sendMessage( "breaker id: " + blockBreakAnim.getBreakerId() + " progress: " + blockBreakAnim.getProgress());
             } else {
                 ModUtils.sendMessage(event.packet);
             }

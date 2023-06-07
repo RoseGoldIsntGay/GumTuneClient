@@ -20,4 +20,10 @@ public class NukerBooleanOptions {
             description = "Show which blocks are going to be mined"
     )
     public static boolean preview = false;
+
+    @Switch(
+            name = "Pickaxe Ability",
+            description = "Use pickaxe ability when ready"
+    )
+    public static boolean pickaxeAbility = false;
 }

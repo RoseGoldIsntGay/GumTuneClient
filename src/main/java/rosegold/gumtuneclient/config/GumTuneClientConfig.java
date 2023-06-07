@@ -320,7 +320,7 @@ public class GumTuneClientConfig extends Config {
     public static boolean metalDetectorSolverTracer = false;
 
     @Switch(
-            name = "Cancel Client Item Update Packets",
+            name = "Prevent Cancelling Mining Progress",
             category = MINING,
             subcategory = MOBX_DRILL,
             description = "Originally by mobx, stops the client canceling your mining progress",
@@ -363,6 +363,14 @@ public class GumTuneClientConfig extends Config {
             min = 50, max = 500
     )
     public static int aotvGemstoneMacroRotationSpeed = 250;
+
+    @Switch(
+            name = "Mine Blocks Behind Walls",
+            category = MACRO,
+            subcategory = GEMSTONE_MACRO,
+            description = "Allow mining blocks behind walls"
+    )
+    public static boolean aotvGemstoneMacroMineBlocksBehindWalls = false;
 
     @Switch(
             name = "Reset State on Toggle",
@@ -420,6 +428,15 @@ public class GumTuneClientConfig extends Config {
             min = 0, max = 200
     )
     public static int aotvGemstoneMacroWaypointRenderDistance = 0;
+
+    @Slider(
+            name = "Break Progress Skip",
+            description = "How early to swap off current block to the next block in terms of breaking progress",
+            category = MACRO,
+            subcategory = GEMSTONE_MACRO,
+            min = 0, max = 10
+    )
+    public static int aotvGemstoneMacroBlockBreakProgress = 10;
 
     @Switch(
             name = "Avoid Breaking Stems",
@@ -530,6 +547,13 @@ public class GumTuneClientConfig extends Config {
             subcategory = ESPS
     )
     public static boolean crystalHollowsMobESP = false;
+
+    @Switch(
+            name = "Ender Node ESP",
+            category = RENDER,
+            subcategory = ESPS
+    )
+    public static boolean enderNodeESP = false;
 
     @Page(
             name = "Rift ESPs",
