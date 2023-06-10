@@ -489,6 +489,15 @@ public class GumTuneClientConfig extends Config {
     )
     public static boolean ESPs = false;
 
+    @Page(
+            name = "Custom Block ESP",
+            description = "Custom block ESP",
+            category = RENDER,
+            subcategory = ESPS,
+            location = PageLocation.BOTTOM
+    )
+    public static CustomEspBlockSelector customBlockESPPage = new CustomEspBlockSelector();
+
     @Switch(
             name = "Custom Block ESP",
             category = RENDER,
