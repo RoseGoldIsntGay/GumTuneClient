@@ -1,7 +1,6 @@
 package rosegold.gumtuneclient.modules.render;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
-import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.entity.Entity;
@@ -21,7 +20,6 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.event.world.ChunkEvent;
@@ -36,7 +34,6 @@ import rosegold.gumtuneclient.events.BlockChangeEvent;
 import rosegold.gumtuneclient.events.PacketReceivedEvent;
 import rosegold.gumtuneclient.events.RenderLivingEntityEvent;
 import rosegold.gumtuneclient.modules.mining.PowderChestSolver;
-import rosegold.gumtuneclient.utils.FontUtils;
 import rosegold.gumtuneclient.utils.LocationUtils;
 import rosegold.gumtuneclient.utils.RenderUtils;
 import rosegold.gumtuneclient.utils.StringUtils;
@@ -56,7 +53,7 @@ public class ESPs {
     private static final ConcurrentHashMap<BlockPos, Color> highlightedBlocks = new ConcurrentHashMap<>();
     public static final ArrayList<BlockPos> frozenTreasures = new ArrayList<>();
     public static final HashSet<Entity> checked = new HashSet<>();
-    public static final ConcurrentHashMap<Block, Color> blockEsp = new ConcurrentHashMap<>();
+    public static final ConcurrentHashMap<IBlockState, Color> blockEsp = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<BlockPosition, Long> enderNodes = new ConcurrentHashMap<>();
     private static final String FAIRY_SOUL_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjk2OTIzYWQyNDczMTAwMDdmNmFlNWQzMjZkODQ3YWQ1Mzg2NGNmMTZjMzU2NWExODFkYzhlNmIyMGJlMjM4NyJ9fX0=";
     private static final String[] SHY_TEXTURES = {
@@ -75,8 +72,8 @@ public class ESPs {
     public void onBlockChange(BlockChangeEvent event) {
         highlightedBlocks.remove(event.pos);
 
-        if (blockEsp.containsKey(event.update.getBlock())) {
-            highlightedBlocks.put(event.pos, blockEsp.get(event.update.getBlock()));
+        if (blockEsp.containsKey(event.update)) {
+            highlightedBlocks.put(event.pos, blockEsp.get(event.update));
         }
     }
 
@@ -308,10 +305,11 @@ public class ESPs {
         for (int x = 0; x < 16; x++) {
             for (int y = 0; y < 256; y++) {
                 for (int z = 0; z < 16; z++) {
-                    highlightedBlocks.remove(new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z));
+                    BlockPos blockPos = new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z);
+                    highlightedBlocks.remove(blockPos);
 
-                    if (blockEsp.containsKey(chunk.getBlock(x, y, z))) {
-                        highlightedBlocks.put(new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z), blockEsp.get(chunk.getBlock(x, y, z)));
+                    if (blockEsp.containsKey(GumTuneClient.mc.theWorld.getBlockState(blockPos))) {
+                        highlightedBlocks.put(blockPos, blockEsp.get(GumTuneClient.mc.theWorld.getBlockState(blockPos)));
                     }
                 }
             }

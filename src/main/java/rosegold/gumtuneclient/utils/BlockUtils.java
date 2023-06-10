@@ -1,6 +1,8 @@
 package rosegold.gumtuneclient.utils;
 
+import com.google.common.collect.ImmutableMap;
 import net.minecraft.block.Block;
+import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.util.*;
@@ -384,5 +386,69 @@ public class BlockUtils {
     private static IBlockState getBlockState(BlockPos blockPos) {
         if (GumTuneClient.mc.theWorld == null) return null;
         return GumTuneClient.mc.theWorld.getBlockState(blockPos);
+    }
+
+    public static IBlockState getStateFromString(String blockStateString) {
+        // the number can contain a : so it could be 99:3
+        if (blockStateString.matches("\\d+(:\\d+)?")){
+            return idToState(blockStateString);
+        }
+        if (!blockStateString.contains("[")) {
+            return Block.getBlockFromName(blockStateString).getDefaultState();
+        }
+        // Split the string into the block ID and property string
+        String[] parts = blockStateString.split("\\[|\\]");
+        String blockID = parts[0];
+        String propertyString = parts[1];
+        Block block = Block.getBlockFromName(blockID);
+        if (block == null) {
+            return null;
+        }
+        // Split the property string into individual properties
+        String[] properties = propertyString.split(",");
+        IBlockState blockState = block.getDefaultState();
+        // Set the block state properties based on the property string
+        for (String property : properties) {
+            String[] propertyParts = property.split("=");
+            String propertyName = propertyParts[0];
+            String propertyValue = propertyParts[1];
+            // Get the block state property object for the given property name
+            IProperty blockStateProperty = null;
+            ImmutableMap<IProperty, Comparable> blockStateProperties = blockState.getProperties();
+            for (IProperty<?> prop : blockStateProperties.keySet()) {
+                if (prop.getName().equals(propertyName)) {
+                    blockStateProperty = prop;
+                    break;
+                }
+            }
+            if (blockStateProperty == null) continue;
+            // Get the property value object for the given property value string
+            Comparable propertyValueObject = null;
+            for (Object value : blockStateProperty.getAllowedValues()) {
+                if (value.toString().equals(propertyValue)) {
+                    propertyValueObject = (Comparable) value;
+                    break;
+                }
+            }
+            if (propertyValueObject == null) continue;
+            blockState = blockState.withProperty(blockStateProperty, propertyValueObject);
+        }
+        return blockState;
+    }
+
+    public static IBlockState idToState(String id){
+        //this could be an id with metadata
+        //example: 1:1
+        String[] parts = id.split(":");
+        int blockId = Integer.parseInt(parts[0]);
+        int meta = 0;
+        if (parts.length > 1) {
+            meta = Integer.parseInt(parts[1]);
+        }
+        IBlockState state = Block.getStateById(blockId);
+        if (state != null) {
+            return state.getBlock().getStateFromMeta(meta);
+        }
+        return null;
     }
 }
