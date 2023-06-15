@@ -7,9 +7,9 @@ import cc.polyfrost.oneconfig.utils.InputHandler;
 import cc.polyfrost.oneconfig.utils.color.ColorPalette;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import org.lwjgl.input.Mouse;
 import rosegold.gumtuneclient.GumTuneClient;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,7 +57,8 @@ public class CustomEspBlockSelector extends Page {
 
             NanoVGHelper.INSTANCE.drawRoundedRect(vg, itemRenderX, itemRenderY, itemSize, itemSize, ColorPalette.TERTIARY.getNormalColor(), 8);
             //draw item
-//            GumTuneClient.mc.getRenderItem().renderItemIntoGUI(stack, itemRenderX, itemRenderY);
+            GumTuneClient.mc.getRenderItem().zLevel = 200.0F;
+            GumTuneClient.mc.getRenderItem().renderItemAndEffectIntoGUI(stack, itemRenderX, itemRenderY);
         }
 
         //now i draw the scrollbar
@@ -67,14 +68,26 @@ public class CustomEspBlockSelector extends Page {
         int scrollBarY = gridY;
         int scrollBarThumbHeight = scrollBarHeight / rows;
         int scrollBarThumbY = scrollBarY + (scrollBarHeight - scrollBarThumbHeight) / 2;
-        NanoVGHelper.INSTANCE.drawRoundedRect(vg, scrollBarX, scrollBarY, scrollBarWidth, scrollBarHeight, ColorPalette.SECONDARY.getNormalColor(), 8);
-        NanoVGHelper.INSTANCE.drawRoundedRect(vg, scrollBarX, scrollBarThumbY, scrollBarWidth, scrollBarThumbHeight, ColorPalette.TERTIARY.getNormalColor(), 8);
+        int pixelsScrolled = Mouse.getDWheel();
+        int scrollBarThumbYMax = scrollBarY + scrollBarHeight - scrollBarThumbHeight;
+        if (pixelsScrolled > 0) {
+            scrollBarThumbY -= 10;
+        } else if (pixelsScrolled < 0) {
+            scrollBarThumbY += 10;
+        }
+        if (scrollBarThumbY < scrollBarY) {
+            scrollBarThumbY = scrollBarY;
+        } else if (scrollBarThumbY > scrollBarThumbYMax) {
+            scrollBarThumbY = scrollBarThumbYMax;
+        }
+        NanoVGHelper.INSTANCE.drawRoundedRect(vg, scrollBarX, scrollBarY, scrollBarWidth, scrollBarHeight, ColorPalette.TERTIARY.getNormalColor(), 8);
+        NanoVGHelper.INSTANCE.drawRoundedRect(vg, scrollBarX, scrollBarThumbY + pixelsScrolled, scrollBarWidth, scrollBarThumbHeight, ColorPalette.PRIMARY.getNormalColor(), 8);
 
         //debug lines
-        NanoVGHelper.INSTANCE.drawLine(vg, gridX, gridY, gridX + gridWidth, gridY, ColorPalette.PRIMARY_DESTRUCTIVE.getNormalColor(), 2);
-        NanoVGHelper.INSTANCE.drawLine(vg, gridX, gridY, gridX, gridY + gridHeight, ColorPalette.PRIMARY_DESTRUCTIVE.getNormalColor(), 2);
-        NanoVGHelper.INSTANCE.drawLine(vg, gridX + gridWidth, gridY, gridX + gridWidth, gridY + gridHeight, ColorPalette.PRIMARY_DESTRUCTIVE.getNormalColor(), 2);
-        NanoVGHelper.INSTANCE.drawLine(vg, gridX, gridY + gridHeight, gridX + gridWidth, gridY + gridHeight, ColorPalette.PRIMARY_DESTRUCTIVE.getNormalColor(), 2);
+        NanoVGHelper.INSTANCE.drawLine(vg, gridX, gridY, gridX + gridWidth, gridY, 2, ColorPalette.PRIMARY_DESTRUCTIVE.getNormalColor());
+        NanoVGHelper.INSTANCE.drawLine(vg, gridX, gridY, gridX, gridY + gridHeight, 2, ColorPalette.PRIMARY_DESTRUCTIVE.getNormalColor());
+        NanoVGHelper.INSTANCE.drawLine(vg, gridX + gridWidth, gridY, gridX + gridWidth, gridY + gridHeight, 2, ColorPalette.PRIMARY_DESTRUCTIVE.getNormalColor());
+        NanoVGHelper.INSTANCE.drawLine(vg, gridX, gridY + gridHeight, gridX + gridWidth, gridY + gridHeight, 2, ColorPalette.PRIMARY_DESTRUCTIVE.getNormalColor());
     }
 
 
