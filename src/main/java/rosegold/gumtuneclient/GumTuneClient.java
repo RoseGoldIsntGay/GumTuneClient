@@ -1,6 +1,7 @@
 package rosegold.gumtuneclient;
 
 import cc.polyfrost.oneconfig.events.EventManager;
+import cc.polyfrost.oneconfig.events.event.WorldLoadEvent;
 import cc.polyfrost.oneconfig.utils.commands.CommandManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
@@ -15,15 +16,19 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import rosegold.gumtuneclient.command.MainCommand;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
+import rosegold.gumtuneclient.config.pages.CustomEspBlockSelector;
 import rosegold.gumtuneclient.events.MillisecondEvent;
 import rosegold.gumtuneclient.events.SecondEvent;
 import rosegold.gumtuneclient.modules.combat.AntiShy;
 import rosegold.gumtuneclient.modules.dev.CopyNBTData;
 import rosegold.gumtuneclient.modules.dev.PacketLogger;
-import rosegold.gumtuneclient.modules.farming.*;
+import rosegold.gumtuneclient.modules.farming.AvoidBreakingCrops;
+import rosegold.gumtuneclient.modules.farming.CropPlacer;
+import rosegold.gumtuneclient.modules.farming.PreventRenderingCrops;
+import rosegold.gumtuneclient.modules.farming.VisitorHelpers;
 import rosegold.gumtuneclient.modules.macro.AutoHarp;
-import rosegold.gumtuneclient.modules.macro.MobMacro;
 import rosegold.gumtuneclient.modules.macro.GemstoneMacro;
+import rosegold.gumtuneclient.modules.macro.MobMacro;
 import rosegold.gumtuneclient.modules.mining.MetalDetectorSolver;
 import rosegold.gumtuneclient.modules.mining.Nuker;
 import rosegold.gumtuneclient.modules.mining.PowderChestSolver;
@@ -128,6 +133,8 @@ public class GumTuneClient {
         ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(1);
         threadPool.scheduleAtFixedRate(() -> MinecraftForge.EVENT_BUS.post(new SecondEvent()), initialDelaySeconds, 1, TimeUnit.SECONDS);
         threadPool.scheduleAtFixedRate(() -> MinecraftForge.EVENT_BUS.post(new MillisecondEvent()), initialDelaySeconds, 1, TimeUnit.MILLISECONDS);
+
+        CustomEspBlockSelector.loadItems();
     }
 
     @SubscribeEvent
@@ -152,6 +159,11 @@ public class GumTuneClient {
         BlockUtils.source = null;
         BlockUtils.destination = null;
         BlockUtils.blockPosConcurrentLinkedQueue.clear();
+    }
+
+    @SubscribeEvent
+    public void onWorldLoad(WorldEvent.Load event) {
+        CustomEspBlockSelector.loadItems();
     }
 
     private void initialize() {
