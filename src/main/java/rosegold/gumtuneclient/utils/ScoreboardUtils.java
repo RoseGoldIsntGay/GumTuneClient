@@ -6,7 +6,6 @@ import net.minecraft.scoreboard.Score;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.scoreboard.ScorePlayerTeam;
 import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.util.StringUtils;
 import rosegold.gumtuneclient.GumTuneClient;
 
 import java.util.ArrayList;
@@ -17,7 +16,7 @@ import java.util.stream.Collectors;
 public class ScoreboardUtils {
     public static boolean scoreboardContains(String string) {
         for (String line : getScoreboard()) {
-            if(removeFormatting(cleanSB(line)).contains(string)) {
+            if(StringUtils.removeFormatting(cleanSB(line)).contains(string)) {
                 return true;
             }
         }
@@ -26,19 +25,15 @@ public class ScoreboardUtils {
 
     public static boolean scoreboardContains(String string, List<String> scoreboard) {
         for (String line : scoreboard) {
-            if(removeFormatting(cleanSB(line)).contains(string)) {
+            if(StringUtils.removeFormatting(cleanSB(line)).contains(string)) {
                 return true;
             }
         }
         return false;
     }
 
-    public static String removeFormatting(String input) {
-        return input.replaceAll("§[0-9a-fk-or]", "");
-    }
-
     public static String cleanSB(String scoreboard) {
-        char[] nvString = StringUtils.stripControlCodes(scoreboard).toCharArray();
+        char[] nvString = StringUtils.removeFormatting(scoreboard).toCharArray();
         StringBuilder cleaned = new StringBuilder();
 
         for (char c : nvString) {

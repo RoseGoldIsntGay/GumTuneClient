@@ -20,6 +20,7 @@ import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.modules.player.PathFinding;
 import rosegold.gumtuneclient.utils.ModUtils;
 import rosegold.gumtuneclient.utils.RenderUtils;
+import rosegold.gumtuneclient.utils.StringUtils;
 import rosegold.gumtuneclient.utils.VectorUtils;
 import rosegold.gumtuneclient.utils.pathfinding.PathFinder;
 
@@ -64,7 +65,7 @@ public class MetalDetectorSolver {
     public void onActionBar(ClientChatReceivedEvent event) {
         if (!GumTuneClientConfig.metalDetectorSolver || GumTuneClient.mc.theWorld == null || GumTuneClient.mc.thePlayer == null) return;
         if (event.type != 2) return;
-        String text = removeFormatting(event.message.getUnformattedText());
+        String text = StringUtils.removeFormatting(event.message.getUnformattedText());
         if (text.contains("TREASURE")) {
             if (!lobbyInitialized && System.currentTimeMillis() - lastScan > 3000) {
                 lastScan = System.currentTimeMillis();
@@ -160,7 +161,7 @@ public class MetalDetectorSolver {
     public void onChat(ClientChatReceivedEvent event) {
         if (!GumTuneClientConfig.metalDetectorSolver || GumTuneClient.mc.theWorld == null || GumTuneClient.mc.thePlayer == null) return;
         if (event.type != 0) return;
-        String text = removeFormatting(event.message.getUnformattedText());
+        String text = StringUtils.removeFormatting(event.message.getUnformattedText());
         if (text.startsWith("You found") && text.endsWith("Metal Detector!")) {
             if (predictedChestLocations.iterator().hasNext()) {
                 ignoreBlockPos = predictedChestLocations.iterator().next();
@@ -200,10 +201,6 @@ public class MetalDetectorSolver {
         lastScan = 0;
         lastPos = null;
         predictedChestLocations.clear();
-    }
-
-    private static String removeFormatting(String text) {
-        return text.replaceAll("§[0-9a-fk-or]", "");
     }
 
     private static void scanChunks() {

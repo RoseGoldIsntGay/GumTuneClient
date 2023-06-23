@@ -13,7 +13,7 @@ import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.mixin.accessors.EntityPlayerSPAccessor;
 import rosegold.gumtuneclient.mixin.accessors.MinecraftAccessor;
 import rosegold.gumtuneclient.modules.macro.MobMacro;
-import rosegold.gumtuneclient.modules.world.CropPlacer;
+import rosegold.gumtuneclient.modules.farming.CropPlacer;
 import rosegold.gumtuneclient.modules.mining.Nuker;
 import rosegold.gumtuneclient.modules.mining.PowderChestSolver;
 

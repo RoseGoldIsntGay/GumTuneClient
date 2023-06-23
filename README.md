@@ -1,7 +1,7 @@
 <div align="center" style="text-align: center">
 
 <p style="text-align: center">
-  <img align="center" src="https://gumtune.net/static/GTC-removebg.png" alt="GumTuneClient" height=250 width=250>
+  <img align="center" src="https://gumtune.net/static/GTC.png" alt="GumTuneClient" height=250 width=250>
 </p>
 
 [![GitHub license](https://img.shields.io/github/license/RoseGoldIsntGay/GumTuneClient)](https://img.shields.io/github/license/RoseGoldIsntGay/GumTuneClient)

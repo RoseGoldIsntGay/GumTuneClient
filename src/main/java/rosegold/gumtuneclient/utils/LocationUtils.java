@@ -27,7 +27,8 @@ public class LocationUtils {
         LIMBO("UNKNOWN"),
         LOBBY("PROTOTYPE"),
         DUNGEON("Dungeon"),
-        GARDEN("Garden");
+        GARDEN("Garden"),
+        THE_RIFT("The Rift");
 
         private final String name;
 

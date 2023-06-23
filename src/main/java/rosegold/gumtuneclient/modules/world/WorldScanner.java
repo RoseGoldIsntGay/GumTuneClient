@@ -1,8 +1,6 @@
 package rosegold.gumtuneclient.modules.world;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
-import com.google.common.collect.Lists;
-import me.cephetir.communistscanner.CommunistScanners;
 import net.minecraft.block.BlockColored;
 import net.minecraft.block.BlockPlanks;
 import net.minecraft.block.BlockSlab;
@@ -25,15 +23,12 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.config.pages.WorldScannerFilter;
-import rosegold.gumtuneclient.utils.LocationUtils;
-import rosegold.gumtuneclient.utils.ReflectionUtils;
-import rosegold.gumtuneclient.utils.RenderUtils;
+import rosegold.gumtuneclient.utils.*;
+import rosegold.gumtuneclient.utils.StringUtils;
 
 import java.awt.*;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,14 +36,12 @@ import java.util.regex.Pattern;
 public class WorldScanner {
 
     public static class World {
-        private final String serverName;
         private final ConcurrentHashMap<String, BlockPos> crystalWaypoints;
         private final ConcurrentHashMap<String, BlockPos> mobSpotWaypoints;
         private final ConcurrentHashMap<BlockPos, Integer> fairyGrottosWaypoints;
         private final ConcurrentHashMap<BlockPos, Integer> wormFishingWaypoints;
         private final ConcurrentHashMap<BlockPos, Integer> dragonNestWaypoints;
         public World(String serverName) {
-            this.serverName = serverName;
             this.crystalWaypoints = new ConcurrentHashMap<>();
             this.mobSpotWaypoints = new ConcurrentHashMap<>();
             this.fairyGrottosWaypoints = new ConcurrentHashMap<>();
@@ -56,21 +49,7 @@ public class WorldScanner {
             this.dragonNestWaypoints = new ConcurrentHashMap<>();
         }
 
-        public void addWaypoint(String name, BlockPos blockPos) {
-            if (name.startsWith("GTC ")) {
-                if (name.contains(" Mob "))
-                    mobSpotWaypoints.put(name, blockPos);
-                else if (name.contains("Fairy Grotto"))
-                    fairyGrottosWaypoints.put(blockPos, 0);
-                else if (name.contains("Worm Fishing"))
-                    wormFishingWaypoints.put(blockPos, 0);
-                else if (name.contains("Dragon Nest"))
-                    dragonNestWaypoints.put(blockPos, 0);
-            } else crystalWaypoints.put(name, blockPos);
-        }
-
         public void updateCrystalWaypoints(String name, BlockPos blockPos) {
-            CommunistScanners.addStructure(serverName, name, blockPos, GumTuneClient.mc.theWorld.getWorldTime());
             this.crystalWaypoints.put(name, blockPos);
         }
 
@@ -79,8 +58,7 @@ public class WorldScanner {
         }
 
         public void updateMobSpotWaypoints(String name, BlockPos blockPos) {
-            CommunistScanners.addStructure(serverName, "GTC Mob " + name, blockPos, GumTuneClient.mc.theWorld.getWorldTime());
-            this.mobSpotWaypoints.put(name, blockPos);
+                 this.mobSpotWaypoints.put(name, blockPos);
         }
 
         public ConcurrentHashMap<String, BlockPos> getMobSpotWaypoints() {
@@ -88,7 +66,6 @@ public class WorldScanner {
         }
 
         public void updateFairyGrottos(BlockPos blockPos) {
-            CommunistScanners.addStructure(serverName, "GTC Fairy Grotto", blockPos, GumTuneClient.mc.theWorld.getWorldTime());
             this.fairyGrottosWaypoints.put(blockPos, 0);
         }
 
@@ -97,7 +74,6 @@ public class WorldScanner {
         }
 
         public void updateWormFishing(BlockPos blockPos) {
-            CommunistScanners.addStructure(serverName, "GTC Worm Fishing", blockPos, GumTuneClient.mc.theWorld.getWorldTime());
             this.wormFishingWaypoints.put(blockPos, 0);
         }
 
@@ -106,7 +82,6 @@ public class WorldScanner {
         }
 
         public void updateDragonNest(BlockPos blockPos) {
-            CommunistScanners.addStructure(serverName, "GTC Dragon Nest", blockPos, GumTuneClient.mc.theWorld.getWorldTime());
             this.dragonNestWaypoints.put(blockPos, 0);
         }
 
@@ -120,7 +95,6 @@ public class WorldScanner {
     private static int cooldown = 100;
     private static boolean initialScan = false;
     private static long lastScan = 0;
-    private static boolean lastBoolean = false;
     public static boolean checkMobs = GumTuneClientConfig.worldScannerScanFrequency == 17;
     private static final HashMap<String, String[]> alternativeNames = new HashMap<String, String[]>() {{
         put("§6King", new String[] { "§6King", "§6Goblin King" });
@@ -130,7 +104,7 @@ public class WorldScanner {
         put("§bCity", new String[] { "§bCity", "§bPrecursor City"});
         put("§6Bal", new String[] { "§6Bal", "§6Khazad-dûm", "§6Khazad-dum" });
     }};
-    private static HashMap<String, String> internalSkytilsNames = new HashMap<String, String>() {{
+    private static final HashMap<String, String> internalSkytilsNames = new HashMap<String, String>() {{
         put("§6King", "internal_king");
         put("§6Queen", "internal_den");
         put("§2Divan", "internal_mines");
@@ -168,9 +142,9 @@ public class WorldScanner {
                 initialScan = true;
                 lastScan = System.currentTimeMillis();
                 Object object = ReflectionUtils.field(GumTuneClient.mc.theWorld.getChunkProvider(), "field_73237_c");
-                if (object != null && object.getClass() == Lists.newArrayList().getClass()) {
+                if (object instanceof List) {
                     for (Chunk chunk : (List<Chunk>) object) {
-                        Multithreading.runAsync(() -> handleChunkLoad(chunk, currentWorld));
+                        handleChunkLoad(chunk, currentWorld);
                     }
                 }
             }
@@ -194,52 +168,42 @@ public class WorldScanner {
         if (WorldScannerFilter.worldScannerCHCrystals) {
             for (Map.Entry<String, BlockPos> entry : currentWorld.getCrystalWaypoints().entrySet()) {
                 BlockPos blockPos = entry.getValue();
-                if (GumTuneClientConfig.espHighlight)
-                    RenderUtils.renderEspBox(blockPos, event.partialTicks, colorCodeToColor(entry.getKey()).getRGB());
-                if (GumTuneClientConfig.espWaypointText)
-                    RenderUtils.renderWaypointText(entry.getKey(), blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
-                if (GumTuneClientConfig.espBeacon)
+                RenderUtils.renderEspBox(blockPos, event.partialTicks, colorCodeToColor(entry.getKey()).getRGB());
+                RenderUtils.renderWaypointText(entry.getKey(), blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
+                if (WorldScannerFilter.worldScannerCHCrystalsBeacon)
                     RenderUtils.renderBeacon(blockPos, colorCodeToColor(entry.getKey()), event.partialTicks);
             }
         }
         if (WorldScannerFilter.worldScannerCHMobSpots) {
             for (Map.Entry<String, BlockPos> entry : currentWorld.getMobSpotWaypoints().entrySet()) {
                 BlockPos blockPos = entry.getValue();
-                if (GumTuneClientConfig.espHighlight)
-                    RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.RED.getRGB());
-                if (GumTuneClientConfig.espWaypointText)
-                    RenderUtils.renderWaypointText(entry.getKey(), blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
-                if (GumTuneClientConfig.espBeacon)
+                RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.RED.getRGB());
+                RenderUtils.renderWaypointText(entry.getKey(), blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
+                if (WorldScannerFilter.worldScannerCHMobSpotsBeacon)
                     RenderUtils.renderBeacon(blockPos, Color.RED, event.partialTicks);
             }
         }
         if (WorldScannerFilter.worldScannerCHFairyGrottos) {
             for (BlockPos blockPos : currentWorld.getFairyGrottos().keySet()) {
-                if (GumTuneClientConfig.espHighlight)
-                    RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.PINK.getRGB());
-                if (GumTuneClientConfig.espWaypointText)
-                    RenderUtils.renderWaypointText("§dFairy Grotto", blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
-                if (GumTuneClientConfig.espBeacon)
+                RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.PINK.getRGB());
+                RenderUtils.renderWaypointText("§dFairy Grotto", blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
+                if (WorldScannerFilter.worldScannerCHFairyGrottosBeacon)
                     RenderUtils.renderBeacon(blockPos, Color.PINK, event.partialTicks);
             }
         }
         if (WorldScannerFilter.worldScannerCHWormFishing) {
             for (BlockPos blockPos : currentWorld.getWormFishing().keySet()) {
-                if (GumTuneClientConfig.espHighlight)
-                    RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.ORANGE.getRGB());
-                if (GumTuneClientConfig.espWaypointText)
-                    RenderUtils.renderWaypointText("§6Worm Fishing", blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
-                if (GumTuneClientConfig.espBeacon)
+                RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.ORANGE.getRGB());
+                RenderUtils.renderWaypointText("§6Worm Fishing", blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
+                if (WorldScannerFilter.worldScannerCHWormFishingBeacon)
                     RenderUtils.renderBeacon(blockPos, Color.ORANGE, event.partialTicks);
             }
         }
         if (WorldScannerFilter.worldScannerCHGoldenDragonNest) {
             for (BlockPos blockPos : currentWorld.getDragonNest().keySet()) {
-                if (GumTuneClientConfig.espHighlight)
-                    RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.ORANGE.getRGB());
-                if (GumTuneClientConfig.espWaypointText)
-                    RenderUtils.renderWaypointText("§6Dragon Nest", blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
-                if (GumTuneClientConfig.espBeacon)
+                RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.ORANGE.getRGB());
+                RenderUtils.renderWaypointText("§6Dragon Nest", blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
+                if (WorldScannerFilter.worldScannerCHGoldenDragonNestBeacon)
                     RenderUtils.renderBeacon(blockPos, Color.ORANGE, event.partialTicks);
             }
         }
@@ -247,47 +211,47 @@ public class WorldScanner {
 
     public static void handleChunkLoad(Chunk chunk, World currentWorld) {
         for (int x = 0; x < 16; x++) {
-            for (int y = 0; y < 256; y++) {
+            for (int y = 0; y < 200; y++) {
                 for (int z = 0; z < 16; z++) {
                     if (WorldScannerFilter.worldScannerCHCrystals && LocationUtils.currentIsland == LocationUtils.Island.CRYSTAL_HOLLOWS) {
                         // queen
-                        if (chunk.getBlock(x, y, z) == Blocks.stone &&
+                        if (!currentWorld.getCrystalWaypoints().containsKey("§6Queen") && chunk.getBlock(x, y, z) == Blocks.stone &&
                                 chunk.getBlock(x, y + 1, z) == Blocks.log2 &&
                                 chunk.getBlock(x, y + 2, z) == Blocks.log2 &&
                                 chunk.getBlock(x, y + 3, z) == Blocks.log2 &&
                                 chunk.getBlock(x, y + 4, z) == Blocks.log2 &&
                                 chunk.getBlock(x, y + 5, z) == Blocks.cauldron) {
-                            sendCoordsMessage("§6Queen", chunk.xPosition * 16 + x, y + 5, chunk.zPosition * 16 + z);
+                            sendCoordinatesMessage("§6Queen", chunk.xPosition * 16 + x, y + 5, chunk.zPosition * 16 + z);
                             addToSkytilsMap("§6Queen", chunk.xPosition * 16 + x, y + 5, chunk.zPosition * 16 + z);
                             currentWorld.updateCrystalWaypoints("§6Queen", new BlockPos(chunk.xPosition * 16 + x, y + 5, chunk.zPosition * 16 + z));
                             return;
                         }
                         // divan
-                        if (chunk.getBlock(x, y, z) == Blocks.quartz_block && // pillar
+                        if (!currentWorld.getCrystalWaypoints().containsKey("§2Divan") && chunk.getBlock(x, y, z) == Blocks.quartz_block && // pillar
                                 chunk.getBlock(x, y + 1, z) == Blocks.quartz_stairs &&
                                 chunk.getBlock(x, y + 2, z) == Blocks.stone_brick_stairs &&
                                 chunk.getBlock(x, y + 3, z) == Blocks.stonebrick) { // chiseled
-                            sendCoordsMessage("§2Divan", chunk.xPosition * 16 + x, y + 5, chunk.zPosition * 16 + z);
+                            sendCoordinatesMessage("§2Divan", chunk.xPosition * 16 + x, y + 5, chunk.zPosition * 16 + z);
                             addToSkytilsMap("§2Divan", chunk.xPosition * 16 + x, y + 5, chunk.zPosition * 16 + z);
                             currentWorld.updateCrystalWaypoints("§2Divan", new BlockPos(chunk.xPosition * 16 + x, y + 5, chunk.zPosition * 16 + z));
                             return;
                         }
                         // temple
-                        if (chunk.getBlock(x, y, z) == Blocks.bedrock &&
+                        if (!currentWorld.getCrystalWaypoints().containsKey("§5Temple Crystal") && chunk.getBlock(x, y, z) == Blocks.bedrock &&
                                 chunk.getBlock(x, y + 1, z) == Blocks.clay &&
                                 chunk.getBlock(x, y + 2, z) == Blocks.clay &&
                                 chunk.getBlock(x, y + 3, z) == Blocks.stained_hardened_clay && // color lime
                                 chunk.getBlock(x, y + 4, z) == Blocks.wool && // color green
                                 chunk.getBlock(x, y + 5, z) == Blocks.leaves &&
                                 chunk.getBlock(x, y + 6, z) == Blocks.leaves) { // oak leaves
-                            sendCoordsMessage("§5Temple", chunk.xPosition * 16 + x - 45, y + 47, chunk.zPosition * 16 + z - 18);
+                            sendCoordinatesMessage("§5Temple", chunk.xPosition * 16 + x - 45, y + 47, chunk.zPosition * 16 + z - 18);
                             addToSkytilsMap("§5Temple", chunk.xPosition * 16 + x - 45, y + 47, chunk.zPosition * 16 + z - 18);
                             currentWorld.updateCrystalWaypoints("§5Temple Crystal", new BlockPos(chunk.xPosition * 16 + x + 9, y + 2, chunk.zPosition * 16 + z));
                             currentWorld.updateCrystalWaypoints("§5Temple Door Guardian", new BlockPos(chunk.xPosition * 16 + x - 45, y + 47, chunk.zPosition * 16 + z - 18));
                             return;
                         }
                         // city
-                        if (chunk.getBlock(x, y, z) == Blocks.cobblestone &&
+                        if (!currentWorld.getCrystalWaypoints().containsKey("§bCity") && chunk.getBlock(x, y, z) == Blocks.cobblestone &&
                                 chunk.getBlock(x, y + 1, z) == Blocks.cobblestone &&
                                 chunk.getBlock(x, y + 2, z) == Blocks.cobblestone &&
                                 chunk.getBlock(x, y + 3, z) == Blocks.cobblestone &&
@@ -295,23 +259,23 @@ public class WorldScanner {
                                 chunk.getBlock(x, y + 5, z) == Blocks.stone && getBlockState(chunk, x, y + 5, z).getValue(BlockStone.VARIANT) == BlockStone.EnumType.ANDESITE_SMOOTH  &&  // smooth andesite
                                 chunk.getBlock(x, y + 6, z) == Blocks.stone && getBlockState(chunk, x, y + 5, z).getValue(BlockStone.VARIANT) == BlockStone.EnumType.ANDESITE_SMOOTH  &&  // smooth andesite
                                 chunk.getBlock(x, y + 7, z) == Blocks.dark_oak_stairs) {
-                            sendCoordsMessage("§bCity", chunk.xPosition * 16 + x + 24, y, chunk.zPosition * 16 + z - 17);
+                            sendCoordinatesMessage("§bCity", chunk.xPosition * 16 + x + 24, y, chunk.zPosition * 16 + z - 17);
                             addToSkytilsMap("§bCity", chunk.xPosition * 16 + x + 24, y, chunk.zPosition * 16 + z - 17);
                             currentWorld.updateCrystalWaypoints("§bCity", new BlockPos(chunk.xPosition * 16 + x + 24, y, chunk.zPosition * 16 + z - 17));
                             return;
                         }
                         // king
-                        if (chunk.getBlock(x, y, z) == Blocks.wool && // color red
+                        if (!currentWorld.getCrystalWaypoints().containsKey("§6King") && chunk.getBlock(x, y, z) == Blocks.wool && // color red
                                 chunk.getBlock(x, y + 1, z) == Blocks.dark_oak_stairs &&
                                 chunk.getBlock(x, y + 2, z) == Blocks.dark_oak_stairs &&
                                 chunk.getBlock(x, y + 3, z) == Blocks.dark_oak_stairs) {
-                            sendCoordsMessage("§6King", chunk.xPosition * 16 + x + 1, y - 1, chunk.zPosition * 16 + z + 2);
+                            sendCoordinatesMessage("§6King", chunk.xPosition * 16 + x + 1, y - 1, chunk.zPosition * 16 + z + 2);
                             addToSkytilsMap("§6King", chunk.xPosition * 16 + x + 1, y - 1, chunk.zPosition * 16 + z + 2);
                             currentWorld.updateCrystalWaypoints("§6King", new BlockPos(chunk.xPosition * 16 + x + 1, y - 1, chunk.zPosition * 16 + z + 2));
                             return;
                         }
                         // balls
-                        if (y < 80 && chunk.getBlock(x, y, z) == Blocks.lava &&
+                        if (!currentWorld.getCrystalWaypoints().containsKey("§6Bal") && y < 80 && chunk.getBlock(x, y, z) == Blocks.lava &&
                                 chunk.getBlock(x, y + 1, z) == Blocks.barrier &&
                                 chunk.getBlock(x, y + 2, z) == Blocks.barrier &&
                                 chunk.getBlock(x, y + 3, z) == Blocks.barrier &&
@@ -322,7 +286,7 @@ public class WorldScanner {
                                 chunk.getBlock(x, y + 8, z) == Blocks.barrier &&
                                 chunk.getBlock(x, y + 9, z) == Blocks.barrier &&
                                 chunk.getBlock(x, y + 10, z) == Blocks.barrier) {
-                            sendCoordsMessage("§6Bal", chunk.xPosition * 16 + x + 1, y - 1, chunk.zPosition * 16 + z + 2);
+                            sendCoordinatesMessage("§6Bal", chunk.xPosition * 16 + x + 1, y - 1, chunk.zPosition * 16 + z + 2);
                             addToSkytilsMap("§6Bal", chunk.xPosition * 16 + x + 1, y - 1, chunk.zPosition * 16 + z + 2);
                             currentWorld.updateCrystalWaypoints("§6Bal", new BlockPos(chunk.xPosition * 16 + x + 1, y - 1, chunk.zPosition * 16 + z + 2));
                             return;
@@ -363,12 +327,13 @@ public class WorldScanner {
                             return;
                         }
                         // trapped slime spiral
-                        if (chunk.getBlock(x, y, z) == Blocks.stone_slab && getBlockState(chunk, x, y, z).getValue(BlockSlab.HALF) == BlockSlab.EnumBlockHalf.TOP &&
-                                chunk.getBlock(x, y + 1, z) == Blocks.netherrack &&
-                                chunk.getBlock(x, y + 3, z) == Blocks.stone_brick_stairs &&
-                                chunk.getBlock(x, y + 4, z) == Blocks.stone_slab && getBlockState(chunk, x, y, z).getValue(BlockSlab.HALF) == BlockSlab.EnumBlockHalf.BOTTOM &&
-                                chunk.getBlock(x, y + 6, z) == Blocks.stone_slab && getBlockState(chunk, x, y, z).getValue(BlockSlab.HALF) == BlockSlab.EnumBlockHalf.TOP) {
-                            currentWorld.updateMobSpotWaypoints("§bTrapped Slime Spiral", new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z));
+                        if (chunk.getBlock(x, y, z) == Blocks.stone_slab && getBlockState(chunk, x, y, z).getValue(BlockSlab.HALF) == BlockSlab.EnumBlockHalf.BOTTOM &&
+                                chunk.getBlock(x, y + 1, z) == Blocks.stone_slab && getBlockState(chunk, x, y + 1, z).getValue(BlockSlab.HALF) == BlockSlab.EnumBlockHalf.TOP &&
+                                chunk.getBlock(x, y + 2, z) == Blocks.netherrack &&
+                                chunk.getBlock(x, y + 4, z) == Blocks.stone_brick_stairs &&
+                                chunk.getBlock(x, y + 5, z) == Blocks.stone_slab && getBlockState(chunk, x, y + 5, z).getValue(BlockSlab.HALF) == BlockSlab.EnumBlockHalf.BOTTOM &&
+                                chunk.getBlock(x, y + 7, z) == Blocks.stone_slab && getBlockState(chunk, x, y + 7, z).getValue(BlockSlab.HALF) == BlockSlab.EnumBlockHalf.TOP) {
+                            currentWorld.updateMobSpotWaypoints("§aTrapped Slime Spiral", new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z));
                             return;
                         }
                         // goblin diggy-hole
@@ -391,6 +356,87 @@ public class WorldScanner {
                                 chunk.getBlock(x, y + 17, z) == Blocks.stone_slab && getBlockState(chunk, x, y + 17, z).getValue(BlockSlab.HALF) == BlockSlab.EnumBlockHalf.TOP &&
                                 chunk.getBlock(x, y + 18, z) == Blocks.stonebrick && checkMobs) {
                             currentWorld.updateMobSpotWaypoints("§6Goblin Campsite", new BlockPos(chunk.xPosition * 16 + x, y - 3, chunk.zPosition * 16 + z + 34));
+                            return;
+                        }
+                        // grunt rails 1
+                        if (chunk.getBlock(x, y, z) == Blocks.planks && getBlockState(chunk, x, y, z).getValue(BlockPlanks.VARIANT) == BlockPlanks.EnumType.SPRUCE &&
+                                chunk.getBlock(x, y + 1, z) == Blocks.air &&
+                                chunk.getBlock(x, y + 2, z) == Blocks.wall_sign &&
+                                chunk.getBlock(x, y + 3, z) == Blocks.air &&
+                                chunk.getBlock(x, y + 4, z) == Blocks.air &&
+                                chunk.getBlock(x, y + 5, z) == Blocks.air &&
+                                chunk.getBlock(x, y + 6, z) == Blocks.air &&
+                                chunk.getBlock(x, y + 7, z) == Blocks.planks && getBlockState(chunk, x, y + 7, z).getValue(BlockPlanks.VARIANT) == BlockPlanks.EnumType.SPRUCE &&
+                                chunk.getBlock(x, y + 8, z) == Blocks.tnt) {
+                            currentWorld.updateMobSpotWaypoints("§bGrunt Rails 1", new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z));
+                            return;
+                        }
+                        // grunt hero statue
+                        if (chunk.getBlock(x, y, z) == Blocks.stone_slab && getBlockState(chunk, x, y, z).getValue(BlockSlab.HALF) == BlockSlab.EnumBlockHalf.TOP &&
+                                chunk.getBlock(x, y + 1, z) == Blocks.stone && getBlockState(chunk, x, y + 1, z).getValue(BlockStone.VARIANT) == BlockStone.EnumType.DIORITE &&
+                                chunk.getBlock(x, y + 2, z) == Blocks.stone && getBlockState(chunk, x, y + 2, z).getValue(BlockStone.VARIANT) == BlockStone.EnumType.DIORITE &&
+                                chunk.getBlock(x, y + 3, z) == Blocks.stone && getBlockState(chunk, x, y + 3, z).getValue(BlockStone.VARIANT) == BlockStone.EnumType.DIORITE &&
+                                chunk.getBlock(x, y + 4, z) == Blocks.stone && getBlockState(chunk, x, y + 4, z).getValue(BlockStone.VARIANT) == BlockStone.EnumType.DIORITE &&
+                                chunk.getBlock(x, y + 5, z) == Blocks.cobblestone &&
+                                chunk.getBlock(x, y + 6, z) == Blocks.stone && getBlockState(chunk, x, y + 6, z).getValue(BlockStone.VARIANT) == BlockStone.EnumType.ANDESITE_SMOOTH &&
+                                chunk.getBlock(x, y + 7, z) == Blocks.cobblestone &&
+                                chunk.getBlock(x, y + 8, z) == Blocks.stone_stairs) {
+                            currentWorld.updateMobSpotWaypoints("§bGrunt Hero Statue", new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z));
+                            return;
+                        }
+                        // small grunt bridge
+                        if (chunk.getBlock(x, y, z) == Blocks.air &&
+                                chunk.getBlock(x, y + 1, z) == Blocks.spruce_stairs &&
+                                chunk.getBlock(x, y + 2, z) == Blocks.spruce_stairs &&
+                                chunk.getBlock(x, y + 3, z) == Blocks.air &&
+                                chunk.getBlock(x, y + 4, z) == Blocks.spruce_stairs &&
+                                chunk.getBlock(x, y + 5, z) == Blocks.log && getBlockState(chunk, x, y + 5, z).getValue(BlockPlanks.VARIANT) == BlockPlanks.EnumType.OAK &&
+                                chunk.getBlock(x, y + 6, z) == Blocks.oak_fence &&
+                                chunk.getBlock(x, y + 7, z) == Blocks.torch) {
+                            currentWorld.updateMobSpotWaypoints("§bGrunt Small Bridge", new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z));
+                            return;
+                        }
+                        // key guardian spiral
+                        if (chunk.getBlock(x, y, z) == Blocks.jungle_stairs &&
+                                chunk.getBlock(x, y + 1, z) == Blocks.planks &&
+                                chunk.getBlock(x, y + 2, z) == Blocks.glowstone &&
+                                chunk.getBlock(x, y + 3, z) == Blocks.carpet &&
+                                chunk.getBlock(x, y + 4, z) == Blocks.air &&
+                                chunk.getBlock(x, y + 5, z) == Blocks.wooden_slab &&
+                                chunk.getBlock(x, y + 6, z) == Blocks.air &&
+                                chunk.getBlock(x, y + 7, z) == Blocks.jungle_stairs &&
+                                chunk.getBlock(x, y + 8, z) == Blocks.stone &&
+                                chunk.getBlock(x, y + 9, z) == Blocks.stone &&
+                                chunk.getBlock(x, y + 10, z) == Blocks.stone) {
+                            currentWorld.updateMobSpotWaypoints("§aKey Guardian Spiral", new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z));
+                            return;
+                        }
+                        // sludge waterfalls
+                        if (chunk.getBlock(x, y, z) == Blocks.stone &&
+                                chunk.getBlock(x, y + 1, z) == Blocks.dirt &&
+                                chunk.getBlock(x, y + 2, z) == Blocks.stone && getBlockState(chunk, x, y + 2, z).getValue(BlockStone.VARIANT) == BlockStone.EnumType.GRANITE_SMOOTH &&
+                                chunk.getBlock(x, y + 3, z) == Blocks.jungle_stairs &&
+                                chunk.getBlock(x, y + 4, z) == Blocks.air &&
+                                chunk.getBlock(x, y + 5, z) == Blocks.air &&
+                                chunk.getBlock(x, y + 6, z) == Blocks.air &&
+                                chunk.getBlock(x, y + 7, z) == Blocks.air &&
+                                chunk.getBlock(x, y + 8, z) == Blocks.air) {
+                            currentWorld.updateMobSpotWaypoints("§aSludge Waterfalls", new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z));
+                            return;
+                        }
+                        // sludge Bridges
+                        if (chunk.getBlock(x, y, z) == Blocks.planks && getBlockState(chunk, x, y, z).getValue(BlockPlanks.VARIANT) == BlockPlanks.EnumType.JUNGLE &&
+                                chunk.getBlock(x, y + 1, z) == Blocks.planks && getBlockState(chunk, x, y + 1, z).getValue(BlockPlanks.VARIANT) == BlockPlanks.EnumType.JUNGLE &&
+                                chunk.getBlock(x, y + 2, z) == Blocks.planks && getBlockState(chunk, x, y + 2, z).getValue(BlockPlanks.VARIANT) == BlockPlanks.EnumType.JUNGLE &&
+                                chunk.getBlock(x, y + 3, z) == Blocks.jungle_stairs &&
+                                chunk.getBlock(x, y + 4, z) == Blocks.planks && getBlockState(chunk, x, y + 4, z).getValue(BlockPlanks.VARIANT) == BlockPlanks.EnumType.JUNGLE &&
+                                chunk.getBlock(x, y + 5, z) == Blocks.planks && getBlockState(chunk, x, y + 5, z).getValue(BlockPlanks.VARIANT) == BlockPlanks.EnumType.JUNGLE &&
+                                chunk.getBlock(x, y + 6, z) == Blocks.planks && getBlockState(chunk, x, y + 6, z).getValue(BlockPlanks.VARIANT) == BlockPlanks.EnumType.JUNGLE &&
+                                chunk.getBlock(x, y + 7, z) == Blocks.jungle_stairs &&
+                                chunk.getBlock(x, y + 8, z) == Blocks.planks && getBlockState(chunk, x, y + 8, z).getValue(BlockPlanks.VARIANT) == BlockPlanks.EnumType.JUNGLE &&
+                                chunk.getBlock(x, y + 9, z) == Blocks.stone && getBlockState(chunk, x, y + 9, z).getValue(BlockStone.VARIANT) == BlockStone.EnumType.GRANITE &&
+                                chunk.getBlock(x, y + 10, z) == Blocks.stone && getBlockState(chunk, x, y + 10, z).getValue(BlockStone.VARIANT) == BlockStone.EnumType.GRANITE) {
+                            currentWorld.updateMobSpotWaypoints("§aSludge Bridges", new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z));
                             return;
                         }
                     }
@@ -420,7 +466,7 @@ public class WorldScanner {
                                 chunk.getBlock(x, y + 3, z) == Blocks.stained_hardened_clay && getBlockState(chunk, x, y + 1, z).getValue(BlockColored.COLOR) == EnumDyeColor.RED &&
                                 chunk.getBlock(x, y + 4, z) == Blocks.skull &&
                                 chunk.getBlock(x, y + 5, z) == Blocks.wool && getBlockState(chunk, x, y + 1, z).getValue(BlockColored.COLOR) == EnumDyeColor.RED) {
-                            currentWorld.updateMobSpotWaypoints("§6Goblin Campsite", new BlockPos(chunk.xPosition * 16 + x, y - 3, chunk.zPosition * 16 + z + 34));
+                            currentWorld.updateDragonNest(new BlockPos(chunk.xPosition * 16 + x, y - 3, chunk.zPosition * 16 + z + 34));
                             return;
                         }
                     }
@@ -485,15 +531,7 @@ public class WorldScanner {
         return iBlockState;
     }
 
-    private static double distance(BlockPos from, BlockPos to) {
-        return Math.sqrt(
-                Math.pow(to.getX() - from.getX(), 2) +
-                Math.pow(to.getY() - from.getY(), 2) +
-                Math.pow(to.getZ() - from.getZ(), 2)
-        );
-    }
-
-    private static void sendCoordsMessage(String name, int x, int y, int z) {
+    private static void sendCoordinatesMessage(String name, int x, int y, int z) {
         if (!GumTuneClientConfig.worldScannerSendCoordsInChat) return;
         if (GumTuneClientConfig.worldScannerChatMode != 0) {
             Random random = new Random();
@@ -506,8 +544,8 @@ public class WorldScanner {
             }
         }
         ChatStyle style = new ChatStyle();
-        style.setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/gtc setclipboard " + removeFormatting(name).replace(" ", ";") + ";" + x + ";" + y + ";" + z));
-        style.setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.YELLOW + "/gtc copy " + removeFormatting(name) + " " + x + " " + y + " " + z)));
+        style.setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/gtc setclipboard " + StringUtils.removeFormatting(name).replace(" ", ";") + ";" + x + ";" + y + ";" + z));
+        style.setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.YELLOW + "/gtc copy " + StringUtils.removeFormatting(name) + " " + x + " " + y + " " + z)));
 
         ChatComponentText coordsMessage = new ChatComponentText("§7[§d" + GumTuneClient.NAME + "§7] §f" + name + " §f(" + x + ", " + y + ", " + z + ")");
         coordsMessage.setChatStyle(style);
@@ -520,7 +558,4 @@ public class WorldScanner {
         ClientCommandHandler.instance.executeCommand(GumTuneClient.mc.thePlayer, "/sthw set " + x + " " + y + " " + z + " " + internalSkytilsNames.get(name));
     }
 
-    private static String removeFormatting(String text) {
-        return text.replaceAll("§[0-9a-fk-or]", "");
-    }
 }

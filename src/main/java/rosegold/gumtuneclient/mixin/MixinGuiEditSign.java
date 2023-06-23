@@ -16,7 +16,7 @@ import rosegold.gumtuneclient.modules.farming.VisitorHelpers;
 import rosegold.gumtuneclient.utils.ModUtils;
 
 @Mixin(GuiEditSign.class)
-public abstract class MixinGuiEditSign extends GuiScreen {
+public class MixinGuiEditSign extends GuiScreen {
 
     @Shadow
     private TileEntitySign tileSign;

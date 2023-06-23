@@ -1,10 +1,9 @@
 package rosegold.gumtuneclient.modules.mining;
 
+import net.minecraft.block.BlockChest;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S2APacketParticles;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumParticleTypes;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.*;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.world.WorldEvent;
@@ -15,10 +14,7 @@ import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.events.PlayerMoveEvent;
 import rosegold.gumtuneclient.events.PacketReceivedEvent;
-import rosegold.gumtuneclient.utils.BlockUtils;
-import rosegold.gumtuneclient.utils.LocationUtils;
-import rosegold.gumtuneclient.utils.RenderUtils;
-import rosegold.gumtuneclient.utils.RotationUtils;
+import rosegold.gumtuneclient.utils.*;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -26,8 +22,10 @@ import java.util.ArrayList;
 public class PowderChestSolver {
 
     public static Vec3 particle;
-    private static BlockPos closestChest;
-    private final ArrayList<BlockPos> solved = new ArrayList<>();
+    public static BlockPos closestChest;
+    private static boolean rotatingBack = false;
+    private static long timestamp = 0;
+    public static final ArrayList<BlockPos> solved = new ArrayList<>();
 
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
@@ -35,7 +33,14 @@ public class PowderChestSolver {
         if (event.phase == TickEvent.Phase.END) return;
         if (closestChest == null) {
             particle = null;
-            closestChest = BlockUtils.getClosestBlock(4, 4, 4, this::isPowderChest);
+            if (!GumTuneClientConfig.powderChestSolverLegitMode) {
+                closestChest = BlockUtils.getClosestBlock(4, 4, 4, this::isPowderChest);
+            } else if (GumTuneClient.mc.objectMouseOver != null && GumTuneClient.mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                BlockPos blockPos = GumTuneClient.mc.objectMouseOver.getBlockPos();
+                if (GumTuneClient.mc.theWorld.getBlockState(blockPos).getBlock() == Blocks.chest) {
+                    closestChest = blockPos;
+                }
+            }
         }
 
         if (closestChest != null) {
@@ -58,8 +63,10 @@ public class PowderChestSolver {
             if (packet.getParticleType().equals(EnumParticleTypes.CRIT)) {
                 Vec3 particlePos = new Vec3(packet.getXCoordinate(), packet.getYCoordinate(), packet.getZCoordinate());
                 if (closestChest != null) {
-                    if (particlePos.distanceTo(new Vec3(closestChest.getX() + 0.5, closestChest.getY() + 0.5, closestChest.getZ() + 0.5)) < 1) {
-                        RotationUtils.serverSmoothLook(RotationUtils.getRotation(particlePos), GumTuneClientConfig.powderChestRotationTime);
+                    if (particlePos.distanceTo(new Vec3(closestChest.getX() + 0.5, closestChest.getY() + 0.5, closestChest.getZ() + 0.5).add(VectorUtils.scaleVec(GumTuneClient.mc.theWorld.getBlockState(closestChest).getValue(BlockChest.FACING).getDirectionVec(), 0.5f))) < 0.45 && Math.abs(closestChest.getY() + 0.5 - particlePos.yCoord) < 0.5) {
+                        if (GumTuneClientConfig.powderChestSolverSmoothRotations) {
+                            RotationUtils.serverSmoothLook(RotationUtils.getRotation(particlePos), GumTuneClientConfig.powderChestRotationTime);
+                        }
                         particle = particlePos;
                     }
                 }
@@ -72,6 +79,12 @@ public class PowderChestSolver {
         String message = event.message.getUnformattedText();
         if (!message.contains(":") && message.contains("You have successfully picked the lock on this chest!")) {
             solved.add(closestChest);
+            if (GumTuneClientConfig.powderChestSolverSmoothRotations) {
+                RotationUtils.serverSmoothLook(new RotationUtils.Rotation(GumTuneClient.mc.thePlayer.rotationPitch, GumTuneClient.mc.thePlayer.rotationYaw), GumTuneClientConfig.powderChestRotationTime);
+                rotatingBack = true;
+                timestamp = System.currentTimeMillis();
+                ModUtils.sendMessage("started rotating back");
+            }
             closestChest = null;
             particle = null;
         }
@@ -82,17 +95,26 @@ public class PowderChestSolver {
         if (!isEnabled()) return;
         if (particle != null) {
             RenderUtils.renderSmallBox(particle, Color.RED.getRGB());
+            RenderUtils.drawLine(GumTuneClient.mc.thePlayer.getPositionEyes(event.partialTicks), particle, 1, event.partialTicks);
         }
         if (closestChest != null) {
-            RenderUtils.renderEspBox(closestChest, event.partialTicks, new Color(150, 75, 0).getRGB());
+            RenderUtils.renderEspBox(closestChest, event.partialTicks, new Color(250, 150, 0).getRGB());
         }
     }
 
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public void onUpdatePre(PlayerMoveEvent.Pre pre) {
         if (!isEnabled()) return;
-        if (particle == null) return;
-        RotationUtils.updateServerLook();
+        if (particle == null && !rotatingBack) return;
+        if (GumTuneClientConfig.powderChestSolverSmoothRotations) {
+            RotationUtils.updateServerLook();
+            if (rotatingBack && System.currentTimeMillis() - timestamp > GumTuneClientConfig.powderChestRotationTime) {
+                ModUtils.sendMessage("finished rotating back");
+                rotatingBack = false;
+            }
+        } else {
+            RotationUtils.look(RotationUtils.getRotation(particle));
+        }
     }
 
     @SubscribeEvent

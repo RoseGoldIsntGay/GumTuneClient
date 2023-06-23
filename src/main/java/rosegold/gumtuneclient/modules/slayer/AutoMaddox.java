@@ -5,7 +5,6 @@ import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IChatComponent;
-import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -36,7 +35,7 @@ public class AutoMaddox {
     @SubscribeEvent
     public void chat(ClientChatReceivedEvent event) {
         if (!GumTuneClientConfig.autoMaddoxBatphone) return;
-        String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
+        String message = StringUtils.removeFormatting(event.message.getUnformattedText());
         if (message.contains(":")) return;
         if (maddoxState == MaddoxState.WAIT_FOR_PICK_UP) {
             if (message.contains("[OPEN MENU]")) {

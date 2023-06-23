@@ -44,7 +44,7 @@ public class CopyNBTData {
         if (!GumTuneClientConfig.copyNBTData) return;
         int eventKey = Keyboard.getEventKey();
         ArrayList<Integer> keyBinds = GumTuneClientConfig.copyNBTDataKeyBind.getKeyBinds();
-        if (keyBinds.size() > 0 && keyBinds.get(0) == eventKey) {
+        if (keyBinds.size() > 0 && keyBinds.get(0) == eventKey && GumTuneClient.mc.objectMouseOver != null) {
             if (GumTuneClient.mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                 BlockPos blockPos = GumTuneClient.mc.objectMouseOver.getBlockPos();
                 IBlockState iBlockState = GumTuneClient.mc.theWorld.getBlockState(blockPos);

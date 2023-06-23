@@ -52,6 +52,8 @@ public class MainCommand {
         int range = Integer.parseInt(arg);
         List<Entity> entityList = GumTuneClient.mc.theWorld.loadedEntityList.stream().filter(
                 entity -> entity.getDistanceToEntity(GumTuneClient.mc.thePlayer) <= range
+        ).filter(
+                entity -> entity != GumTuneClient.mc.thePlayer
         ).sorted(
                 Comparator.comparingDouble(entity -> entity.getDistanceToEntity(GumTuneClient.mc.thePlayer))
         ).collect(Collectors.toList());
@@ -62,7 +64,7 @@ public class MainCommand {
             stringBuilder.append(DevUtils.getEntityData(entity));
         }
 
-        ModUtils.sendMessage("Copied NBT date of " + entityList.size() + " Entities");
+        ModUtils.sendMessage("Copied NBT data of " + entityList.size() + " Entities");
         saveToClipoard(stringBuilder.toString());
     }
 
@@ -84,7 +86,7 @@ public class MainCommand {
             stringBuilder.append(DevUtils.getEntityData(entity));
         }
 
-        ModUtils.sendMessage("Copied NBT date of " + entityList.size() + " Entities");
+        ModUtils.sendMessage("Copied NBT data of " + entityList.size() + " Entities");
         saveToClipoard(stringBuilder.toString());
     }
 
@@ -167,7 +169,7 @@ public class MainCommand {
     }
 
     @SubCommand(description = "raytrace")
-    private void raytrace(String x, String y, String z) {
+    private void raytrace(String x, String y, String z, String fullBlocks) {
         if (x == null || !isNumeric(x)) {
             ModUtils.sendMessage("Invalid x coordinate: " + x);
             return;
@@ -180,8 +182,14 @@ public class MainCommand {
             ModUtils.sendMessage("Invalid z coordinate: " + z);
             return;
         }
+        if (fullBlocks == null || !isBooleanic(fullBlocks)) {
+            ModUtils.sendMessage("Invalid boolean fullBlocks: " + fullBlocks);
+            return;
+        }
 
         BlockUtils.blockPosConcurrentLinkedQueue.clear();
+        BlockUtils.source = GumTuneClient.mc.thePlayer.getPositionEyes(1f);
+        BlockUtils.destination = new Vec3(Double.parseDouble(x), Double.parseDouble(y), Double.parseDouble(z));
         BlockUtils.rayTraceBlocks(
                 GumTuneClient.mc.thePlayer.getPositionEyes(1f),
                 new Vec3(Double.parseDouble(x), Double.parseDouble(y), Double.parseDouble(z)),
@@ -189,7 +197,8 @@ public class MainCommand {
                 true,
                 false,
                 block -> block == Blocks.cocoa,
-                true
+                true,
+                Boolean.parseBoolean(fullBlocks)
         );
     }
 
@@ -263,10 +272,19 @@ public class MainCommand {
         }
     }
 
+    @SubCommand(description = "apikey")
+    private void apikey() {
+        ModUtils.sendMessage(GumTuneClientConfig.hypixelApiKey);
+    }
+
     private void saveToClipoard(String string){
         StringSelection selection = new StringSelection(string);
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         clipboard.setContents(selection, selection);
+    }
+
+    private boolean isBooleanic(String str) {
+        return str.equals("true") || str.equals("false");
     }
 
     private boolean isNumeric(String str) {

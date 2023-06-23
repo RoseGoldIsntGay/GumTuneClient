@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.base.Predicate;
+import rosegold.gumtuneclient.utils.StringUtils;
 
 public class SlayerHandler {
     public static Entity currentSlayerBoss;
@@ -52,7 +53,7 @@ public class SlayerHandler {
                     }
                 }
 
-                if (removeFormatting(entity.getCustomNameTag()).equals("Spawned by: " + GumTuneClient.mc.thePlayer.getName())) {
+                if (StringUtils.removeFormatting(entity.getCustomNameTag()).equals("Spawned by: " + GumTuneClient.mc.thePlayer.getName())) {
                     for (Map.Entry<String, Predicate<? super Entity>> boss : bosses.entrySet()) {
                         if (ScoreboardUtils.scoreboardContains(boss.getKey(), scoreboard)) {
                             List<Entity> possibleSlayerBosses = entity.getEntityWorld().getEntitiesInAABBexcluding(entity, entity.getEntityBoundingBox().expand(0, 2, 0), boss.getValue());
@@ -82,7 +83,4 @@ public class SlayerHandler {
         checked.clear();
     }
 
-    private static String removeFormatting(String input) {
-        return input.replaceAll("§[0-9a-fk-or]", "");
-    }
 }

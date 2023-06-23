@@ -4,6 +4,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.util.*;
+import net.minecraft.world.World;
 import rosegold.gumtuneclient.GumTuneClient;
 
 import java.util.ArrayList;
@@ -16,6 +17,8 @@ import static rosegold.gumtuneclient.GumTuneClient.mc;
 public class BlockUtils {
 
     public static ConcurrentLinkedQueue<BlockPos> blockPosConcurrentLinkedQueue = new ConcurrentLinkedQueue<>();
+    public static Vec3 source;
+    public static Vec3 destination;
 
     private static final HashMap<EnumFacing, float[]> BLOCK_SIDES = new HashMap<EnumFacing, float[]>() {{
         put(EnumFacing.DOWN, new float[]{0.5f, 0.01f, 0.5f});
@@ -100,6 +103,20 @@ public class BlockUtils {
         return false;
     }
 
+    public static EnumFacing calculateEnumfacing(Vec3 vec) {
+        int x = MathHelper.floor_double(vec.xCoord);
+        int y = MathHelper.floor_double(vec.yCoord);
+        int z = MathHelper.floor_double(vec.zCoord);
+        MovingObjectPosition position = calculateIntercept(new AxisAlignedBB(x, y, z, x + 1, y + 1, z + 1), vec, 50.0f);
+        return (position != null) ? position.sideHit : null;
+    }
+
+    public static MovingObjectPosition calculateIntercept(AxisAlignedBB aabb, Vec3 vec, float range) {
+        Vec3 playerPositionEyes = GumTuneClient.mc.thePlayer.getPositionEyes(1f);
+        Vec3 blockVector = RotationUtils.getLook(vec);
+        return aabb.calculateIntercept(playerPositionEyes, playerPositionEyes.addVector(blockVector.xCoord * range, blockVector.yCoord * range, blockVector.zCoord * range));
+    }
+
     private static ArrayList<Vec3> getPointsOnBlock(BlockPos bp, EnumFacing enumFacing) {
         ArrayList<Vec3> points = new ArrayList<>();
 
@@ -133,15 +150,23 @@ public class BlockUtils {
         return points;
     }
 
-    public static ArrayList<Vec3> getViablePointsOnBlock(BlockPos blockPos, EnumFacing enumFacing) {
+    public static ArrayList<Vec3> getViablePointsOnBlock(BlockPos blockPos, EnumFacing enumFacing, double range) {
+        return getViablePointsOnBlock(blockPos, enumFacing, range, false, false);
+    }
+
+    public static ArrayList<Vec3> getViablePointsOnBlock(BlockPos blockPos, EnumFacing enumFacing, double range, boolean fullBlocks, boolean sneak) {
         ArrayList<Vec3> points = new ArrayList<>();
         ArrayList<Vec3> pointsOnBlock = getPointsOnBlock(blockPos, enumFacing);
 
+        Vec3 playerPosition = new Vec3(GumTuneClient.mc.thePlayer.posX, GumTuneClient.mc.thePlayer.posY + (sneak ? 1.54D : 1.62D), GumTuneClient.mc.thePlayer.posZ);
+
+        BlockUtils.blockPosConcurrentLinkedQueue.clear();
+
         for (Vec3 point : pointsOnBlock) {
-            MovingObjectPosition mop = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionEyes(1.0f), point);
+            MovingObjectPosition mop = rayTraceBlocks(playerPosition, point, false, false, false, x -> false, false, fullBlocks);
 
             if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                if (mop.getBlockPos().equals(blockPos) && point.distanceTo(mc.thePlayer.getPositionEyes(1.0f)) < mc.playerController.getBlockReachDistance()) {
+                if (mop.getBlockPos().equals(blockPos) && point.distanceTo(playerPosition) < range) {
                     points.add(point);
                 }
             }
@@ -151,10 +176,14 @@ public class BlockUtils {
     }
 
     public static MovingObjectPosition rayTraceBlocks(Vec3 vec31, Vec3 vec32, boolean stopOnLiquid, boolean ignoreBlockWithoutBoundingBox, boolean returnLastUncollidableBlock, Predicate<? super Block> predicate) {
-        return rayTraceBlocks(vec31, vec32, stopOnLiquid, ignoreBlockWithoutBoundingBox, returnLastUncollidableBlock, predicate, false);
+        return rayTraceBlocks(vec31, vec32, stopOnLiquid, ignoreBlockWithoutBoundingBox, returnLastUncollidableBlock, predicate, false, false);
     }
 
     public static MovingObjectPosition rayTraceBlocks(Vec3 vec31, Vec3 vec32, boolean stopOnLiquid, boolean ignoreBlockWithoutBoundingBox, boolean returnLastUncollidableBlock, Predicate<? super Block> predicate, boolean visualize) {
+        return rayTraceBlocks(vec31, vec32, stopOnLiquid, ignoreBlockWithoutBoundingBox, returnLastUncollidableBlock, predicate, visualize, false);
+    }
+
+    public static MovingObjectPosition rayTraceBlocks(Vec3 vec31, Vec3 vec32, boolean stopOnLiquid, boolean ignoreBlockWithoutBoundingBox, boolean returnLastUncollidableBlock, Predicate<? super Block> predicate, boolean visualize, boolean fullBlocks) {
         if (!(Double.isNaN(vec31.xCoord) || Double.isNaN(vec31.yCoord) || Double.isNaN(vec31.zCoord))) {
             if (!(Double.isNaN(vec32.xCoord) || Double.isNaN(vec32.yCoord) || Double.isNaN(vec32.zCoord))) {
                 MovingObjectPosition movingobjectposition;
@@ -168,7 +197,7 @@ public class BlockUtils {
                 IBlockState iblockstate = getBlockState(blockpos);
                 Block block = iblockstate.getBlock();
                 if (visualize) blockPosConcurrentLinkedQueue.add(blockpos);
-                if (!predicate.test(block) && (!ignoreBlockWithoutBoundingBox || block.getCollisionBoundingBox(mc.theWorld, blockpos, iblockstate) != null) && block.canCollideCheck(iblockstate, stopOnLiquid) && (movingobjectposition = block.collisionRayTrace(mc.theWorld, blockpos, vec31, vec32)) != null) {
+                if (!predicate.test(block) && (!ignoreBlockWithoutBoundingBox || block.getCollisionBoundingBox(mc.theWorld, blockpos, iblockstate) != null) && block.canCollideCheck(iblockstate, stopOnLiquid) && (movingobjectposition = collisionRayTrace(block, blockpos, vec31, vec32, fullBlocks)) != null) {
                     return movingobjectposition;
                 }
                 MovingObjectPosition movingobjectposition2 = null;
@@ -252,7 +281,7 @@ public class BlockUtils {
                     if (ignoreBlockWithoutBoundingBox && block1.getCollisionBoundingBox(mc.theWorld, blockpos, iblockstate1) == null) continue;
                     if (predicate.test(block1)) continue;
                     if (block1.canCollideCheck(iblockstate1, stopOnLiquid)) {
-                        MovingObjectPosition movingobjectposition1 = block1.collisionRayTrace(mc.theWorld, blockpos, vec31, vec32);
+                        MovingObjectPosition movingobjectposition1 = collisionRayTrace(block1, blockpos, vec31, vec32, fullBlocks);
                         if (movingobjectposition1 == null) continue;
                         return movingobjectposition1;
                     }
@@ -265,7 +294,95 @@ public class BlockUtils {
         return null;
     }
 
+    public static MovingObjectPosition collisionRayTrace(Block block, BlockPos pos, Vec3 start, Vec3 end, boolean fullBlocks) {
+        start = start.addVector(-pos.getX(), -pos.getY(), -pos.getZ());
+        end = end.addVector(-pos.getX(), -pos.getY(), -pos.getZ());
+
+        Vec3 vec3 = start.getIntermediateWithXValue(end, fullBlocks ? 0.0 : block.getBlockBoundsMinX());
+        Vec3 vec31 = start.getIntermediateWithXValue(end, fullBlocks ? 1.0 : block.getBlockBoundsMaxX());
+        Vec3 vec32 = start.getIntermediateWithYValue(end, fullBlocks ? 0.0 : block.getBlockBoundsMinY());
+        Vec3 vec33 = start.getIntermediateWithYValue(end, fullBlocks ? 1.0 : block.getBlockBoundsMaxY());
+        Vec3 vec34 = start.getIntermediateWithZValue(end, fullBlocks ? 0.0 : block.getBlockBoundsMinZ());
+        Vec3 vec35 = start.getIntermediateWithZValue(end, fullBlocks ? 1.0 : block.getBlockBoundsMaxZ());
+
+        if (!isVecInsideYZBounds(block, vec3, fullBlocks)) {
+            vec3 = null;
+        }
+        if (!isVecInsideYZBounds(block, vec31, fullBlocks)) {
+            vec31 = null;
+        }
+        if (!isVecInsideXZBounds(block, vec32, fullBlocks)) {
+            vec32 = null;
+        }
+        if (!isVecInsideXZBounds(block, vec33, fullBlocks)) {
+            vec33 = null;
+        }
+        if (!isVecInsideXYBounds(block, vec34, fullBlocks)) {
+            vec34 = null;
+        }
+        if (!isVecInsideXYBounds(block, vec35, fullBlocks)) {
+            vec35 = null;
+        }
+
+        Vec3 vec36 = null;
+
+        if (vec3 != null) {
+            vec36 = vec3;
+        }
+        if (vec31 != null && (vec36 == null || start.squareDistanceTo(vec31) < start.squareDistanceTo(vec36))) {
+            vec36 = vec31;
+        }
+        if (vec32 != null && (vec36 == null || start.squareDistanceTo(vec32) < start.squareDistanceTo(vec36))) {
+            vec36 = vec32;
+        }
+        if (vec33 != null && (vec36 == null || start.squareDistanceTo(vec33) < start.squareDistanceTo(vec36))) {
+            vec36 = vec33;
+        }
+        if (vec34 != null && (vec36 == null || start.squareDistanceTo(vec34) < start.squareDistanceTo(vec36))) {
+            vec36 = vec34;
+        }
+        if (vec35 != null && (vec36 == null || start.squareDistanceTo(vec35) < start.squareDistanceTo(vec36))) {
+            vec36 = vec35;
+        }
+        if (vec36 == null) {
+            return null;
+        }
+        EnumFacing enumfacing = null;
+        if (vec36 == vec3) {
+            enumfacing = EnumFacing.WEST;
+        }
+        if (vec36 == vec31) {
+            enumfacing = EnumFacing.EAST;
+        }
+        if (vec36 == vec32) {
+            enumfacing = EnumFacing.DOWN;
+        }
+        if (vec36 == vec33) {
+            enumfacing = EnumFacing.UP;
+        }
+        if (vec36 == vec34) {
+            enumfacing = EnumFacing.NORTH;
+        }
+        if (vec36 == vec35) {
+            enumfacing = EnumFacing.SOUTH;
+        }
+        return new MovingObjectPosition(vec36.addVector(pos.getX(), pos.getY(), pos.getZ()), enumfacing, pos);
+    }
+
+    private static boolean isVecInsideYZBounds(Block block, Vec3 point, boolean fullBlocks) {
+        return point != null && point.yCoord >= (fullBlocks ? 0.0 : block.getBlockBoundsMinY()) && point.yCoord <= (fullBlocks ? 1.0 : block.getBlockBoundsMaxY()) && point.zCoord >= (fullBlocks ? 0.0 : block.getBlockBoundsMinZ()) && point.zCoord <= (fullBlocks ? 1.0 : block.getBlockBoundsMaxZ());
+    }
+
+    private static boolean isVecInsideXZBounds(Block block, Vec3 point, boolean fullBlocks) {
+        return point != null && point.xCoord >= (fullBlocks ? 0.0 : block.getBlockBoundsMinX()) && point.xCoord <= (fullBlocks ? 1.0 : block.getBlockBoundsMaxX()) && point.zCoord >= (fullBlocks ? 0.0 : block.getBlockBoundsMinZ()) && point.zCoord <= (fullBlocks ? 1.0 : block.getBlockBoundsMaxZ());
+    }
+
+    private static boolean isVecInsideXYBounds(Block block, Vec3 point, boolean fullBlocks) {
+        return point != null && point.xCoord >= (fullBlocks ? 0.0 : block.getBlockBoundsMinX()) && point.xCoord <= (fullBlocks ? 1.0 : block.getBlockBoundsMaxX()) && point.yCoord >= (fullBlocks ? 0.0 : block.getBlockBoundsMinY()) && point.yCoord <= (fullBlocks ? 1.0 : block.getBlockBoundsMaxY());
+    }
+
     private static IBlockState getBlockState(BlockPos blockPos) {
+        if (GumTuneClient.mc.theWorld == null) return null;
         return GumTuneClient.mc.theWorld.getBlockState(blockPos);
     }
 }

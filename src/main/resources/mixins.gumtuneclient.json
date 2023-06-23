@@ -21,6 +21,7 @@
     "MixinChunk",
     "MixinModList",
     "MixinNetworkManager",
-    "accessors.RenderManagerAccessor"
+    "accessors.RenderManagerAccessor",
+    "blocks.MixinBlockMushroom"
   ]
 }

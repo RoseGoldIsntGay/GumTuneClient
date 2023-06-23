@@ -80,9 +80,9 @@ public class MobMacro {
                         break;
                     case 2:
                         if (lookAt.posY > mc.thePlayer.posY) {
-                            RotationUtils.smoothLook(RotationUtils.getRotation(lookAt, 0.1f), 200);
+                            RotationUtils.smoothLook(RotationUtils.getRotation(lookAt, new Vec3(0, 0.1, 0)), 200);
                         } else {
-                            RotationUtils.smoothLook(RotationUtils.getRotation(lookAt, mc.thePlayer.getEyeHeight()), 200);
+                            RotationUtils.smoothLook(RotationUtils.getRotation(lookAt, new Vec3(0, mc.thePlayer.getEyeHeight(), 0)), 200);
                         }
                         break;
                 }
@@ -109,13 +109,11 @@ public class MobMacro {
             return;
         }
 
-        if (sneak) {
-            if (GumTuneClientConfig.mobMacroAttackType == 0) {
+        if (GumTuneClientConfig.mobMacroAttackType == 0) {
+            if (sneak) {
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
                 sneak = false;
-            }
-        } else if (activeEye && RotationUtils.done) {
-            if (GumTuneClientConfig.mobMacroAttackType == 0) {
+            } else if (activeEye && RotationUtils.done) {
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
                 sneak = true;
                 activeEye = false;
@@ -187,7 +185,7 @@ public class MobMacro {
                     return true;
                 })
                 .filter(entity -> !entity.isDead && !ignoreEntities.contains(entity) && canKill(entity))
-                .filter(entity -> ((EntityLivingBase) entity).getHealth() > 0 && ((EntityLivingBase) entity).getAge() > 20)
+                .filter(entity -> ((EntityLivingBase) entity).getHealth() > 0)
                 .filter(entity -> {
                     if (GumTuneClientConfig.mobMacroAttackType == 2 && Math.abs(entity.posY - mc.thePlayer.posY) > 3) {
                         return false;

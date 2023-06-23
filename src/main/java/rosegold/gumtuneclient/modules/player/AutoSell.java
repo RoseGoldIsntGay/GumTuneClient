@@ -10,16 +10,20 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
 import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.events.SecondEvent;
 import rosegold.gumtuneclient.utils.*;
+import rosegold.gumtuneclient.utils.objects.WaypointList;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -35,7 +39,20 @@ public class AutoSell {
     private static AutoSellState autoSellState = AutoSellState.IDLE;
     private static HashSet<String> itemsToSell = new HashSet<>();
     private static long timestamp = System.currentTimeMillis();
+    private static long forceStopTimestamp = System.currentTimeMillis();
+    private static int timesFullInARow = 0;
     private boolean soldSomething = false;
+
+    @SubscribeEvent
+    public void onOverlayRender(RenderGameOverlayEvent.Post event) {
+        if (GumTuneClient.mc.thePlayer == null) return;
+        if (!GumTuneClientConfig.autoSell) return;
+        if (!LocationUtils.onSkyblock) return;
+        if (event.type == RenderGameOverlayEvent.ElementType.ALL) {
+            FontUtils.drawScaledString("Auto Sell State: " + autoSellState, 1, 40, 40, true);
+            FontUtils.drawScaledString("Times Sold In A Row: " + timesFullInARow, 1, 40, 50, true);
+        }
+    }
 
     @SubscribeEvent
     public void onSecond(SecondEvent event) {
@@ -44,9 +61,18 @@ public class AutoSell {
         if (!LocationUtils.onSkyblock) return;
         if (GumTuneClientConfig.autoSellPassiveMode) {
             autoSellState = AutoSellState.TRADES_SELL;
+            timestamp = System.currentTimeMillis();
         } else {
-            if ((getFilledSlotCount() / 36f * 100 >= GumTuneClientConfig.autoSellInventoryFullness && autoSellState == AutoSellState.IDLE)) {
+            if (InventoryUtils.getFilledSlotCount() / 36f * 100 >= GumTuneClientConfig.autoSellInventoryFullness && autoSellState == AutoSellState.IDLE && System.currentTimeMillis() - forceStopTimestamp > 15000) {
+                if (timesFullInARow > 1) {
+                    ModUtils.sendMessage("Detected inventory full even after selling, enabling 15 second cooldown until next sell can be triggered");
+                    forceStopTimestamp = System.currentTimeMillis();
+                    return;
+                }
                 autoSell();
+                timesFullInARow++;
+            } else {
+                timesFullInARow = 0;
             }
         }
 
@@ -69,12 +95,26 @@ public class AutoSell {
     }
 
     @SubscribeEvent
+    public void onKey(InputEvent.KeyInputEvent event) {
+        if (!GumTuneClientConfig.autoSell) return;
+        if (GumTuneClient.mc.currentScreen != null) return;
+        if (Keyboard.getEventKeyState()) return;
+        int eventKey = Keyboard.getEventKey();
+
+        ArrayList<Integer> keyBindsExecuteAutoSell = GumTuneClientConfig.executeAutoSellKeybind.getKeyBinds();
+        if (keyBindsExecuteAutoSell.size() > 0 && keyBindsExecuteAutoSell.get(0) == eventKey) {
+            autoSell();
+        }
+    }
+
+    @SubscribeEvent
     public void onKeyInput(GuiScreenEvent.KeyboardInputEvent.Pre event) {
+        if (!GumTuneClientConfig.autoSell) return;
         if (GumTuneClient.mc.thePlayer == null) return;
         int eventKey = Keyboard.getEventKey();
         if (!Keyboard.isKeyDown(eventKey)) return;
-        ArrayList<Integer> keyBinds = GumTuneClientConfig.addItemToAutoSellFilter.getKeyBinds();
-        if (keyBinds.size() > 0 && keyBinds.get(0) == eventKey) {
+        ArrayList<Integer> keyBindsAddItemToAutoSellFilter = GumTuneClientConfig.addItemToAutoSellFilter.getKeyBinds();
+        if (keyBindsAddItemToAutoSellFilter.size() > 0 && keyBindsAddItemToAutoSellFilter.get(0) == eventKey) {
             GuiScreen currentScreen = event.gui;
 
             if (GuiContainer.class.isAssignableFrom(currentScreen.getClass())) {
@@ -107,12 +147,14 @@ public class AutoSell {
         if (chestName != null) {
             switch (autoSellState) {
                 case BZ_INSTASELL:
-                    if (chestName.equals("Result") && System.currentTimeMillis() - timestamp > 2000) {
+                    if (chestName.equals("Result") && System.currentTimeMillis() - timestamp > 4000) {
                         if (GumTuneClientConfig.autoSellMode == 2) {
                             autoSellState = AutoSellState.TRADES_SELL;
+                            timestamp = System.currentTimeMillis();
                             GumTuneClient.mc.thePlayer.sendChatMessage("/trades");
                         } else {
                             autoSellState = AutoSellState.IDLE;
+                            timestamp = System.currentTimeMillis();
                             GumTuneClient.mc.thePlayer.closeScreen();
                         }
                     } else if (chestName.startsWith("Bazaar ➜") && System.currentTimeMillis() - timestamp > 500) {
@@ -120,12 +162,14 @@ public class AutoSell {
                             if (!slot.getHasStack()) continue;
                             if (slot.getStack().getDisplayName().contains("Sell Inventory")) {
                                 String lore = InventoryUtils.getItemLore(slot.getStack(), 4);
-                                if (lore != null && removeFormatting(lore).contains("You don't have anything to")) {
+                                if (lore != null && StringUtils.removeFormatting(lore).contains("You don't have anything to")) {
                                     if (GumTuneClientConfig.autoSellMode == 2) {
                                         autoSellState = AutoSellState.TRADES_SELL;
+                                        timestamp = System.currentTimeMillis();
                                         GumTuneClient.mc.thePlayer.sendChatMessage("/trades");
                                     } else {
                                         autoSellState = AutoSellState.IDLE;
+                                        timestamp = System.currentTimeMillis();
                                         GumTuneClient.mc.thePlayer.closeScreen();
                                     }
                                 } else {
@@ -143,20 +187,21 @@ public class AutoSell {
 
                         if (GumTuneClientConfig.autoSellMode == 2) {
                             autoSellState = AutoSellState.TRADES_SELL;
+                            timestamp = System.currentTimeMillis();
                             GumTuneClient.mc.thePlayer.sendChatMessage("/trades");
                         } else {
                             autoSellState = AutoSellState.IDLE;
+                            timestamp = System.currentTimeMillis();
                             GumTuneClient.mc.thePlayer.closeScreen();
                         }
                     }
                     break;
                 case TRADES_SELL:
-                    if (chestName.equals("Result") && System.currentTimeMillis() - timestamp > 2000) {
-                        if (System.currentTimeMillis() - timestamp > 2000) {
-                            autoSellState = AutoSellState.IDLE;
-                            GumTuneClient.mc.thePlayer.closeScreen();
-                            soldSomething = false;
-                        }
+                    if (!GumTuneClientConfig.autoSellPassiveMode && chestName.equals("Result") && System.currentTimeMillis() - timestamp > 4000) {
+                        autoSellState = AutoSellState.IDLE;
+                        timestamp = System.currentTimeMillis();
+                        GumTuneClient.mc.thePlayer.closeScreen();
+                        soldSomething = false;
                     } else if (chestName.equals("Trades") && System.currentTimeMillis() - timestamp > GumTuneClientConfig.autoSellClickDelay) {
                         for (Slot slot : GumTuneClient.mc.thePlayer.openContainer.inventorySlots) {
                             if (slot.slotNumber < 54 || !slot.getHasStack()) continue;
@@ -172,9 +217,11 @@ public class AutoSell {
                         }
 
                         autoSellState = AutoSellState.IDLE;
+
                         if (!GumTuneClientConfig.autoSellPassiveMode || GumTuneClientConfig.autoSellPassiveModeCloseTrades && soldSomething) {
                             GumTuneClient.mc.thePlayer.closeScreen();
                         }
+                        timestamp = System.currentTimeMillis();
                         soldSomething = false;
                     }
                     break;
@@ -184,7 +231,11 @@ public class AutoSell {
 
     public static void loadConfig() {
         try {
-            itemsToSell = new Gson().fromJson(new String(Files.readAllBytes(Paths.get("./config/" + GumTuneClient.MODID + "/autoSellFilters.json"))), new TypeToken<HashSet<String>>(){}.getType());
+            Path path = Paths.get("./config/" + GumTuneClient.MODID + "/autoSellFilters.json");
+            if (new File(path.toUri()).exists()) {
+                itemsToSell = new Gson().fromJson(new String(Files.readAllBytes(path)), new TypeToken<HashSet<String>>() {
+                }.getType());
+            }
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
@@ -209,20 +260,6 @@ public class AutoSell {
             autoSellState = AutoSellState.BZ_INSTASELL;
             GumTuneClient.mc.thePlayer.sendChatMessage("/bz");
         }
-    }
-
-    private String removeFormatting(String input) {
-        return input.replaceAll("§[0-9a-fk-or]", "");
-    }
-
-    private int getFilledSlotCount() {
-        int count = 0;
-        for (ItemStack itemStack : GumTuneClient.mc.thePlayer.inventory.mainInventory) {
-            if (itemStack != null) {
-                count++;
-            }
-        }
-        return count;
     }
 
     private void clickSlot(int slot) {
