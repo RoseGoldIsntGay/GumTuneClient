@@ -1,21 +1,16 @@
 package rosegold.gumtuneclient.modules.player;
 
-import cc.polyfrost.oneconfig.events.event.ChatReceiveEvent;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.Block;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
-import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.item.EntityItemFrame;
 import net.minecraft.init.Blocks;
-import net.minecraft.network.play.server.S29PacketSoundEffect;
-import net.minecraft.network.play.server.S45PacketTitle;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.Vec3;
-import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -23,11 +18,16 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.events.PacketReceivedEvent;
-import rosegold.gumtuneclient.utils.*;
+import rosegold.gumtuneclient.utils.FontUtils;
+import rosegold.gumtuneclient.utils.LocationUtils;
+import rosegold.gumtuneclient.utils.RenderUtils;
+import rosegold.gumtuneclient.utils.VectorUtils;
 import rosegold.gumtuneclient.utils.objects.MirrorverseRoom;
 
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 public class MirrorverseHelpers {
     private static final HashSet<Entity> neededEntities = new HashSet<>();
@@ -163,7 +163,8 @@ public class MirrorverseHelpers {
                             )
                     )) {
                         BlockPos mirroredBlockPos = mirrorverseRoom.getMirroredBlock(blockPos);
-                        if (GumTuneClient.mc.theWorld.getBlockState(mirroredBlockPos).getBlock() != Blocks.iron_block) {
+                        Block block =  GumTuneClient.mc.theWorld.getBlockState(mirroredBlockPos).getBlock();
+                        if (block != Blocks.iron_block && block != Blocks.snow) {
                             GumTuneClient.mc.theWorld.setBlockState(blockPos, GumTuneClient.mc.theWorld.getBlockState(mirroredBlockPos));
                         }
                     }
