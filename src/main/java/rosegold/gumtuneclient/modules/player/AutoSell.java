@@ -92,6 +92,8 @@ public class AutoSell {
         }
 
         saveConfig();
+
+        GumTuneClient.config.save();
     }
 
     @SubscribeEvent

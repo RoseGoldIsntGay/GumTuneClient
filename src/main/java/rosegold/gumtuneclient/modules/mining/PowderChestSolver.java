@@ -39,6 +39,8 @@ public class PowderChestSolver {
                 BlockPos blockPos = GumTuneClient.mc.objectMouseOver.getBlockPos();
                 if (GumTuneClient.mc.theWorld.getBlockState(blockPos).getBlock() == Blocks.chest) {
                     closestChest = blockPos;
+                } else {
+                    closestChest = null;
                 }
             }
         }

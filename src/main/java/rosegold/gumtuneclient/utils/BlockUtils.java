@@ -93,7 +93,7 @@ public class BlockUtils {
         return closest;
     }
 
-    public static boolean canBlockBeSeen(BlockPos blockPos, double dist, Vec3 offset, Predicate<? super Block> predicate) {
+    public static boolean canBlockBeSeen(BlockPos blockPos, double dist, Vec3 offset, Predicate<? super BlockPos> predicate) {
         Vec3 vec = new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5).add(offset);
         MovingObjectPosition mop = rayTraceBlocks(GumTuneClient.mc.thePlayer.getPositionEyes(1.0f), vec, false, true, false, predicate);
         if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
@@ -175,15 +175,15 @@ public class BlockUtils {
         return points;
     }
 
-    public static MovingObjectPosition rayTraceBlocks(Vec3 vec31, Vec3 vec32, boolean stopOnLiquid, boolean ignoreBlockWithoutBoundingBox, boolean returnLastUncollidableBlock, Predicate<? super Block> predicate) {
+    public static MovingObjectPosition rayTraceBlocks(Vec3 vec31, Vec3 vec32, boolean stopOnLiquid, boolean ignoreBlockWithoutBoundingBox, boolean returnLastUncollidableBlock, Predicate<? super BlockPos> predicate) {
         return rayTraceBlocks(vec31, vec32, stopOnLiquid, ignoreBlockWithoutBoundingBox, returnLastUncollidableBlock, predicate, false, false);
     }
 
-    public static MovingObjectPosition rayTraceBlocks(Vec3 vec31, Vec3 vec32, boolean stopOnLiquid, boolean ignoreBlockWithoutBoundingBox, boolean returnLastUncollidableBlock, Predicate<? super Block> predicate, boolean visualize) {
+    public static MovingObjectPosition rayTraceBlocks(Vec3 vec31, Vec3 vec32, boolean stopOnLiquid, boolean ignoreBlockWithoutBoundingBox, boolean returnLastUncollidableBlock, Predicate<? super BlockPos> predicate, boolean visualize) {
         return rayTraceBlocks(vec31, vec32, stopOnLiquid, ignoreBlockWithoutBoundingBox, returnLastUncollidableBlock, predicate, visualize, false);
     }
 
-    public static MovingObjectPosition rayTraceBlocks(Vec3 vec31, Vec3 vec32, boolean stopOnLiquid, boolean ignoreBlockWithoutBoundingBox, boolean returnLastUncollidableBlock, Predicate<? super Block> predicate, boolean visualize, boolean fullBlocks) {
+    public static MovingObjectPosition rayTraceBlocks(Vec3 vec31, Vec3 vec32, boolean stopOnLiquid, boolean ignoreBlockWithoutBoundingBox, boolean returnLastUncollidableBlock, Predicate<? super BlockPos> predicate, boolean visualize, boolean fullBlocks) {
         if (!(Double.isNaN(vec31.xCoord) || Double.isNaN(vec31.yCoord) || Double.isNaN(vec31.zCoord))) {
             if (!(Double.isNaN(vec32.xCoord) || Double.isNaN(vec32.yCoord) || Double.isNaN(vec32.zCoord))) {
                 MovingObjectPosition movingobjectposition;
@@ -197,7 +197,7 @@ public class BlockUtils {
                 IBlockState iblockstate = getBlockState(blockpos);
                 Block block = iblockstate.getBlock();
                 if (visualize) blockPosConcurrentLinkedQueue.add(blockpos);
-                if (!predicate.test(block) && (!ignoreBlockWithoutBoundingBox || block.getCollisionBoundingBox(mc.theWorld, blockpos, iblockstate) != null) && block.canCollideCheck(iblockstate, stopOnLiquid) && (movingobjectposition = collisionRayTrace(block, blockpos, vec31, vec32, fullBlocks)) != null) {
+                if (!predicate.test(blockpos) && (!ignoreBlockWithoutBoundingBox || block.getCollisionBoundingBox(mc.theWorld, blockpos, iblockstate) != null) && block.canCollideCheck(iblockstate, stopOnLiquid) && (movingobjectposition = collisionRayTrace(block, blockpos, vec31, vec32, fullBlocks)) != null) {
                     return movingobjectposition;
                 }
                 MovingObjectPosition movingobjectposition2 = null;
@@ -279,7 +279,7 @@ public class BlockUtils {
                     Block block1 = iblockstate1.getBlock();
                     if (visualize) blockPosConcurrentLinkedQueue.add(blockpos);
                     if (ignoreBlockWithoutBoundingBox && block1.getCollisionBoundingBox(mc.theWorld, blockpos, iblockstate1) == null) continue;
-                    if (predicate.test(block1)) continue;
+                    if (predicate.test(blockpos)) continue;
                     if (block1.canCollideCheck(iblockstate1, stopOnLiquid)) {
                         MovingObjectPosition movingobjectposition1 = collisionRayTrace(block1, blockpos, vec31, vec32, fullBlocks);
                         if (movingobjectposition1 == null) continue;

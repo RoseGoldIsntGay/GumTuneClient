@@ -109,10 +109,10 @@ public class MirrorverseHelpers {
         if (currentRoom == -1) return;
         MirrorverseRoom mirrorverseRoom = mirrorverseRooms.get(currentRoom);
 
-        RenderUtils.renderBoundingBox(mirrorverseRoom.getRoomBoundingBox(), new Color(0, 0, 255).getRGB(), 0.3f);
-        if (currentRoom != 4) {
-            RenderUtils.renderBoundingBox(mirrorverseRoom.getMirroredRoomBoundingBox(), new Color(0, 255, 0).getRGB(), 0.3f);
-        }
+//        RenderUtils.renderBoundingBox(mirrorverseRoom.getRoomBoundingBox(), new Color(0, 0, 255).getRGB(), 0.3f);
+//        if (currentRoom != 4) {
+//            RenderUtils.renderBoundingBox(mirrorverseRoom.getMirroredRoomBoundingBox(), new Color(0, 255, 0).getRGB(), 0.3f);
+//        }
 
         Vec3 mirrorAnchor = mirrorverseRoom.getMirrorAnchor().add(VectorUtils.scaleVec(mirrorverseRoom.getMirrorEnumFacing().getDirectionVec(), 0.5f));
         GumTuneClient.mc.theWorld.loadedEntityList.forEach(entity -> {
@@ -163,8 +163,9 @@ public class MirrorverseHelpers {
                             )
                     )) {
                         BlockPos mirroredBlockPos = mirrorverseRoom.getMirroredBlock(blockPos);
-                        if (GumTuneClient.mc.theWorld.getBlockState(mirroredBlockPos).getBlock() != Blocks.iron_block) {
-                            GumTuneClient.mc.theWorld.setBlockState(blockPos, GumTuneClient.mc.theWorld.getBlockState(mirroredBlockPos));
+                        IBlockState blockState = GumTuneClient.mc.theWorld.getBlockState(mirroredBlockPos);
+                        if (blockState.getBlock() != Blocks.iron_block && blockState.getBlock() != Blocks.snow) {
+                            GumTuneClient.mc.theWorld.setBlockState(blockPos, blockState);
                         }
                     }
                     break;

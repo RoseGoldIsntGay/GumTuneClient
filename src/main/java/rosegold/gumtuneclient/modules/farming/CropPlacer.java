@@ -174,8 +174,12 @@ public class CropPlacer {
                         getBlock(blockPos.up().east()) == Blocks.air &&
                         getBlock(blockPos.up().west()) == Blocks.air;
             case 2:
-                if (!BlockUtils.canBlockBeSeen(blockPos, GumTuneClient.mc.playerController.getBlockReachDistance(), new Vec3(0, 0, 0), x -> x == Blocks.cocoa))
-                    return false;
+                if (!BlockUtils.canBlockBeSeen(
+                        blockPos,
+                        GumTuneClient.mc.playerController.getBlockReachDistance(),
+                        new Vec3(0, 0, 0),
+                        blockPos1 -> GumTuneClient.mc.theWorld.getBlockState(blockPos1).getBlock() == Blocks.cocoa)
+                ) return false;
                 EnumFacing enumFacing = getClosestEnumFacing(blockPos);
                 return enumFacing != null && getBlock(blockPos) == Blocks.log &&
                         getBlockState(blockPos).getValue(BlockPlanks.VARIANT) == BlockPlanks.EnumType.JUNGLE &&

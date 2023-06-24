@@ -201,6 +201,7 @@ public class MetalDetectorSolver {
         lastScan = 0;
         lastPos = null;
         predictedChestLocations.clear();
+        absoluteChestCoords.clear();
     }
 
     private static void scanChunks() {
@@ -242,6 +243,8 @@ public class MetalDetectorSolver {
                 loop = true;
             }
         }
+
+        ModUtils.sendMessage("Found anchor at " + new BlockPos(posX, posY, posZ));
         return new BlockPos(posX, posY, posZ);
     }
 

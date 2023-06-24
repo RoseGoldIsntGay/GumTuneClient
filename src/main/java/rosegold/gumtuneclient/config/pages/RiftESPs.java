@@ -23,6 +23,16 @@ public class RiftESPs {
         )
         public static boolean shadowESP = false;
 
+        @Switch(
+                name = "Volt"
+        )
+        public static boolean voltESP = false;
+
+        @Switch(
+                name = "Scribe"
+        )
+        public static boolean scribeESP = false;
+
     @Info(
             text = "Passive ESPs",
             type = InfoType.INFO,
@@ -71,4 +81,19 @@ public class RiftESPs {
                 name = "Glyph Chest ESP"
         )
         public static boolean glyphChestESP = false;
+
+    @Switch(
+            name = "Kat Flies"
+    )
+    public static boolean katFlyESP = false;
+
+    @Switch(
+            name = "Kat Silverfish"
+    )
+    public static boolean katSilverfishESP = false;
+
+    @Switch(
+            name = "Kat Spiders"
+    )
+    public static boolean katSpiderESP = false;
 }

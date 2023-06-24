@@ -17,18 +17,23 @@ import rosegold.gumtuneclient.command.MainCommand;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
 import rosegold.gumtuneclient.events.MillisecondEvent;
 import rosegold.gumtuneclient.events.SecondEvent;
+import rosegold.gumtuneclient.modules.combat.AntiScribe;
 import rosegold.gumtuneclient.modules.combat.AntiShy;
 import rosegold.gumtuneclient.modules.dev.CopyNBTData;
 import rosegold.gumtuneclient.modules.dev.PacketLogger;
-import rosegold.gumtuneclient.modules.farming.*;
+import rosegold.gumtuneclient.modules.farming.AvoidBreakingCrops;
+import rosegold.gumtuneclient.modules.farming.CropPlacer;
+import rosegold.gumtuneclient.modules.farming.PreventRenderingCrops;
+import rosegold.gumtuneclient.modules.farming.VisitorHelpers;
 import rosegold.gumtuneclient.modules.macro.AutoHarp;
-import rosegold.gumtuneclient.modules.macro.MobMacro;
 import rosegold.gumtuneclient.modules.macro.GemstoneMacro;
+import rosegold.gumtuneclient.modules.macro.MobMacro;
 import rosegold.gumtuneclient.modules.mining.MetalDetectorSolver;
 import rosegold.gumtuneclient.modules.mining.Nuker;
 import rosegold.gumtuneclient.modules.mining.PowderChestSolver;
 import rosegold.gumtuneclient.modules.player.*;
 import rosegold.gumtuneclient.modules.qol.Trackers;
+import rosegold.gumtuneclient.modules.render.CustomBlockESP;
 import rosegold.gumtuneclient.modules.render.ESPs;
 import rosegold.gumtuneclient.modules.render.RevealHiddenMobs;
 import rosegold.gumtuneclient.modules.singleplayer.skyblockitems.AspectOfTheVoid;
@@ -40,6 +45,7 @@ import rosegold.gumtuneclient.utils.*;
 
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -56,7 +62,7 @@ public class GumTuneClient {
 
     @Mod.Instance(MODID)
     public static GumTuneClient INSTANCE;
-    public GumTuneClientConfig config;
+    public static GumTuneClientConfig config;
     public static Minecraft mc = Minecraft.getMinecraft();
 
     private final ArrayList<Object> modules = new ArrayList<>();
@@ -95,7 +101,9 @@ public class GumTuneClient {
                 new PlayerUtils(),
                 new AutoCraft(),
                 new AntiShy(),
-                new MirrorverseHelpers()
+                new MirrorverseHelpers(),
+                new CustomBlockESP(),
+                new AntiScribe()
         );
     }
 
@@ -109,6 +117,7 @@ public class GumTuneClient {
         AutoSell.loadConfig();
         AutoCraft.loadConfig();
         GemstoneMacro.loadConfig();
+        CustomBlockESP.loadConfig();
     }
 
     @Mod.EventHandler

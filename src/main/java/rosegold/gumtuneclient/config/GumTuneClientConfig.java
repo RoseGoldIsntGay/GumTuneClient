@@ -9,10 +9,19 @@ import cc.polyfrost.oneconfig.config.data.Mod;
 import cc.polyfrost.oneconfig.config.data.ModType;
 import cc.polyfrost.oneconfig.config.data.PageLocation;
 import cc.polyfrost.oneconfig.libs.universal.UKeyboard;
+import net.minecraft.util.ResourceLocation;
+import org.apache.commons.io.IOUtils;
+import org.lwjgl.opengl.Display;
 import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.config.pages.*;
 import rosegold.gumtuneclient.hud.SlayerHud;
 import rosegold.gumtuneclient.hud.TrackersHud;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 public class GumTuneClientConfig extends Config {
 
@@ -62,6 +71,8 @@ public class GumTuneClientConfig extends Config {
     private transient static final String AUTO_CRAFT = "Auto Craft";
     private transient static final String RIFT = "Rift";
     private transient static final String POWDER_CHEST_TRACKER = "Powder Chest Tracker";
+    private transient static final String CUSTOM_BLOCK_ESP = "Custom Block ESP";
+    private transient static final String OLD_MINECRAFT_LOGO = "Old Minecraft Logo";
 
     @Switch(
             name = "Enabled",
@@ -104,24 +115,6 @@ public class GumTuneClientConfig extends Config {
     )
     public static boolean worldScanner = false;
 
-    @Dropdown(
-            name = "Scanner Mode",
-            category = WORLD,
-            subcategory = WORLD_SCANNER,
-            options = {"When chunk is loaded", "Timer", "Both"}
-    )
-    public static int worldScannerScanMode = 0;
-
-    @Slider(
-            name = "World Scan Timer",
-            description = "Seconds per scan",
-            category = WORLD,
-            subcategory = WORLD_SCANNER,
-            min = 1, max = 20,
-            step = 1
-    )
-    public static int worldScannerScanFrequency = 10;
-
     @Page(
             name = "Scanner Filter",
             category = WORLD,
@@ -131,18 +124,18 @@ public class GumTuneClientConfig extends Config {
     public WorldScannerFilter worldScannerFilter = new WorldScannerFilter();
 
     @Switch(
-            name = "Send Coords In Chat",
-            category = WORLD,
-            subcategory = WORLD_SCANNER
-    )
-    public static boolean worldScannerSendCoordsInChat = false;
-
-    @Switch(
             name = "Add Waypoint To Skytils Map",
             category = WORLD,
             subcategory = WORLD_SCANNER
     )
     public static boolean worldScannerAddWaypointToSkytilsMap = false;
+
+    @Switch(
+            name = "Send Coords In Chat",
+            category = WORLD,
+            subcategory = WORLD_SCANNER
+    )
+    public static boolean worldScannerSendCoordsInChat = false;
 
     @Dropdown(
             name = "Chat Messages Mode",
@@ -489,31 +482,6 @@ public class GumTuneClientConfig extends Config {
     )
     public static boolean ESPs = false;
 
-    @Switch(
-            name = "Custom Block ESP",
-            category = RENDER,
-            subcategory = ESPS,
-            description = "use /gtc esp"
-    )
-    public static boolean customBlockESP = false;
-
-    @Slider(
-            name = "Custom Block ESP Range (0 = infinite)",
-            description = "Might cause a bit of lag tbh idk",
-            category = RENDER,
-            subcategory = ESPS,
-            min = 0, max = 60
-    )
-    public static int customBlockESPRange = 0;
-
-    @Switch(
-            name = "Force Recheck",
-            category = RENDER,
-            subcategory = ESPS,
-            description = "force recheck all blocks when /gtc esp is executed"
-    )
-    public static boolean customESPForceRecheck = false;
-
     @Color(
             name = "ESP Color",
             category = RENDER
@@ -579,13 +547,6 @@ public class GumTuneClientConfig extends Config {
             subcategory = ESPS
     )
     public static boolean entityRenderWaypoint = false;
-
-    @Switch(
-            name = "Custom Block ESP - Render Tracer",
-            category = RENDER,
-            subcategory = ESPS
-    )
-    public static boolean customBlockESPRenderTracer = false;
 
     @Page(
             name = "Frozen Treasure Filters",
@@ -868,15 +829,6 @@ public class GumTuneClientConfig extends Config {
             subcategory = SERVER_SIDE_ROTATIONS
     )
     public static boolean alwaysShowServerRotations = false;
-
-    @HypixelKey
-    @Text(
-            name = "Hypixel API Key",
-            placeholder = "Run /api new",
-            category = CONFIG,
-            subcategory = HYPIXEL_API_KEY
-    )
-    public static String hypixelApiKey = "";
 
     @Switch(
             name = "Client Packet Logger",
@@ -1227,6 +1179,14 @@ public class GumTuneClientConfig extends Config {
     public static boolean antiShy = false;
 
     @Switch(
+            name = "Anti Scribe",
+            category = COMBAT,
+            subcategory = RIFT,
+            description = "Look at the scribe's coal blocks"
+    )
+    public static boolean antiScribe = false;
+
+    @Switch(
             name = "Trackers",
             category = TRACKERS,
             size = 2
@@ -1246,6 +1206,65 @@ public class GumTuneClientConfig extends Config {
     )
     public static boolean powderChestTracker = false;
 
+    @Switch(
+            name = "Custom Block ESP",
+            category = RENDER,
+            subcategory = CUSTOM_BLOCK_ESP,
+            description = "use /gtc esp"
+    )
+    public static boolean customBlockESP = false;
+
+    @Slider(
+            name = "Custom Block ESP Range (0 = infinite)",
+            description = "Might cause a bit of lag tbh idk",
+            category = RENDER,
+            subcategory = CUSTOM_BLOCK_ESP,
+            min = 0, max = 128
+    )
+    public static int customBlockESPRange = 0;
+
+    @Switch(
+            name = "Old Minecraft Logo",
+            category = QOL,
+            subcategory = OLD_MINECRAFT_LOGO,
+            description = "Set minecraft logo to crafting table"
+    )
+    public static boolean oldMinecraftLogo = false;
+
+    @Button(
+            name = "Set logo now instead of on the next launch",
+            text = "Set Logo",
+            category = QOL,
+            subcategory = OLD_MINECRAFT_LOGO
+    )
+    Runnable runnable = () -> {
+        InputStream inputStream16 = null;
+        InputStream inputStream32 = null;
+        try {
+            inputStream16 = GumTuneClient.mc.mcDefaultResourcePack.getInputStreamAssets(new ResourceLocation("old_icon_16x16.png"));
+            inputStream32 = GumTuneClient.mc.mcDefaultResourcePack.getInputStreamAssets(new ResourceLocation("old_icon_32x32.png"));
+
+            if (inputStream16 == null || inputStream32 == null) return;
+
+            System.out.println("Set icon to old one!");
+            Display.setIcon(new ByteBuffer[]{readImageToBuffer(inputStream16), readImageToBuffer(inputStream32)});
+        } catch (IOException ioexception) {
+            IOUtils.closeQuietly(inputStream16);
+            IOUtils.closeQuietly(inputStream32);
+            ioexception.printStackTrace();
+        }
+    };
+
+    private ByteBuffer readImageToBuffer(InputStream imageStream) throws IOException {
+        BufferedImage bufferedimage = ImageIO.read(imageStream);
+        int[] aint = bufferedimage.getRGB(0, 0, bufferedimage.getWidth(), bufferedimage.getHeight(), null, 0, bufferedimage.getWidth());
+        ByteBuffer bytebuffer = ByteBuffer.allocate(4 * aint.length);
+        for (int i : aint) {
+            bytebuffer.putInt(i << 8 | i >> 24 & 0xFF);
+        }
+        bytebuffer.flip();
+        return bytebuffer;
+    }
 
     public GumTuneClientConfig() {
         super(new Mod(GumTuneClient.NAME, ModType.SKYBLOCK, "/assets/" + GumTuneClient.MODID + "/gtc_small.png", 84, 84), GumTuneClient.MODID + ".json");

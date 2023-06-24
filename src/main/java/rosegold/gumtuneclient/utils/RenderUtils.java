@@ -5,19 +5,87 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.renderer.vertex.VertexBuffer;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.*;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL31;
 import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.mixin.accessors.RenderManagerAccessor;
-import rosegold.gumtuneclient.utils.objects.BlockPosition;
+import rosegold.gumtuneclient.utils.objects.Shader;
 
 import java.awt.*;
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.List;
 
 import static rosegold.gumtuneclient.GumTuneClient.mc;
 
 public class RenderUtils {
+    private static final VertexBuffer vertexBuffer = new VertexBuffer(DefaultVertexFormats.POSITION);
+    private static final int vertexCount;
+    private static final Shader shader = new Shader();
+
+    static {
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer worldRenderer = tessellator.getWorldRenderer();
+        worldRenderer.begin(7, DefaultVertexFormats.POSITION);
+        worldRenderer.pos(0.0, 0.0, 0.0).endVertex();
+        worldRenderer.pos(0.0, 1.0, 0.0).endVertex();
+        worldRenderer.pos(1.0, 0.0, 0.0).endVertex();
+        worldRenderer.pos(1.0, 1.0, 0.0).endVertex();
+        worldRenderer.pos(1.0, 0.0, 1.0).endVertex();
+        worldRenderer.pos(1.0, 1.0, 1.0).endVertex();
+        worldRenderer.pos(0.0, 0.0, 1.0).endVertex();
+        worldRenderer.pos(0.0, 1.0, 1.0).endVertex();
+        worldRenderer.pos(1.0, 1.0, 0.0).endVertex();
+        worldRenderer.pos(1.0, 0.0, 0.0).endVertex();
+        worldRenderer.pos(0.0, 1.0, 0.0).endVertex();
+        worldRenderer.pos(0.0, 0.0, 0.0).endVertex();
+        worldRenderer.pos(0.0, 1.0, 1.0).endVertex();
+        worldRenderer.pos(0.0, 0.0, 1.0).endVertex();
+        worldRenderer.pos(1.0, 1.0, 1.0).endVertex();
+        worldRenderer.pos(1.0, 0.0, 1.0).endVertex();
+        worldRenderer.pos(0.0, 1.0, 0.0).endVertex();
+        worldRenderer.pos(1.0, 1.0, 0.0).endVertex();
+        worldRenderer.pos(1.0, 1.0, 1.0).endVertex();
+        worldRenderer.pos(0.0, 1.0, 1.0).endVertex();
+        worldRenderer.pos(0.0, 1.0, 0.0).endVertex();
+        worldRenderer.pos(0.0, 1.0, 1.0).endVertex();
+        worldRenderer.pos(1.0, 1.0, 1.0).endVertex();
+        worldRenderer.pos(1.0, 1.0, 0.0).endVertex();
+        worldRenderer.pos(0.0, 0.0, 0.0).endVertex();
+        worldRenderer.pos(1.0, 0.0, 0.0).endVertex();
+        worldRenderer.pos(1.0, 0.0, 1.0).endVertex();
+        worldRenderer.pos(0.0, 0.0, 1.0).endVertex();
+        worldRenderer.pos(0.0, 0.0, 0.0).endVertex();
+        worldRenderer.pos(0.0, 0.0, 1.0).endVertex();
+        worldRenderer.pos(1.0, 0.0, 1.0).endVertex();
+        worldRenderer.pos(1.0, 0.0, 0.0).endVertex();
+        worldRenderer.pos(0.0, 0.0, 0.0).endVertex();
+        worldRenderer.pos(0.0, 1.0, 0.0).endVertex();
+        worldRenderer.pos(0.0, 0.0, 1.0).endVertex();
+        worldRenderer.pos(0.0, 1.0, 1.0).endVertex();
+        worldRenderer.pos(1.0, 0.0, 1.0).endVertex();
+        worldRenderer.pos(1.0, 1.0, 1.0).endVertex();
+        worldRenderer.pos(1.0, 0.0, 0.0).endVertex();
+        worldRenderer.pos(1.0, 1.0, 0.0).endVertex();
+        worldRenderer.pos(0.0, 1.0, 1.0).endVertex();
+        worldRenderer.pos(0.0, 0.0, 1.0).endVertex();
+        worldRenderer.pos(0.0, 1.0, 0.0).endVertex();
+        worldRenderer.pos(0.0, 0.0, 0.0).endVertex();
+        worldRenderer.pos(1.0, 1.0, 0.0).endVertex();
+        worldRenderer.pos(1.0, 0.0, 0.0).endVertex();
+        worldRenderer.pos(1.0, 1.0, 1.0).endVertex();
+        worldRenderer.pos(1.0, 0.0, 1.0).endVertex();
+
+        worldRenderer.finishDrawing();
+        vertexBuffer.bufferData(worldRenderer.getByteBuffer());
+        vertexCount = worldRenderer.getVertexCount();
+        worldRenderer.reset();
+    }
 
     private static final ResourceLocation beaconBeam = new ResourceLocation("textures/entity/beacon_beam.png");
 
@@ -401,6 +469,36 @@ public class RenderUtils {
         GlStateManager.depthMask(true);
         GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
         GlStateManager.popMatrix();
+    }
+
+    public static void renderEspBlocks(List<Vec3> vectors) {
+        vertexBuffer.bindBuffer();
+        GL11.glEnableClientState(32884);
+        GL11.glVertexPointer(3, 5126, 12, 0L);
+
+        FloatBuffer floatBuffer = BufferUtils.createFloatBuffer(vectors.size() * 3);
+
+        for (Vec3 vec3 : vectors) {
+            floatBuffer.put((float) vec3.xCoord);
+            floatBuffer.put((float) vec3.yCoord);
+            floatBuffer.put((float) vec3.zCoord);
+        }
+
+        floatBuffer.flip();
+
+        GL20.glUseProgram(shader.pointer);
+
+        int __result = GL20.glGetUniformLocation(shader.pointer, "positions");
+        GL20.glUniform3(__result, floatBuffer);
+
+        GL31.glDrawArraysInstanced(1, 0, vertexCount, vectors.size());
+
+        GL20.glUseProgram(0);
+
+        floatBuffer.clear();
+
+        GL11.glDisableClientState(32884);
+        vertexBuffer.unbindBuffer();
     }
 
     public static void renderEspBox(BlockPos blockPos, float partialTicks, int color) {
