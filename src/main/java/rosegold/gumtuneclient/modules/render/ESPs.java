@@ -228,10 +228,11 @@ public class ESPs {
                 }
             }
             if (highlightedEntityBlocks.containsKey(entity)) {
-                BlockPos blockPos = highlightedEntityBlocks.get(entity).getBlockPos();
+                HighlightBlock highlightBlock = highlightedEntityBlocks.get(entity);
+                BlockPos blockPos = highlightBlock.getBlockPos();
                 if (blockPos != null) {
-                    RenderUtils.renderEspBox(blockPos, event.partialTicks, highlightedEntities.get(entity).getColor());
-                    RenderUtils.renderWaypointText(highlightedEntityBlocks.get(entity).getName(), blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
+                    RenderUtils.renderEspBox(blockPos, event.partialTicks, GumTuneClientConfig.espColor.getRGB());
+                    RenderUtils.renderWaypointText(highlightBlock.getName(), blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, event.partialTicks);
                 }
             }
         });
