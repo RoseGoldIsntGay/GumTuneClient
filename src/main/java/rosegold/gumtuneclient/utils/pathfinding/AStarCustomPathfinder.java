@@ -67,7 +67,7 @@ public class AStarCustomPathfinder {
                 hubsToWork.remove(hub);
                 hubs.add(hub);
 
-                PathFinding.renderHubs.put(new BlockPos(VectorUtils.ceilVec(hub.getLoc())), 1);
+                PathFinding.renderHubs.add(new BlockPos(VectorUtils.ceilVec(hub.getLoc())));
 
                 for (BlockPos blockPos : RaytracingUtils.getAllTeleportableBlocksNew(VectorUtils.ceilVec(hub.getLoc()).addVector(0.5, 1.62 - 0.08 + 1, 0.5), 16)) {
                     Vec3 loc = new Vec3(blockPos);

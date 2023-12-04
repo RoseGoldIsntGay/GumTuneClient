@@ -38,6 +38,11 @@ public class WorldScannerFilter {
     public static boolean worldScannerCHFairyGrottos = false;
 
     @Switch(
+            name = "Magma Fields Fairy Grottos"
+    )
+    public static boolean worldScannerCHMagmaFieldsFairyGrottos = false;
+
+    @Switch(
             name = "Fairy Grottos Beacon"
     )
     public static boolean worldScannerCHFairyGrottosBeacon = false;

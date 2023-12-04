@@ -15,7 +15,7 @@ public class GuiUtils {
 
     public static String getOpenInventoryName() {
         if (mc.thePlayer == null || mc.theWorld == null) {
-            return "";
+            return null;
         } else return mc.thePlayer.openContainer.inventorySlots.get(0).inventory.getName();
     }
 }

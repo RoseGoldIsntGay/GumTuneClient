@@ -117,6 +117,7 @@ public class ESPs {
 
     @SubscribeEvent
     public void onRenderEntityLiving(RenderLivingEntityEvent event) {
+        if (LocationUtils.currentIsland == null) return;
         if (checked.contains(event.entity)) return;
         if (!GumTuneClientConfig.ESPs) return;
         if (event.entity instanceof EntityArmorStand) {
@@ -198,8 +199,7 @@ public class ESPs {
                 String name = event.entity.getName();
                 if (name.equals("Team Treasurite")) {
                     highlightEntity(event.entity, "Team Treasurite", Color.CYAN.getRGB());
-                }
-                if (name.equals("Murderlover") || name.equals("Goblin") || name.equals("Weakling") || name.equals("Pitfighter")) {
+                } else if (name.equals("Murderlover") || name.equals("Goblin") || name.equals("Weakling") || name.equals("Pitfighter")) {
                     highlightEntity(event.entity, "Goblin", new Color(0, 100, 0).getRGB());
                 }
             } else if (event.entity instanceof EntityIronGolem) {
@@ -333,10 +333,4 @@ public class ESPs {
 
         return false;
     }
-
-   /* private boolean checkName(String name) {
-        String[] split = Main.configFile.rareMobESPFilter.split(",");
-        Set<String> entityNames = Stream.of(split).collect(Collectors.toSet());
-        return entityNames.stream().anyMatch(name::contains);
-    }*/
 }

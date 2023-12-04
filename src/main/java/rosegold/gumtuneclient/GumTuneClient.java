@@ -15,6 +15,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import rosegold.gumtuneclient.command.MainCommand;
 import rosegold.gumtuneclient.config.GumTuneClientConfig;
+import rosegold.gumtuneclient.config.pages.CustomEspBlockSelector;
 import rosegold.gumtuneclient.events.MillisecondEvent;
 import rosegold.gumtuneclient.events.SecondEvent;
 import rosegold.gumtuneclient.modules.combat.AntiScribe;
@@ -28,6 +29,7 @@ import rosegold.gumtuneclient.modules.farming.VisitorHelpers;
 import rosegold.gumtuneclient.modules.macro.AutoHarp;
 import rosegold.gumtuneclient.modules.macro.GemstoneMacro;
 import rosegold.gumtuneclient.modules.macro.MobMacro;
+import rosegold.gumtuneclient.modules.mining.GemstoneSackCompactor;
 import rosegold.gumtuneclient.modules.mining.MetalDetectorSolver;
 import rosegold.gumtuneclient.modules.mining.Nuker;
 import rosegold.gumtuneclient.modules.mining.PowderChestSolver;
@@ -103,7 +105,8 @@ public class GumTuneClient {
                 new AntiShy(),
                 new MirrorverseHelpers(),
                 new CustomBlockESP(),
-                new AntiScribe()
+                new AntiScribe(),
+                new GemstoneSackCompactor()
         );
     }
 
@@ -167,6 +170,8 @@ public class GumTuneClient {
         if (failedCreatingConfig) {
             ModUtils.sendMessage("Failed creating a config directory, some configuration options will not persist!");
         }
+
+        CustomEspBlockSelector.loadItems();
     }
 
     private void registerModule(Object obj) {

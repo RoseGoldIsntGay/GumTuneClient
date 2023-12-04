@@ -129,7 +129,7 @@ public class CustomBlockESP {
             GL11.glTranslated(-GumTuneClient.mc.getRenderManager().viewerPosX, -GumTuneClient.mc.getRenderManager().viewerPosY, -GumTuneClient.mc.getRenderManager().viewerPosZ);
             GlStateManager.color(color.getRed() / 256f, color.getGreen() / 256f, color.getBlue() / 256f, 0.5f);
             for (List<Vec3> blocks : Lists.partition(blockPositions, 512)) {
-                RenderUtils.renderEspBlocks(blocks);
+                RenderUtils.renderEspVectors(blocks);
             }
 
             GL11.glTranslated(GumTuneClient.mc.getRenderManager().viewerPosX, GumTuneClient.mc.getRenderManager().viewerPosY, GumTuneClient.mc.getRenderManager().viewerPosZ);

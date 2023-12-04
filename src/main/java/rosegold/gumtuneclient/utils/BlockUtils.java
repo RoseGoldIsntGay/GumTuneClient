@@ -183,115 +183,236 @@ public class BlockUtils {
         return rayTraceBlocks(vec31, vec32, stopOnLiquid, ignoreBlockWithoutBoundingBox, returnLastUncollidableBlock, predicate, visualize, false);
     }
 
-    public static MovingObjectPosition rayTraceBlocks(Vec3 vec31, Vec3 vec32, boolean stopOnLiquid, boolean ignoreBlockWithoutBoundingBox, boolean returnLastUncollidableBlock, Predicate<? super BlockPos> predicate, boolean visualize, boolean fullBlocks) {
-        if (!(Double.isNaN(vec31.xCoord) || Double.isNaN(vec31.yCoord) || Double.isNaN(vec31.zCoord))) {
-            if (!(Double.isNaN(vec32.xCoord) || Double.isNaN(vec32.yCoord) || Double.isNaN(vec32.zCoord))) {
+    public static MovingObjectPosition rayTraceBlocks(Vec3 from, Vec3 goal, boolean stopOnLiquid, boolean ignoreBlockWithoutBoundingBox, boolean returnLastUncollidableBlock, Predicate<? super BlockPos> predicate, boolean visualize, boolean fullBlocks) {
+        if (!(Double.isNaN(from.xCoord) || Double.isNaN(from.yCoord) || Double.isNaN(from.zCoord))) {
+            if (!(Double.isNaN(goal.xCoord) || Double.isNaN(goal.yCoord) || Double.isNaN(goal.zCoord))) {
                 MovingObjectPosition movingobjectposition;
-                int i = MathHelper.floor_double(vec32.xCoord);
-                int j = MathHelper.floor_double(vec32.yCoord);
-                int k = MathHelper.floor_double(vec32.zCoord);
-                int l = MathHelper.floor_double(vec31.xCoord);
-                int i1 = MathHelper.floor_double(vec31.yCoord);
-                int j1 = MathHelper.floor_double(vec31.zCoord);
-                BlockPos blockpos = new BlockPos(l, i1, j1);
+                int xGoal = MathHelper.floor_double(goal.xCoord);
+                int yGoal = MathHelper.floor_double(goal.yCoord);
+                int zGoal = MathHelper.floor_double(goal.zCoord);
+                int xCurrent = MathHelper.floor_double(from.xCoord);
+                int yCurrent = MathHelper.floor_double(from.yCoord);
+                int zCurrent = MathHelper.floor_double(from.zCoord);
+                BlockPos blockpos = new BlockPos(xCurrent, yCurrent, zCurrent);
                 IBlockState iblockstate = getBlockState(blockpos);
                 Block block = iblockstate.getBlock();
                 if (visualize) blockPosConcurrentLinkedQueue.add(blockpos);
-                if (!predicate.test(blockpos) && (!ignoreBlockWithoutBoundingBox || block.getCollisionBoundingBox(mc.theWorld, blockpos, iblockstate) != null) && block.canCollideCheck(iblockstate, stopOnLiquid) && (movingobjectposition = collisionRayTrace(block, blockpos, vec31, vec32, fullBlocks)) != null) {
+                if (!predicate.test(blockpos) && (!ignoreBlockWithoutBoundingBox || block.getCollisionBoundingBox(mc.theWorld, blockpos, iblockstate) != null) && block.canCollideCheck(iblockstate, stopOnLiquid) && (movingobjectposition = collisionRayTrace(block, blockpos, from, goal, fullBlocks)) != null) {
                     return movingobjectposition;
                 }
                 MovingObjectPosition movingobjectposition2 = null;
                 int k1 = 200;
                 while (k1-- >= 0) {
                     EnumFacing enumfacing;
-                    if (Double.isNaN(vec31.xCoord) || Double.isNaN(vec31.yCoord) || Double.isNaN(vec31.zCoord)) {
+                    if (Double.isNaN(from.xCoord) || Double.isNaN(from.yCoord) || Double.isNaN(from.zCoord)) {
                         return null;
                     }
-                    if (l == i && i1 == j && j1 == k) {
+                    if (xCurrent == xGoal && yCurrent == yGoal && zCurrent == zGoal) {
                         return returnLastUncollidableBlock ? movingobjectposition2 : null;
                     }
-                    boolean flag2 = true;
-                    boolean flag = true;
-                    boolean flag1 = true;
-                    double d0 = 999.0;
-                    double d1 = 999.0;
-                    double d2 = 999.0;
-                    if (i > l) {
-                        d0 = (double)l + 1.0;
-                    } else if (i < l) {
-                        d0 = (double)l + 0.0;
+                    boolean flagX = true;
+                    boolean flagY = true;
+                    boolean flagZ = true;
+                    double fullNextX = 999.0;
+                    double fullNextY = 999.0;
+                    double fullNextZ = 999.0;
+                    if (xGoal > xCurrent) {
+                        fullNextX = (double) xCurrent + 1.0;
+                    } else if (xGoal < xCurrent) {
+                        fullNextX = (double) xCurrent + 0.0;
                     } else {
-                        flag2 = false;
+                        flagX = false;
                     }
-                    if (j > i1) {
-                        d1 = (double)i1 + 1.0;
-                    } else if (j < i1) {
-                        d1 = (double)i1 + 0.0;
+                    if (yGoal > yCurrent) {
+                        fullNextY = (double) yCurrent + 1.0;
+                    } else if (yGoal < yCurrent) {
+                        fullNextY = (double) yCurrent + 0.0;
                     } else {
-                        flag = false;
+                        flagY = false;
                     }
-                    if (k > j1) {
-                        d2 = (double)j1 + 1.0;
-                    } else if (k < j1) {
-                        d2 = (double)j1 + 0.0;
+                    if (zGoal > zCurrent) {
+                        fullNextZ = (double) zCurrent + 1.0;
+                    } else if (zGoal < zCurrent) {
+                        fullNextZ = (double) zCurrent + 0.0;
                     } else {
-                        flag1 = false;
+                        flagZ = false;
                     }
-                    double d3 = 999.0;
-                    double d4 = 999.0;
-                    double d5 = 999.0;
-                    double d6 = vec32.xCoord - vec31.xCoord;
-                    double d7 = vec32.yCoord - vec31.yCoord;
-                    double d8 = vec32.zCoord - vec31.zCoord;
-                    if (flag2) {
-                        d3 = (d0 - vec31.xCoord) / d6;
+                    double nextX = 999.0;
+                    double nextY = 999.0;
+                    double nextZ = 999.0;
+                    double dx = goal.xCoord - from.xCoord;
+                    double dy = goal.yCoord - from.yCoord;
+                    double dz = goal.zCoord - from.zCoord;
+                    if (flagX) {
+                        nextX = (fullNextX - from.xCoord) / dx;
                     }
-                    if (flag) {
-                        d4 = (d1 - vec31.yCoord) / d7;
+                    if (flagY) {
+                        nextY = (fullNextY - from.yCoord) / dy;
                     }
-                    if (flag1) {
-                        d5 = (d2 - vec31.zCoord) / d8;
+                    if (flagZ) {
+                        nextZ = (fullNextZ - from.zCoord) / dz;
                     }
-                    if (d3 == -0.0) {
-                        d3 = -1.0E-4;
+                    if (nextX == -0.0) {
+                        nextX = -1.0E-4;
                     }
-                    if (d4 == -0.0) {
-                        d4 = -1.0E-4;
+                    if (nextY == -0.0) {
+                        nextY = -1.0E-4;
                     }
-                    if (d5 == -0.0) {
-                        d5 = -1.0E-4;
+                    if (nextZ == -0.0) {
+                        nextZ = -1.0E-4;
                     }
-                    if (d3 < d4 && d3 < d5) {
-                        enumfacing = i > l ? EnumFacing.WEST : EnumFacing.EAST;
-                        vec31 = new Vec3(d0, vec31.yCoord + d7 * d3, vec31.zCoord + d8 * d3);
-                    } else if (d4 < d5) {
-                        enumfacing = j > i1 ? EnumFacing.DOWN : EnumFacing.UP;
-                        vec31 = new Vec3(vec31.xCoord + d6 * d4, d1, vec31.zCoord + d8 * d4);
+                    if (nextX < nextY && nextX < nextZ) {
+                        enumfacing = xGoal > xCurrent ? EnumFacing.WEST : EnumFacing.EAST;
+                        from = new Vec3(fullNextX, from.yCoord + dy * nextX, from.zCoord + dz * nextX);
+                    } else if (nextY < nextZ) {
+                        enumfacing = yGoal > yCurrent ? EnumFacing.DOWN : EnumFacing.UP;
+                        from = new Vec3(from.xCoord + dx * nextY, fullNextY, from.zCoord + dz * nextY);
                     } else {
-                        enumfacing = k > j1 ? EnumFacing.NORTH : EnumFacing.SOUTH;
-                        vec31 = new Vec3(vec31.xCoord + d6 * d5, vec31.yCoord + d7 * d5, d2);
+                        enumfacing = zGoal > zCurrent ? EnumFacing.NORTH : EnumFacing.SOUTH;
+                        from = new Vec3(from.xCoord + dx * nextZ, from.yCoord + dy * nextZ, fullNextZ);
                     }
-                    l = MathHelper.floor_double(vec31.xCoord) - (enumfacing == EnumFacing.EAST ? 1 : 0);
-                    i1 = MathHelper.floor_double(vec31.yCoord) - (enumfacing == EnumFacing.UP ? 1 : 0);
-                    j1 = MathHelper.floor_double(vec31.zCoord) - (enumfacing == EnumFacing.SOUTH ? 1 : 0);
-                    blockpos = new BlockPos(l, i1, j1);
+                    xCurrent = MathHelper.floor_double(from.xCoord) - (enumfacing == EnumFacing.EAST ? 1 : 0);
+                    yCurrent = MathHelper.floor_double(from.yCoord) - (enumfacing == EnumFacing.UP ? 1 : 0);
+                    zCurrent = MathHelper.floor_double(from.zCoord) - (enumfacing == EnumFacing.SOUTH ? 1 : 0);
+                    blockpos = new BlockPos(xCurrent, yCurrent, zCurrent);
                     IBlockState iblockstate1 = getBlockState(blockpos);
                     Block block1 = iblockstate1.getBlock();
                     if (visualize) blockPosConcurrentLinkedQueue.add(blockpos);
-                    if (ignoreBlockWithoutBoundingBox && block1.getCollisionBoundingBox(mc.theWorld, blockpos, iblockstate1) == null) continue;
+                    if (ignoreBlockWithoutBoundingBox && block1.getCollisionBoundingBox(mc.theWorld, blockpos, iblockstate1) == null)
+                        continue;
                     if (predicate.test(blockpos)) continue;
                     if (block1.canCollideCheck(iblockstate1, stopOnLiquid)) {
-                        MovingObjectPosition movingobjectposition1 = collisionRayTrace(block1, blockpos, vec31, vec32, fullBlocks);
+                        MovingObjectPosition movingobjectposition1 = collisionRayTrace(block1, blockpos, from, goal, fullBlocks);
                         if (movingobjectposition1 == null) continue;
                         return movingobjectposition1;
                     }
-                    movingobjectposition2 = new MovingObjectPosition(MovingObjectPosition.MovingObjectType.MISS, vec31, enumfacing, blockpos);
+                    movingobjectposition2 = new MovingObjectPosition(MovingObjectPosition.MovingObjectType.MISS, from, enumfacing, blockpos);
                 }
                 return returnLastUncollidableBlock ? movingobjectposition2 : null;
             }
             return null;
         }
         return null;
+    }
+
+    public static ArrayList<BlockPos> rayTraceBlockList(Vec3 from, Vec3 goal, boolean ignoreBlockWithoutBoundingBox, Predicate<? super BlockPos> predicate, boolean fullBlocks) {
+        ArrayList<BlockPos> blockPosArrayList = new ArrayList<>();
+
+        if (Double.isNaN(from.xCoord) || Double.isNaN(from.yCoord) || Double.isNaN(from.zCoord)) return blockPosArrayList;
+        if (Double.isNaN(goal.xCoord) || Double.isNaN(goal.yCoord) || Double.isNaN(goal.zCoord)) return blockPosArrayList;
+
+        int xGoal = MathHelper.floor_double(goal.xCoord);
+        int yGoal = MathHelper.floor_double(goal.yCoord);
+        int zGoal = MathHelper.floor_double(goal.zCoord);
+
+        int xCurrent = MathHelper.floor_double(from.xCoord);
+        int yCurrent = MathHelper.floor_double(from.yCoord);
+        int zCurrent = MathHelper.floor_double(from.zCoord);
+
+        BlockPos blockpos = new BlockPos(xCurrent, yCurrent, zCurrent);
+        IBlockState iBlockState = getBlockState(blockpos);
+        Block block = iBlockState.getBlock();
+
+        if (!predicate.test(blockpos)) {
+            if (!ignoreBlockWithoutBoundingBox || block.getCollisionBoundingBox(mc.theWorld, blockpos, iBlockState) != null) {
+                blockPosArrayList.add(blockpos);
+            }
+        }
+
+        for (int step = 200; step >= 0; step--) {
+            if (xCurrent == xGoal && yCurrent == yGoal && zCurrent == zGoal) {
+                return blockPosArrayList;
+            }
+
+            EnumFacing enumfacing;
+
+            double dx = goal.xCoord - from.xCoord;
+            double dy = goal.yCoord - from.yCoord;
+            double dz = goal.zCoord - from.zCoord;
+
+            double fullNextX = 999;
+            double fullNextY = 999;
+            double fullNextZ = 999;
+
+            boolean flagX = true;
+            boolean flagY = true;
+            boolean flagZ = true;
+
+            double nextX = 999;
+            double nextY = 999;
+            double nextZ = 999;
+
+            if (xGoal > xCurrent) {
+                fullNextX = (double) xCurrent + 1;
+            } else if (xGoal < xCurrent) {
+                fullNextX = (double) xCurrent + 0;
+            } else {
+                flagX = false;
+            }
+
+            if (yGoal > yCurrent) {
+                fullNextY = (double) yCurrent + 1;
+            } else if (yGoal < yCurrent) {
+                fullNextY = (double) yCurrent + 0;
+            } else {
+                flagY = false;
+            }
+
+            if (zGoal > zCurrent) {
+                fullNextZ = (double) zCurrent + 1;
+            } else if (zGoal < zCurrent) {
+                fullNextZ = (double) zCurrent + 0;
+            } else {
+                flagZ = false;
+            }
+
+            if (flagX) {
+                nextX = (fullNextX - from.xCoord) / dx;
+            }
+            if (flagY) {
+                nextY = (fullNextY - from.yCoord) / dy;
+            }
+            if (flagZ) {
+                nextZ = (fullNextZ - from.zCoord) / dz;
+            }
+
+            if (nextX == -0.0) {
+                nextX = -1.0E-4;
+            }
+            if (nextY == -0.0) {
+                nextY = -1.0E-4;
+            }
+            if (nextZ == -0.0) {
+                nextZ = -1.0E-4;
+            }
+
+            if (nextX < nextY && nextX < nextZ) {
+                enumfacing = xGoal > xCurrent ? EnumFacing.WEST : EnumFacing.EAST;
+                from = new Vec3(fullNextX, from.yCoord + dy * nextX, from.zCoord + dz * nextX);
+            } else if (nextY < nextZ) {
+                enumfacing = yGoal > yCurrent ? EnumFacing.DOWN : EnumFacing.UP;
+                from = new Vec3(from.xCoord + dx * nextY, fullNextY, from.zCoord + dz * nextY);
+            } else {
+                enumfacing = zGoal > zCurrent ? EnumFacing.NORTH : EnumFacing.SOUTH;
+                from = new Vec3(from.xCoord + dx * nextZ, from.yCoord + dy * nextZ, fullNextZ);
+            }
+
+            xCurrent = MathHelper.floor_double(from.xCoord) - (enumfacing == EnumFacing.EAST ? 1 : 0);
+            yCurrent = MathHelper.floor_double(from.yCoord) - (enumfacing == EnumFacing.UP ? 1 : 0);
+            zCurrent = MathHelper.floor_double(from.zCoord) - (enumfacing == EnumFacing.SOUTH ? 1 : 0);
+
+            blockpos = new BlockPos(xCurrent, yCurrent, zCurrent);
+            iBlockState = getBlockState(blockpos);
+            block = iBlockState.getBlock();
+
+            if (!predicate.test(blockpos)) {
+                if (!ignoreBlockWithoutBoundingBox || block.getCollisionBoundingBox(mc.theWorld, blockpos, iBlockState) != null) {
+                    blockPosArrayList.add(blockpos);
+                }
+            }
+        }
+
+        return blockPosArrayList;
     }
 
     public static MovingObjectPosition collisionRayTrace(Block block, BlockPos pos, Vec3 start, Vec3 end, boolean fullBlocks) {

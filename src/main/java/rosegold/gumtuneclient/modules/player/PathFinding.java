@@ -1,13 +1,16 @@
 package rosegold.gumtuneclient.modules.player;
 
+import com.google.common.collect.Lists;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.lwjgl.opengl.GL11;
 import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.utils.*;
 import rosegold.gumtuneclient.utils.pathfinding.AStarCustomPathfinder;
@@ -17,8 +20,10 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 public class PathFinding {
@@ -27,73 +32,8 @@ public class PathFinding {
     private static BlockPos curPos;
     public static boolean walk = false;
     public static ArrayList<BlockPos> temp = new ArrayList<>();
-    public static ConcurrentLinkedQueue<Vec3> points = new ConcurrentLinkedQueue<>();
-    public static ConcurrentHashMap<BlockPos, Integer> renderHubs = new ConcurrentHashMap<>();
-
-    @SubscribeEvent
-    public void onTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.START) return;
-        if(!walk) return;
-        if (PathFinder.hasPath()) {
-            if (++stuckTicks >= 20) {
-                curPos = GumTuneClient.mc.thePlayer.getPosition();
-                if (oldPos != null && VectorUtils.getHorizontalDistance(new Vec3(curPos), new Vec3(oldPos)) <= 0.1) {
-                    initWalk();
-                    PathFinder.path.clear();
-                    new Thread(() -> PathFinder.setup(new BlockPos(VectorUtils.floorVec(GumTuneClient.mc.thePlayer.getPositionVector())), PathFinder.goal, 0.0, 2000)).start();
-                    return;
-                }
-                oldPos = curPos;
-                stuckTicks = 0;
-            }
-            Vec3 nextPos = goodPoints(PathFinder.path);
-            PathFinder.path.removeIf(vec -> new BlockPos(vec).getY() == GumTuneClient.mc.thePlayer.getPosition().getY() && PathFinder.path.indexOf(vec) < PathFinder.path.indexOf(nextPos));
-            Vec3 first = PathFinder.getCurrent().addVector(0.5, 0.0, 0.5);
-            RotationUtils.Rotation needed = RotationUtils.getRotation(first);
-            needed.setPitch(GumTuneClient.mc.thePlayer.rotationPitch);
-            if (VectorUtils.getHorizontalDistance(GumTuneClient.mc.thePlayer.getPositionVector(), first) < 0.7) {
-                if(GumTuneClient.mc.thePlayer.getPositionVector().distanceTo(first) > 2) {
-                    if (RotationUtils.done && needed.getYaw() < 135.0f) {
-                        RotationUtils.smoothLook(needed, 150L);
-                    }
-                    Vec3 lastTick = new Vec3(GumTuneClient.mc.thePlayer.lastTickPosX, GumTuneClient.mc.thePlayer.lastTickPosY, GumTuneClient.mc.thePlayer.lastTickPosZ);
-                    Vec3 diffy = GumTuneClient.mc.thePlayer.getPositionVector().subtract(lastTick);
-                    diffy = diffy.addVector(diffy.xCoord * 4.0, 0.0, diffy.zCoord * 4.0);
-                    Vec3 nextTick = GumTuneClient.mc.thePlayer.getPositionVector().add(diffy);
-                    stopMovement();
-                    GumTuneClient.mc.thePlayer.setSprinting(false);
-                    ArrayList<KeyBinding> neededPresses = VectorUtils.getNeededKeyPresses(GumTuneClient.mc.thePlayer.getPositionVector(), first);
-                    if (Math.abs(nextTick.distanceTo(first) - GumTuneClient.mc.thePlayer.getPositionVector().distanceTo(first)) <= 0.05 || nextTick.distanceTo(first) <= GumTuneClient.mc.thePlayer.getPositionVector().distanceTo(first)) {
-                        neededPresses.forEach(v -> KeyBinding.setKeyBindState(v.getKeyCode(), true));
-                    }
-                    if (Math.abs(GumTuneClient.mc.thePlayer.posY - first.yCoord) > 0.5) {
-                        KeyBinding.setKeyBindState(GumTuneClient.mc.gameSettings.keyBindJump.getKeyCode(), GumTuneClient.mc.thePlayer.posY < first.yCoord);
-                    }
-                    else {
-                        KeyBinding.setKeyBindState(GumTuneClient.mc.gameSettings.keyBindJump.getKeyCode(), false);
-                    }
-                } else {
-                    RotationUtils.reset();
-                    if (!PathFinder.goNext()) {
-                        stopMovement();
-                    }
-                }
-            } else {
-                if (RotationUtils.done) {
-                    RotationUtils.smoothLook(needed, 150L);
-                }
-                stopMovement();
-                KeyBinding.setKeyBindState(GumTuneClient.mc.gameSettings.keyBindForward.getKeyCode(), true);
-                GumTuneClient.mc.thePlayer.setSprinting(true);
-                if (Math.abs(GumTuneClient.mc.thePlayer.posY - first.yCoord) > 0.5) {
-                    KeyBinding.setKeyBindState(GumTuneClient.mc.gameSettings.keyBindJump.getKeyCode(), GumTuneClient.mc.thePlayer.posY < first.yCoord);
-                }
-                else {
-                    KeyBinding.setKeyBindState(GumTuneClient.mc.gameSettings.keyBindJump.getKeyCode(), false);
-                }
-            }
-        }
-    }
+    public static CopyOnWriteArrayList<Vec3> points = Lists.newCopyOnWriteArrayList();
+    public static CopyOnWriteArrayList<BlockPos> renderHubs = Lists.newCopyOnWriteArrayList();
 
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent event) {
@@ -101,6 +41,29 @@ public class PathFinding {
             Vec3 last = PathFinder.path.get(PathFinder.path.size() - 1);
             RenderUtils.renderEspBox(new BlockPos(last), event.partialTicks, ColorUtils.getChroma(3000.0f, (int)(last.xCoord + last.yCoord + last.zCoord)));
             RenderUtils.drawLines(PathFinder.path, 1, event.partialTicks);
+
+            GlStateManager.blendFunc(770, 771);
+            GlStateManager.enableBlend();
+            GlStateManager.disableTexture2D();
+            GlStateManager.disableDepth();
+            GlStateManager.disableAlpha();
+            GlStateManager.depthMask(false);
+            GlStateManager.disableLighting();
+
+            GL11.glTranslated(-GumTuneClient.mc.getRenderManager().viewerPosX, -GumTuneClient.mc.getRenderManager().viewerPosY, -GumTuneClient.mc.getRenderManager().viewerPosZ);
+            GlStateManager.color(1, 0, 0, 0.5f);
+            for (List<Vec3> vectors : Lists.partition(PathFinder.path, 512)) {
+                RenderUtils.renderEspVectors(vectors);
+            }
+
+            GL11.glTranslated(GumTuneClient.mc.getRenderManager().viewerPosX, GumTuneClient.mc.getRenderManager().viewerPosY, GumTuneClient.mc.getRenderManager().viewerPosZ);
+
+            GlStateManager.enableAlpha();
+            GlStateManager.enableTexture2D();
+            GlStateManager.enableDepth();
+            GlStateManager.depthMask(true);
+            GlStateManager.disableBlend();
+            GlStateManager.enableLighting();
         }
 //        for(BlockPos blockPos : temp) {
 //            RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.WHITE.getRGB());
@@ -108,9 +71,6 @@ public class PathFinding {
 //        for(Vec3 blockPos : points) {
 //            RenderUtils.renderSmallBox(blockPos, Color.RED.getRGB());
 //        }
-        renderHubs.forEach((blockPos, integer) -> {
-            RenderUtils.renderEspBox(blockPos, event.partialTicks, Color.CYAN.getRGB());
-        });
     }
 
     private static Vec3 goodPoints(ArrayList<Vec3> path) {

@@ -11,6 +11,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.*;
 import org.lwjgl.util.vector.Vector3f;
+import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.modules.player.PathFinding;
 import rosegold.gumtuneclient.utils.pathfinding.AStarCustomPathfinder;
 
@@ -57,17 +58,118 @@ public class RaytracingUtils {
                         mc.theWorld.getBlockState(blockPos).getBlock().getCollisionBoundingBox(mc.theWorld, blockPos, mc.theWorld.getBlockState(blockPos)) != null &&
                         mc.theWorld.getBlockState(blockPos.add(0, 1, 0)).getBlock() == Blocks.air &&
                         mc.theWorld.getBlockState(blockPos.add(0, 2, 0)).getBlock() == Blocks.air &&
-                        canBlockBeeSeenFromVecNew(vec, blockPos)
+                        isBlockViewable(vec, blockPos)
         ).collect(Collectors.toList());
         AStarCustomPathfinder.counter += System.currentTimeMillis() - timestamp;
         return validBlocks;
     }
 
-    public static boolean canBlockBeeSeenFromVecNew(Vec3 from, BlockPos blockPos) {
-        Vec3 to = new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.95, blockPos.getZ() + 0.5);
-        //PathFinding.points.add(to);
-        MovingObjectPosition movingObjectPosition = mc.theWorld.rayTraceBlocks(from, to);
-        return movingObjectPosition != null && movingObjectPosition.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && movingObjectPosition.getBlockPos().equals(blockPos);
+    public static boolean isBlockViewable(Vec3 from, BlockPos goal) {
+        return isVecViewable(from, new Vec3(goal.getX() + 0.5, goal.getY() + 0.5, goal.getZ() + 0.5));
+    }
+
+    public static boolean isVecViewable(Vec3 from, Vec3 goal) {
+        if (Double.isNaN(from.xCoord) || Double.isNaN(from.yCoord) || Double.isNaN(from.zCoord)) return false;
+        if (Double.isNaN(goal.xCoord) || Double.isNaN(goal.yCoord) || Double.isNaN(goal.zCoord)) return false;
+
+        int xGoal = MathHelper.floor_double(goal.xCoord);
+        int yGoal = MathHelper.floor_double(goal.yCoord);
+        int zGoal = MathHelper.floor_double(goal.zCoord);
+        int xCurrent = MathHelper.floor_double(from.xCoord);
+        int yCurrent = MathHelper.floor_double(from.yCoord);
+        int zCurrent = MathHelper.floor_double(from.zCoord);
+
+        int iter = 0;
+        while (iter++ <= 200) {
+            if (xCurrent == xGoal && yCurrent == yGoal && zCurrent == zGoal) {
+                return true;
+            }
+
+            if (GumTuneClient.mc.theWorld.getBlockState(new BlockPos(xCurrent, yCurrent, zCurrent)).getBlock() != Blocks.air) {
+                return false;
+            }
+
+            boolean flagX = true;
+            boolean flagY = true;
+            boolean flagZ = true;
+            double fullNextX = 999.0;
+            double fullNextY = 999.0;
+            double fullNextZ = 999.0;
+
+            if (xGoal > xCurrent) {
+                fullNextX = (double) xCurrent + 1.0;
+            } else if (xGoal < xCurrent) {
+                fullNextX = (double) xCurrent + 0.0;
+            } else {
+                flagX = false;
+            }
+            if (yGoal > yCurrent) {
+                fullNextY = (double) yCurrent + 1.0;
+            } else if (yGoal < yCurrent) {
+                fullNextY = (double) yCurrent + 0.0;
+            } else {
+                flagY = false;
+            }
+            if (zGoal > zCurrent) {
+                fullNextZ = (double) zCurrent + 1.0;
+            } else if (zGoal < zCurrent) {
+                fullNextZ = (double) zCurrent + 0.0;
+            } else {
+                flagZ = false;
+            }
+
+            double nextX = 999.0;
+            double nextY = 999.0;
+            double nextZ = 999.0;
+            double dx = goal.xCoord - from.xCoord;
+            double dy = goal.yCoord - from.yCoord;
+            double dz = goal.zCoord - from.zCoord;
+            if (flagX) {
+                nextX = (fullNextX - from.xCoord) / dx;
+            }
+            if (flagY) {
+                nextY = (fullNextY - from.yCoord) / dy;
+            }
+            if (flagZ) {
+                nextZ = (fullNextZ - from.zCoord) / dz;
+            }
+            if (nextX == -0.0) {
+                nextX = -1.0E-4;
+            }
+            if (nextY == -0.0) {
+                nextY = -1.0E-4;
+            }
+            if (nextZ == -0.0) {
+                nextZ = -1.0E-4;
+            }
+
+            int xMod = 0;
+            int yMod = 0;
+            int zMod = 0;
+
+            if (nextX < nextY && nextX < nextZ) {
+                if (xGoal <= xCurrent) {
+                    xMod = 1;
+                }
+                from = new Vec3(fullNextX, from.yCoord + dy * nextX, from.zCoord + dz * nextX);
+            } else if (nextY < nextZ) {
+                if (yGoal <= yCurrent) {
+                    yMod = 1;
+                }
+                from = new Vec3(from.xCoord + dx * nextY, fullNextY, from.zCoord + dz * nextY);
+            } else {
+                if (zGoal <= zCurrent) {
+                    zMod = 1;
+                }
+                from = new Vec3(from.xCoord + dx * nextZ, from.yCoord + dy * nextZ, fullNextZ);
+            }
+
+            xCurrent = MathHelper.floor_double(from.xCoord) - xMod;
+            yCurrent = MathHelper.floor_double(from.yCoord) - yMod;
+            zCurrent = MathHelper.floor_double(from.zCoord) - zMod;
+        }
+
+        return false;
     }
 
     public static boolean isPointOnLine(Vec3 from, Vec3 to, Vec3 point, float sideLength) {

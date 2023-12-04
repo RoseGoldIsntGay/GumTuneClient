@@ -274,10 +274,17 @@ public class WorldScanner {
                                 }
                             }
 
-                            if (structure.getStructureType().equals(StructureType.FAIRY_GROTTO) && WorldScannerFilter.worldScannerCHFairyGrottos) {
-                                if (scanStructure(chunk, structure, x, y, z)) {
-                                    currentWorld.updateFairyGrottos(new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z));
-                                    return;
+                            if (structure.getStructureType().equals(StructureType.FAIRY_GROTTO)) {
+                                if (WorldScannerFilter.worldScannerCHFairyGrottos) {
+                                    if (scanStructure(chunk, structure, x, y, z)) {
+                                        currentWorld.updateFairyGrottos(new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z));
+                                        return;
+                                    }
+                                } else if (WorldScannerFilter.worldScannerCHMagmaFieldsFairyGrottos && y < 64) {
+                                    if (scanStructure(chunk, structure, x, y, z)) {
+                                        currentWorld.updateFairyGrottos(new BlockPos(chunk.xPosition * 16 + x, y, chunk.zPosition * 16 + z));
+                                        return;
+                                    }
                                 }
                             }
 

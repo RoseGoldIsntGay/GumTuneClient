@@ -1,12 +1,17 @@
 package rosegold.gumtuneclient.utils;
 
+import cc.polyfrost.oneconfig.utils.Multithreading;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import rosegold.gumtuneclient.GumTuneClient;
 
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
 public class PlayerUtils {
+    private static final Random random = new Random();
     public static boolean pickaxeAbilityReady = false;
 
     @SubscribeEvent(receiveCanceled = true)
@@ -16,7 +21,7 @@ public class PlayerUtils {
         if (message.startsWith("You used your Mining Speed Boost Pickaxe Ability!")) {
             pickaxeAbilityReady = false;
         } else if (message.equals("Mining Speed Boost is now available!")) {
-            pickaxeAbilityReady = true;
+            Multithreading.schedule(() -> pickaxeAbilityReady = true, random.nextInt(500) + 500, TimeUnit.MILLISECONDS);
         }
     }
 

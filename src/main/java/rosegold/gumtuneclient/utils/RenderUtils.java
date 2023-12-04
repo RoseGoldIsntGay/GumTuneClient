@@ -471,7 +471,15 @@ public class RenderUtils {
         GlStateManager.popMatrix();
     }
 
-    public static void renderEspBlocks(List<Vec3> vectors) {
+    public static void renderEspBlocks(List<BlockPos> blocks) {
+        List<Vec3> vectors = new ArrayList<>(blocks.size());
+
+        blocks.forEach(blockPos -> vectors.add(new Vec3(blockPos)));
+
+        RenderUtils.renderEspVectors(vectors);
+    }
+
+    public static void renderEspVectors(List<Vec3> vectors) {
         vertexBuffer.bindBuffer();
         GL11.glEnableClientState(32884);
         GL11.glVertexPointer(3, 5126, 12, 0L);

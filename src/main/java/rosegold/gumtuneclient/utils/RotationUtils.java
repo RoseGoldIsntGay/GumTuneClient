@@ -7,6 +7,7 @@ import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import rosegold.gumtuneclient.GumTuneClient;
 import rosegold.gumtuneclient.events.PlayerMoveEvent;
 
 import static rosegold.gumtuneclient.GumTuneClient.mc;
@@ -149,12 +150,22 @@ public class RotationUtils {
     }
 
     public static void smoothLookRelative(Rotation rotation, long time) {
+        smoothLookRelative(rotation, time, false);
+    }
+
+    public static void smoothLookRelative(Rotation rotation, long time, boolean yawOnly) {
         rotationType = RotationType.NORMAL;
         done = false;
 
         startRot = new Rotation(mc.thePlayer.rotationPitch, mc.thePlayer.rotationYaw);
 
-        endRot = new Rotation(startRot.pitch + rotation.pitch, startRot.yaw + rotation.yaw);
+        if (yawOnly) {
+            endRot = new Rotation(rotation.pitch, startRot.yaw + rotation.yaw);
+        } else {
+            endRot = new Rotation(startRot.pitch + rotation.pitch, startRot.yaw + rotation.yaw);
+        }
+
+        if (GumTuneClient.debug) ModUtils.sendMessage(endRot);
 
         startTime = System.currentTimeMillis();
         endTime = System.currentTimeMillis() + time;

@@ -73,6 +73,7 @@ public class GumTuneClientConfig extends Config {
     private transient static final String POWDER_CHEST_TRACKER = "Powder Chest Tracker";
     private transient static final String CUSTOM_BLOCK_ESP = "Custom Block ESP";
     private transient static final String OLD_MINECRAFT_LOGO = "Old Minecraft Logo";
+    private transient static final String GEMSTONE_SACK_COMPACTOR = "Gemstone Sack Compactor";
 
     @Switch(
             name = "Enabled",
@@ -298,8 +299,7 @@ public class GumTuneClientConfig extends Config {
             name = "Show All Spots",
             description = "Show all possible spots for divan treasures",
             category = MINING,
-            subcategory = METAL_DETECTOR_SOLVER,
-            size = 2
+            subcategory = METAL_DETECTOR_SOLVER
     )
     public static boolean metalDetectorSolverShowAllSpots = false;
 
@@ -307,10 +307,17 @@ public class GumTuneClientConfig extends Config {
             name = "Tracer",
             description = "Draw a tracer to solved treasure",
             category = MINING,
-            subcategory = METAL_DETECTOR_SOLVER,
-            size = 2
+            subcategory = METAL_DETECTOR_SOLVER
     )
     public static boolean metalDetectorSolverTracer = false;
+
+    @Switch(
+            name = "Calculate Path",
+            description = "Calculate and render path to chest",
+            category = MINING,
+            subcategory = METAL_DETECTOR_SOLVER
+    )
+    public static boolean metalDetectorCalculatePath = false;
 
     @Switch(
             name = "Prevent Cancelling Mining Progress",
@@ -353,7 +360,7 @@ public class GumTuneClientConfig extends Config {
             description = "Rotation time in ms",
             category = MACRO,
             subcategory = GEMSTONE_MACRO,
-            min = 50, max = 500
+            min = 50, max = 1000
     )
     public static int aotvGemstoneMacroRotationSpeed = 250;
 
@@ -413,6 +420,13 @@ public class GumTuneClientConfig extends Config {
     )
     public static boolean aotvGemstoneMinePanes = false;
 
+    @Switch(
+            name = "Walk Forwards While Teleporting",
+            category = MACRO,
+            subcategory = GEMSTONE_MACRO
+    )
+    public static boolean aotvGemstoneMacroWalkForwardsWhileTeleporting = false;
+
     @Slider(
             name = "Waypoint Render Distance",
             description = "Set a maximum amount of waypoints to render at a time, to reduce lag",
@@ -430,6 +444,21 @@ public class GumTuneClientConfig extends Config {
             min = 0, max = 10
     )
     public static int aotvGemstoneMacroBlockBreakProgress = 10;
+
+    @Dropdown(
+            name = "Dismount Armadillo Mode",
+            category = MACRO,
+            subcategory = GEMSTONE_MACRO,
+            options = {"Sneak", "Throw Rod"}
+    )
+    public static int aotvGemstoneMacroDismountArmadilloMode = 0;
+
+    @Switch(
+            name = "Debug",
+            category = MACRO,
+            subcategory = GEMSTONE_MACRO
+    )
+    public static boolean aotvGemstoneMacroDebug = false;
 
     @Switch(
             name = "Avoid Breaking Stems",
@@ -1223,6 +1252,15 @@ public class GumTuneClientConfig extends Config {
     )
     public static int customBlockESPRange = 0;
 
+//    @Page(
+//            name = "Custom Block ESP Filter",
+//            description = "Pick out blocks to highlight with the esp",
+//            category = RENDER,
+//            subcategory = CUSTOM_BLOCK_ESP,
+//            location = PageLocation.BOTTOM
+//    )
+//    public static CustomEspBlockSelector customBlockESPPage = new CustomEspBlockSelector();
+
     @Switch(
             name = "Old Minecraft Logo",
             category = QOL,
@@ -1254,6 +1292,23 @@ public class GumTuneClientConfig extends Config {
             ioexception.printStackTrace();
         }
     };
+
+    @Switch(
+            name = "Gemstone Sack Compactor",
+            category = MINING,
+            subcategory = GEMSTONE_SACK_COMPACTOR,
+            description = "Enable the module"
+    )
+    public static boolean gemstoneSackCompactor = false;
+
+    @Slider(
+            name = "Click Delay (ms)",
+            description = "How many milliseconds to wait between clicks",
+            category = MINING,
+            subcategory = GEMSTONE_SACK_COMPACTOR,
+            min = 50, max = 500
+    )
+    public static int gemstoneSackCompactorClickDelay = 200;
 
     private ByteBuffer readImageToBuffer(InputStream imageStream) throws IOException {
         BufferedImage bufferedimage = ImageIO.read(imageStream);
