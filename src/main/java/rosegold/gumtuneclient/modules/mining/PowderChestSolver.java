@@ -7,6 +7,7 @@ import net.minecraft.util.*;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -18,8 +19,10 @@ import rosegold.gumtuneclient.utils.*;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class PowderChestSolver {
+    public static boolean setPow = false;
 
     public static Vec3 particle;
     public static BlockPos closestChest;
@@ -59,7 +62,7 @@ public class PowderChestSolver {
 
     @SubscribeEvent
     public void receivePacket(PacketReceivedEvent event) {
-        if (!isEnabled()) return;
+        if (!isEnabled() || setPow) return;
         if (event.packet instanceof S2APacketParticles) {
             S2APacketParticles packet = (S2APacketParticles) event.packet;
             if (packet.getParticleType().equals(EnumParticleTypes.CRIT)) {
@@ -95,7 +98,7 @@ public class PowderChestSolver {
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent event) {
         if (!isEnabled()) return;
-        if (particle != null) {
+        if (particle != null && !setPow) {
             RenderUtils.renderSmallBox(particle, Color.RED.getRGB());
             RenderUtils.drawLine(GumTuneClient.mc.thePlayer.getPositionEyes(event.partialTicks), particle, 1, event.partialTicks);
         }
@@ -107,6 +110,34 @@ public class PowderChestSolver {
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public void onUpdatePre(PlayerMoveEvent.Pre pre) {
         if (!isEnabled()) return;
+        if (setPow && closestChest != null) {
+            Vec3 playerPos = GumTuneClient.mc.thePlayer.getPositionEyes(1f);
+
+            Random rand = new Random();
+            double offsetX = rand.nextDouble() * 0.6 + 0.2;
+            double offsetY = rand.nextDouble() * 0.5 + 0.5;
+            double offsetZ = rand.nextDouble() * 0.6 + 0.2;
+
+            Vec3 chestPos = new Vec3(
+                    closestChest.getX() + offsetX,
+                    closestChest.getY() + offsetY,
+                    closestChest.getZ() + offsetZ
+            );
+
+            if (playerPos.distanceTo(chestPos) <= 4) {
+                GumTuneClient.mc.playerController.onPlayerRightClick(
+                        GumTuneClient.mc.thePlayer,
+                        GumTuneClient.mc.theWorld,
+                        GumTuneClient.mc.thePlayer.getHeldItem(),
+                        closestChest,
+                        EnumFacing.UP,
+                        chestPos.subtract(new Vec3(closestChest.getX(), closestChest.getY(), closestChest.getZ()))
+                );
+                ModUtils.sendMessage("Trying to open the chest!");
+                solved.add(closestChest);
+            }
+            return;
+        }
         if (particle == null && !rotatingBack) return;
         if (GumTuneClientConfig.powderChestSolverSmoothRotations) {
             RotationUtils.updateServerLook();
