@@ -14,7 +14,9 @@ import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
+import net.minecraftforge.fml.common.Mod;
 import rosegold.gumtuneclient.GumTuneClient;
+import rosegold.gumtuneclient.modules.mining.PowderChestSolver;
 import rosegold.gumtuneclient.modules.player.PathFinding;
 import rosegold.gumtuneclient.modules.render.CustomBlockESP;
 import rosegold.gumtuneclient.utils.*;
@@ -25,10 +27,12 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Command(value = GumTuneClient.MODID, description = "Access the " + GumTuneClient.NAME + " GUI.", aliases = {"gtc"})
 public class MainCommand {
+    private static boolean isFirstTime = true;
 
     @Main
     private static void main() {
@@ -210,6 +214,33 @@ public class MainCommand {
     private void version() {
         ModUtils.sendMessage(GumTuneClient.VERSION);
     }
+
+    @SubCommand(description = "enable powder chest instant open feuture")
+    private void setPowder(String setPowder) {
+        if (setPowder == null){
+            ModUtils.sendMessage("wrong arguments");
+            ModUtils.sendMessage("/gtc setPowder true/false or True/False or 0/1");
+        }
+        if (Objects.equals(setPowder, "true") || Objects.equals(setPowder, "True") || Objects.equals(setPowder, "1")){
+            if (isFirstTime) {
+                ModUtils.sendMessage("This is an experimental feature, use at your own risk! re send the same command to enable this feature!");
+                ModUtils.sendMessage("and if you want to disable this feature just write /gtc setPowder false");
+                isFirstTime = false;
+            } else {
+                PowderChestSolver.setPow = true;
+            }
+        }else if (Objects.equals(setPowder, "false") || Objects.equals(setPowder, "False") || Objects.equals(setPowder, "0")){
+            if (!isFirstTime){
+                PowderChestSolver.setPow = false;
+                ModUtils.sendMessage("the experimental Power Macro Disabled!");
+            }else{
+                ModUtils.sendMessage("you can't change the value of this option");
+                ModUtils.sendMessage("you need to at least make this feature true one time to change variable");
+            }
+        }
+
+    }
+
 
     @SubCommandGroup(value = "esp")
     private class ESPSubCommandGroup {
